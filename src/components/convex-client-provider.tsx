@@ -3,6 +3,7 @@
 import { ConvexQueryClient } from "@convex-dev/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConvexReactClient } from "convex/react";
+import { ConvexAuthNextjsProvider } from "@convex-dev/auth/nextjs";
 import { ReactNode } from "react";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
@@ -20,8 +21,10 @@ const queryClient = new QueryClient({
 convexQueryClient.connect(queryClient);
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
     return (
-        <QueryClientProvider client={queryClient}>
-            {children}
-        </QueryClientProvider>
+        <ConvexAuthNextjsProvider client={convex}>
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        </ConvexAuthNextjsProvider>
     )
 }

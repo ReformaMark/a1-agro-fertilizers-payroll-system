@@ -1,0 +1,123 @@
+Project Objectives
+
+General Objective
+The general objective of this research is to design and develop a web-based payroll and attendance monitoring system with biometrics tailored to A1 Agro Fertilizers and Chemical Supply's needs and policies. The aim is to automate attendance monitoring, payroll computations, tax withholdings, and general payroll reporting.
+Specific Objectives
+
+Design a prototype that corresponds with A1 Agro Fertilizers and Chemical Supply's distinctive needs and regulations.
+1. Implement biometric capabilities in the prototype to monitor attendance reliably.
+2. Address the challenges caused by the current manual payroll system through the development of a web-based system that automates processes.
+3. Ensure the system has functionalities for appropriate tax withholding, reliable payroll computations, and automated attendance monitoring.
+4. Extensively test the developed system to evaluate its usability, dependability, and functionality.
+5. Identify and address any issues that were brought up during the testing stage to improve the overall functionality of the system.
+
+Project Scope
+The proposed system includes the following key modules:
+
+1. Biometric Attendance Module: Automates employee attendance monitoring using biometric technology to enhance security and minimize attendance fraud.
+2. Employee Database: Organizes important employee information for efficient workforce management and data-driven decision-making.
+3. Payroll Calculation: Calculates employee salaries, applies deductions and taxes, and ensures compliance.
+4. Loan Calculation: Automatically computes employee loans to improve accuracy.
+5. Payslip Generation: Generates pay stubs for employees, maintaining financial records and transparency.
+6. Settings: Allows administrators to configure system settings, monitor updates, and manage server status.
+7. Reports Module: Provides various reports, including attendance, loans, and payroll summaries.
+8. User Accounts Module: Enables administrators to manage user accounts and access permissions.
+9. Content Management Module: Allows administrators to update text and pricing information.
+
+The key limitation of the system is that it requires internet connectivity, as it is a web-based application. Users will only be able to access the system online, which may pose challenges in areas with inconsistent or limited internet access.
+
+
+------------------------------------
+
+System Overview
+User Roles
+1. Admin (HR Personnel)
+Full access to employee management
+Payroll processing
+Leave/loan approval
+Report generation
+Attendance management
+
+2.Employee
+View personal information
+Submit leave requests
+View attendance records
+Access payslips
+Submit loan/cash advance requests
+
+Core Modules
+
+User Management (users table)
+    Authentication using tokenIdentifier
+    Role-based access (admin/employee)
+    Complete employee information storage
+    Government ID management
+    Employment details tracking
+
+Attendance System (attendance table)
+    Fingerprint biometric verification
+    Time in/out recording
+    Status tracking (Present, Late, Absent)
+    Daily attendance records
+    Biometric device integration
+
+Leave Management (leaves table)
+    Multiple leave types support
+    Leave request workflow
+    Approval system
+    Date range tracking
+    Leave history
+
+Payroll Processing (payrollPeriods & salaryComponents tables)
+    Pay period management
+    Salary computation
+    Allowances tracking
+    Deductions management
+    Government contributions
+    Overtime calculation
+    Holiday pay processing
+
+Request System (requests table)
+    Loan requests
+    Cash advances
+    Approval workflow
+    Request tracking
+    History maintenance
+
+Government Compliance (contributionTables table)
+    SSS contribution rates
+    PhilHealth rates
+    Pag-IBIG contributions
+    Tax brackets
+    Rate history tracking
+
+Biometric System (biometricData table)
+    Fingerprint data management
+    Device tracking
+    Biometric verification
+    Security measures
+
+Holiday Management (holidays table)
+    Holiday type classification
+    Date tracking
+    Pay rate implications
+    Description management
+
+Reporting System (reportTemplates table)
+    Customizable report templates
+    Multiple report types
+    Government-mandated reports
+    Payroll reports
+    Attendance reports
+
+Key Features
+    Role-based access control
+    Biometric attendance verification
+    Automated payroll processing
+    Government contribution calculations
+    Leave management workflow
+    Request approval system
+    Comprehensive reporting
+    Employee self-service features
+    Historical data tracking
+    Audit trail through modifiedBy/modifiedAt fields

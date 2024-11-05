@@ -6,11 +6,9 @@ import { api } from "../../convex/_generated/api";
 
 export default function Home() {
 
-  const { data, isPending } = useQuery(convexQuery(api.task.get, {}))
-
   return (
     <div>
-      {isPending ? "Loading..." : data?.title}
+      Hello World
     </div>
   );
 }
