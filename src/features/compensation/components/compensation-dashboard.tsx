@@ -3,7 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CompensationTypes } from "./compensation-types"
 import { EmployeeCompensations } from "./employee-compensations"
-import { CompensationAdjustments } from "./compoensation-adjustments"
+import { CompensationAdjustments } from "./compensation-adjustments"
 
 
 export function CompensationDashboard() {
