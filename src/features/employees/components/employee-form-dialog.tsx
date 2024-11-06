@@ -17,7 +17,7 @@ import { Form } from "@/components/ui/form"
 import { useConvexMutation } from "@convex-dev/react-query"
 import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { employeeFormSchema } from "../lib/schema"
+import { employeeFormSchema, EmployeeFormValues } from "../lib/schema"
 import { api } from "../../../../convex/_generated/api"
 import { PersonalInfoForm } from "./forms/personal-info-form"
 import { EmploymentInfoForm } from "./forms/employment-info-form"
@@ -31,7 +31,7 @@ export function EmployeeFormDialog() {
         mutationFn: useConvexMutation(api.users.createEmployee)
     })
 
-    const form = useForm({
+    const form = useForm<EmployeeFormValues>({
         resolver: zodResolver(employeeFormSchema),
         defaultValues: {
             role: "employee",
