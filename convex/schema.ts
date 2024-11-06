@@ -6,10 +6,12 @@ export default defineSchema({
     ...authTables,
     users: defineTable({
         // Auth & Role fields
-        tokenIdentifier: v.string(),
         email: v.string(),
         role: v.union(v.literal("admin"), v.literal("employee")),
-        password: v.string(), // Note: Store hashed passwords only
+        emailVerificationTime: v.optional(v.number()),
+        phone: v.optional(v.string()),
+        phoneVerificationTime: v.optional(v.number()),
+        isAnonymous: v.optional(v.boolean()),
 
         // Personal Information
         firstName: v.string(),
@@ -29,43 +31,47 @@ export default defineSchema({
         contactNumber: v.string(),
 
         // Employment Information
-        employeeTypeId: v.string(),
-        department: v.string(),
-        position: v.string(),
-        hiredDate: v.string(),
+        // employeeTypeId: v.string(),
+        department: v.optional(v.string()),
+        position: v.optional(v.string()),
+        hiredDate: v.optional(v.string()),
 
         // Address Information
-        region: v.string(),
-        province: v.string(),
-        city: v.string(),
-        barangay: v.string(),
-        postalCode: v.string(),
-        street: v.string(),
-        houseNumber: v.string(),
+        region: v.optional(v.string()),
+        province: v.optional(v.string()),
+        city: v.optional(v.string()),
+        barangay: v.optional(v.string()),
+        postalCode: v.optional(v.string()),
+        street: v.optional(v.string()),
+        houseNumber: v.optional(v.string()),
 
         // Payroll Information
-        ratePerDay: v.number(),
+
+        // government ids
+        ratePerDay: v.optional(v.number()),
         philHealthNumber: v.optional(v.string()),
         pagIbigNumber: v.optional(v.string()),
         sssNumber: v.optional(v.string()),
         birTin: v.optional(v.string()),
+
+        // contributions
         philHealthContribution: v.optional(v.number()),
         pagIbigContribution: v.optional(v.number()),
         sssContribution: v.optional(v.number()),
         incomeTax: v.optional(v.number()),
-        
+
         // Payment Schedules
-        philHealthSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        pagIbigSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        sssSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        incomeTaxSchedule: v.union(v.literal("1st"), v.literal("2nd")),
+        philHealthSchedule: v.optional(v.union(v.literal("1st half"), v.literal("2nd half"))),
+        pagIbigSchedule: v.optional(v.union(v.literal("1st half"), v.literal("2nd half"))),
+        sssSchedule: v.optional(v.union(v.literal("1st half"), v.literal("2nd half"))),
+        incomeTaxSchedule: v.optional(v.union(v.literal("1st half"), v.literal("2nd half"))),
 
         // Meta
-        isArchived: v.boolean(),
+        isArchived: v.optional(v.boolean()),
+        filledUpByAdmin: v.optional(v.boolean()),
         modifiedBy: v.optional(v.id("users")),
         modifiedAt: v.optional(v.string()),
     })
-        .index("by_token", ["tokenIdentifier"]) // For auth lookups
         .index("by_email", ["email"]) // For user lookups
         .index("by_role", ["role"]) // For filtering admins/employees
         .index("by_department", ["department"]) // For department-based queries

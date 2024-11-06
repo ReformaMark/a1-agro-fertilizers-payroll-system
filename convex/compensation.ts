@@ -32,7 +32,8 @@ export const createType = mutation({
         defaultAmount: v.number(),
     },
     handler: async (ctx, args) => {
-        const userId = "k17359jw11zmwqw5zya0m9btm9742g3x" as Id<"users">
+        const userId = await getAuthUserId(ctx)
+        if (!userId) throw new ConvexError("User not found")
 
         return await ctx.db.insert("compensationTypes", {
             ...args,

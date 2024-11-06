@@ -54,7 +54,10 @@ export function NavUser({ user }: { user: User }) {
               <Settings2 className="mr-2 h-4 w-4" />
               Profile Settings
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={signOut}>
+            <DropdownMenuItem onClick={() => {
+              signOut();
+              window.location.href = "/";
+            }}>
               <LogOut className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>
