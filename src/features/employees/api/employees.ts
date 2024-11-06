@@ -10,7 +10,3 @@ export function useEmployees(
     status
   })
 }
-
-// export function useCreateEmployee() {
-//   return useMutation(api.users.createEmployee)
-// } 

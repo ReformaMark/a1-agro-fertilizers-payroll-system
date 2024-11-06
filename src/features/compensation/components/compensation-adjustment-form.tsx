@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useCreateAdjustment, useEmployeeCompensations, useValidateAdjustment } from "../api/compensation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
@@ -18,18 +18,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Id } from "../../../../convex/_generated/dataModel"
+import { getConvexErrorMessage } from "@/lib/utils"
 
 type FormValues = z.infer<typeof formSchema>
 
 const formSchema = z.object({
-    employeeCompensationId: z.string()
-        .transform((val) => val as Id<"employeeCompensation">),
+    employeeCompensationId: z.string({
+        required_error: "Please select an employee compensation",
+    }).transform((val) => val as Id<"employeeCompensation">),
     adjustmentType: z.string({
         required_error: "Please select an adjustment type",
     }),
     reason: z.string()
-        .min(10, "Reason must be at least 10 characters")
-        .max(500, "Reason must not exceed 500 characters"),
+        .min(10, "Please provide a detailed reason (minimum 10 characters)")
+        .max(500, "Reason is too long (maximum 500 characters)"),
     previousAmount: z.number(),
     newAmount: z.number()
         .positive("Amount must be greater than 0")
@@ -38,7 +40,7 @@ const formSchema = z.object({
         .refine((date) => {
             const parsed = new Date(date)
             return parsed >= new Date()
-        }, "Effective date must be in the future"),
+        }, "Effective date must be a future date"),
 })
 
 const ADJUSTMENT_TYPES = ["Increase", "Decrease", "Suspension"]
@@ -62,6 +64,8 @@ export function CompensationAdjustmentForm({ onClose }: { onClose: () => void })
     const previousAmount = form.watch("previousAmount")
     const adjustmentType = form.watch("adjustmentType")
 
+    const [validationMessage, setValidationMessage] = useState<string | null>(null)
+
     useEffect(() => {
         if (newAmount && previousAmount && adjustmentType) {
             const validateAmount = async () => {
@@ -71,10 +75,11 @@ export function CompensationAdjustmentForm({ onClose }: { onClose: () => void })
                         newAmount,
                         adjustmentType,
                     })
+                    setValidationMessage(null)
                 } catch (error) {
-                    form.setError("newAmount", {
-                        message: (error as Error).message,
-                    })
+                    const message = getConvexErrorMessage(error as Error)
+                    form.setError("newAmount", { message })
+                    setValidationMessage(message)
                 }
             }
             validateAmount()
@@ -85,17 +90,30 @@ export function CompensationAdjustmentForm({ onClose }: { onClose: () => void })
         const compensation = employeeCompensations?.find(comp => comp._id === compensationId)
         if (compensation) {
             form.setValue("previousAmount", compensation.amount)
+            setValidationMessage(null)
         }
     }
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
+            await validateAdjustment({
+                previousAmount: values.previousAmount,
+                newAmount: values.newAmount,
+                adjustmentType: values.adjustmentType,
+            })
+
             await createAdjustment(values)
-            toast.success("Adjustment created successfully")
+            toast.success("Compensation adjustment applied successfully")
             form.reset()
             onClose()
         } catch (error) {
-            toast.error((error as Error).message)
+            const message = getConvexErrorMessage(error as Error)
+            toast.error(message)
+            if (message.includes("amount")) {
+                form.setError("newAmount", { message })
+            } else {
+                form.setError("root", { message })
+            }
         }
     }
 
@@ -105,8 +123,8 @@ export function CompensationAdjustmentForm({ onClose }: { onClose: () => void })
                 <DialogHeader>
                     <DialogTitle>New Compensation Adjustment</DialogTitle>
                     <DialogDescription>
-                        Create a new adjustment for employee compensation.
-                        All adjustments require approval before taking effect.
+                        Adjust an employee's compensation. Changes will take effect immediately.
+                        Please review the adjustment details carefully.
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -257,20 +275,30 @@ export function CompensationAdjustmentForm({ onClose }: { onClose: () => void })
                             )}
                         />
 
-                        {form.formState.errors.root && (
-                            <div className="text-sm font-medium text-destructive">
-                                {form.formState.errors.root.message}
+                        {validationMessage && (
+                            <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                                <p className="font-medium">Validation Error</p>
+                                <p>{validationMessage}</p>
                             </div>
                         )}
 
-                        {newAmount && previousAmount && (
+                        {newAmount && previousAmount && !validationMessage && (
                             <div className="rounded-lg border p-3 space-y-2">
                                 <h4 className="font-medium">Adjustment Preview</h4>
                                 <div className="text-sm text-muted-foreground">
                                     <p>Previous: ₱{previousAmount.toLocaleString()}</p>
                                     <p>New: ₱{newAmount.toLocaleString()}</p>
                                     <p>Difference: ₱{(newAmount - previousAmount).toLocaleString()}</p>
-                                    <p>Change: {((newAmount - previousAmount) / previousAmount * 100).toFixed(2)}%</p>
+                                    <p className={cn(
+                                        "font-medium",
+                                        Math.abs((newAmount - previousAmount) / previousAmount * 100) > 30
+                                            ? "text-warning"
+                                            : "text-muted-foreground"
+                                    )}>
+                                        Change: {((newAmount - previousAmount) / previousAmount * 100).toFixed(2)}%
+                                        {Math.abs((newAmount - previousAmount) / previousAmount * 100) > 30 &&
+                                            " (Large change detected)"}
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -281,9 +309,13 @@ export function CompensationAdjustmentForm({ onClose }: { onClose: () => void })
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={!form.formState.isValid || form.formState.isSubmitting}
+                                disabled={
+                                    !form.formState.isValid ||
+                                    form.formState.isSubmitting ||
+                                    !!validationMessage
+                                }
                             >
-                                Create
+                                Apply Adjustment
                             </Button>
                         </div>
                     </form>

@@ -8,6 +8,7 @@ import { useState } from "react"
 import { api } from "../../../../convex/_generated/api"
 import { CompensationAdjustmentForm } from "./compensation-adjustment-form"
 import { useQuery } from "convex/react"
+import { Badge } from "@/components/ui/badge"
 
 interface CompensationAdjustment extends Doc<"compensationAdjustments"> {
     employeeCompensation: (Doc<"employeeCompensation"> & {
@@ -17,9 +18,12 @@ interface CompensationAdjustment extends Doc<"compensationAdjustments"> {
 
 const columns: ColumnDef<CompensationAdjustment>[] = [
     {
-        accessorKey: "employeeCompensation.userId",
+        accessorKey: "employeeCompensation.user.firstName",
         header: "Employee",
-        // TODO: Fetch employee name
+        cell: ({ row }) => {
+            const user = row.original.employeeCompensation?.user
+            return user ? `${user.firstName} ${user.lastName}` : "N/A"
+        },
     },
     {
         accessorKey: "employeeCompensation.compensationType.name",
@@ -27,7 +31,19 @@ const columns: ColumnDef<CompensationAdjustment>[] = [
     },
     {
         accessorKey: "adjustmentType",
-        header: "Adjustment Type",
+        header: "Type",
+        cell: ({ row }) => {
+            const type = row.getValue<string>("adjustmentType")
+            return (
+                <Badge variant={
+                    type === "Increase" ? "success" :
+                    type === "Decrease" ? "destructive" :
+                    "secondary"
+                }>
+                    {type}
+                </Badge>
+            )
+        },
     },
     {
         accessorKey: "previousAmount",
@@ -45,8 +61,8 @@ const columns: ColumnDef<CompensationAdjustment>[] = [
         cell: ({ row }) => new Date(row.getValue("effectiveDate")).toLocaleDateString(),
     },
     {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: "reason",
+        header: "Reason",
     },
 ]
 

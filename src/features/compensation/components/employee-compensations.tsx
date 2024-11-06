@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { ColumnDef } from "@tanstack/react-table"
 import { Doc } from "../../../../convex/_generated/dataModel"
 import { useEmployeeCompensations } from "../api/compensation"
+import { useState } from "react"
+import { AssignCompensationForm } from "./assign-compensation-form"
 
 interface EmployeeCompensationWithType extends Doc<"employeeCompensation"> {
     compensationType: Doc<"compensationTypes"> | null
@@ -38,6 +40,7 @@ const columns: ColumnDef<EmployeeCompensationWithType>[] = [
 ]
 
 export function EmployeeCompensations() {
+    const [showForm, setShowForm] = useState(false)
     const compensations = useEmployeeCompensations()
 
     if (!compensations) return <div>Loading...</div>
@@ -46,7 +49,7 @@ export function EmployeeCompensations() {
         <div className="space-y-4">
             <div className="flex justify-between">
                 <h2 className="text-xl font-semibold">Employee Compensations</h2>
-                <Button>Assign Compensation</Button>
+                <Button onClick={() => setShowForm(true)}>Assign Compensation</Button>
             </div>
 
             <DataTable
@@ -55,6 +58,10 @@ export function EmployeeCompensations() {
                 filter="employeeTypeId"
                 filterLabel="Employee ID"
             />
+
+            {showForm && (
+                <AssignCompensationForm onClose={() => setShowForm(false)} />
+            )}
         </div>
     )
 }

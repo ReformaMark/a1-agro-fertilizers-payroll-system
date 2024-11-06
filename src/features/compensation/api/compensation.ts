@@ -37,3 +37,7 @@ export function useEmployee(userId: Id<"users">) {
 export function useValidateAdjustment() {
     return useMutation(api.compensation.validateAdjustment)
 }
+
+export function useAssignCompensation() {
+    return useMutation(api.compensation.assignCompensation)
+}
