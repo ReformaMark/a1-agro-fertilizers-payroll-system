@@ -4,18 +4,16 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 
 export default function AdminLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode
+    children: React.ReactNode
 }) {
-  return (
-    <SidebarProvider>
-      <div className="flex">
-        <AppSidebar />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </SidebarProvider>
-  )
+    return (
+        <SidebarProvider>
+            <AppSidebar />
+            <div className="flex flex-col min-h-screen bg-white container mx-auto">
+                {children}
+            </div>
+        </SidebarProvider>
+    )
 } 

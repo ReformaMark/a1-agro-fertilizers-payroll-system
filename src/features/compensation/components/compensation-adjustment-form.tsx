@@ -19,6 +19,8 @@ import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Id } from "../../../../convex/_generated/dataModel"
 
+type FormValues = z.infer<typeof formSchema>
+
 const formSchema = z.object({
     employeeCompensationId: z.string()
         .transform((val) => val as Id<"employeeCompensation">),
@@ -46,7 +48,7 @@ export function CompensationAdjustmentForm({ onClose }: { onClose: () => void })
     const employeeCompensations = useEmployeeCompensations()
     const createAdjustment = useCreateAdjustment()
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             reason: "",
