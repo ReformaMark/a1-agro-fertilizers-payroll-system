@@ -58,7 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         items: [
           {
             title: "Daily Records",
-            url: "/admin/attendance/daily",
+            url: "/admin/attendance",
           },
           {
             title: "Biometric Management",
