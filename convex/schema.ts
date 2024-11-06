@@ -73,8 +73,8 @@ export default defineSchema({
 
     attendance: defineTable({
         userId: v.id("users"),
-        timeIn: v.string(),
-        timeOut: v.optional(v.string()),
+        timeIn: v.number(),
+        timeOut: v.optional(v.number()),
         type: v.string(), // Regular, Overtime, etc.
         status: v.string(), // Present, Late, Absent
         remarks: v.optional(v.string()),

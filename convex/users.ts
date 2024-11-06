@@ -9,7 +9,7 @@ export const get = query({
         // const userId = await getAuthUserId(ctx)
         // if (!userId) throw new ConvexError("User not found")
 
-        const userId = "k17359jw11zmwqw5zya0m9btm9742g3x" as Id<"users">
+        const userId = "kn7ar73k80x8yjq5wgd75s8ht5742943" as Id<"users">
 
         const user = await ctx.db.get(userId)
         if (!user) throw new ConvexError("User not found")
