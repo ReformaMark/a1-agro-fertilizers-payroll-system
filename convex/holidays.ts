@@ -45,16 +45,17 @@ export const getHolidays = query({
         }
 
         if (args.type) {
-            query = query.withIndex("by_type").filter(q => q.eq(q.field("type"), args.type))
+            query = query.filter(q => q.eq(q.field("type"), args.type))
         }
 
         if (args.location) {
-            query = query.withIndex("by_location").filter(q => q.eq(q.field("location"), args.location))
+            query = query.filter(q => q.eq(q.field("location"), args.location))
         }
 
         if (args.year) {
-            query = query.filter(q => q.gte(q.field("date"), `${args.year}-01-01`))
-                .filter(q => q.lt(q.field("date"), `${parseInt(args.year) + 1}-01-01`))
+            const year = args.year
+            query = query.filter(q => q.gte(q.field("date"), `${year}-01-01`))
+                .filter(q => q.lt(q.field("date"), `${parseInt(year) + 1}-01-01`))
         }
 
         return await query.collect()

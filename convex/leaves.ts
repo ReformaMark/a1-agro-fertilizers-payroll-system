@@ -78,4 +78,43 @@ export const updateLeaveRequestStatus = mutation({
             modifiedAt: new Date().toISOString(),
         })
     },
+})
+
+// Add new query for leave request statistics
+export const getLeaveRequestStats = query({
+    args: {
+        userId: v.optional(v.id("users")),
+    },
+    handler: async (ctx, args) => {
+        let query = ctx.db.query("leaveRequests")
+            .withIndex("by_user")
+
+        if (args.userId) {
+            query = query.filter(q => q.eq(q.field("userId"), args.userId))
+        }
+
+        const requests = await query.collect()
+
+        // Fetch user details for each request
+        const users = await Promise.all(
+            requests.map(request => ctx.db.get(request.userId))
+        )
+
+        const requestsWithUsers = requests.map((request, index) => ({
+            ...request,
+            user: users[index]
+        }))
+
+        return {
+            total: requests.length,
+            pending: requests.filter(r => r.status === "Pending").length,
+            approved: requests.filter(r => r.status === "Approved").length,
+            rejected: requests.filter(r => r.status === "Rejected").length,
+            byType: requests.reduce((acc, req) => {
+                acc[req.type] = (acc[req.type] || 0) + 1
+                return acc
+            }, {} as Record<string, number>),
+            requests: requestsWithUsers
+        }
+    },
 }) 

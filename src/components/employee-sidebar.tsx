@@ -29,7 +29,7 @@ const routes = [
     {
         label: "Leave Requests",
         icon: CalendarDays,
-        href: "/employee/leaves",
+        href: "/employee/requests/leaves",
         color: "text-violet-500",
     },
     {
