@@ -261,4 +261,38 @@ export default defineSchema({
     })
         .index("by_status", ["status"])
         .index("by_effective_date", ["effectiveDate"]),
+
+    leaveRequests: defineTable({
+        userId: v.id("users"),
+        type: v.string(), // "Annual", "Sick", "Maternity", "Paternity", "Emergency", "Other"
+        startDate: v.string(),
+        endDate: v.string(),
+        reason: v.string(),
+        status: v.string(), // "Pending", "Approved", "Rejected"
+        approvedBy: v.optional(v.id("users")),
+        approvedAt: v.optional(v.string()),
+        rejectionReason: v.optional(v.string()),
+        attachments: v.optional(v.array(v.string())), // URLs to uploaded documents
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_status", ["status"])
+        .index("by_date", ["startDate"]),
+
+    benefitRequests: defineTable({
+        userId: v.id("users"),
+        type: v.string(), // "Health", "Insurance", "Allowance", "Other"
+        description: v.string(),
+        amount: v.optional(v.number()),
+        status: v.string(), // "Pending", "Approved", "Rejected"
+        approvedBy: v.optional(v.id("users")),
+        approvedAt: v.optional(v.string()),
+        rejectionReason: v.optional(v.string()),
+        attachments: v.optional(v.array(v.string())), // URLs to uploaded documents
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_status", ["status"]),
 });

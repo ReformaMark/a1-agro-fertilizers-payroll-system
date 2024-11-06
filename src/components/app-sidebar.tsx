@@ -110,12 +110,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: FileText,
         items: [
           {
-            title: "Loan Requests",
-            url: "/admin/requests/loans",
+            title: "Benefits",
+            url: "/admin/requests/benefits",
           },
           {
-            title: "Cash Advances",
-            url: "/admin/requests/cash-advances",
+            title: "Leave Requests",
+            url: "/admin/requests/leaves",
           },
         ],
       },
