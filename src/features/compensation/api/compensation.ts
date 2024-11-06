@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { Id } from "../../../../convex/_generated/dataModel"
@@ -19,9 +18,9 @@ export function useEmployeeCompensations(
     })
 }
 
-export function useCreateCompensationType() {
-    return useMutation(api.compensation.createType)
-}
+// export function useCreateCompensationType() {
+//     return useMutation(api.compensation.createType)
+// }
 
 export function useUpdateCompensationType() {
     return useMutation(api.compensation.updateType)

@@ -24,6 +24,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { DataTablePagination } from "./data-table-pagination"
+import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -31,6 +32,7 @@ interface DataTableProps<TData, TValue> {
     filter?: string;
     onRowClick?: (row: TData) => void;
     filterLabel?: string;
+    className?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -39,6 +41,7 @@ export function DataTable<TData, TValue>({
     filter,
     onRowClick,
     filterLabel,
+    className
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -73,23 +76,21 @@ export function DataTable<TData, TValue>({
             </div>
 
             {/* Table Code */}
-            <div className="rounded-lg border border-emerald-100 bg-white shadow-sm">
+            <div className="rounded-md border">
                 <Table>
-                    <TableHeader className="bg-emerald-50/50">
+                    <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id} className="text-emerald-700 font-medium">
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    )
-                                })}
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </TableHead>
+                                ))}
                             </TableRow>
                         ))}
                     </TableHeader>
@@ -99,11 +100,14 @@ export function DataTable<TData, TValue>({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
-                                    className="hover:bg-emerald-50/50 transition-colors"
-                                    onClick={() => onRowClick && onRowClick(row.original)}
+                                    className={cn(
+                                        "cursor-pointer hover:bg-muted/50",
+                                        className
+                                    )}
+                                    onClick={() => onRowClick?.(row.original as TData)}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="cursor-pointer">
+                                        <TableCell key={cell.id}>
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
@@ -116,7 +120,7 @@ export function DataTable<TData, TValue>({
                             <TableRow>
                                 <TableCell
                                     colSpan={columns.length}
-                                    className="h-24 text-center text-muted-foreground"
+                                    className="h-24 text-center"
                                 >
                                     No results.
                                 </TableCell>

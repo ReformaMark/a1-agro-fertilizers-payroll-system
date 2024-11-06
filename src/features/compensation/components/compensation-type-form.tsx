@@ -1,53 +1,95 @@
 "use client"
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
 import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { useCreateCompensationType } from "../api/compensation"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useConvexMutation } from "@convex-dev/react-query"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
+import { api } from "../../../../convex/_generated/api"
+import { Doc } from "../../../../convex/_generated/dataModel"
 
 const formSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    description: z.string(),
-    category: z.string(),
+    name: z.string().min(1, "Please enter a name for this compensation type"),
+    description: z.string().min(1, "Please provide a description explaining this compensation type"),
+    category: z.string().min(1, "Please select a category for this compensation type"),
     taxable: z.boolean(),
-    frequency: z.string(),
-    computationType: z.string(),
-    defaultAmount: z.number().optional(),
-    formula: z.string().optional(),
+    frequency: z.string().min(1, "Please select how often this compensation is paid"),
+    defaultAmount: z.number().min(0, "Default amount must be a positive number"),
 })
 
 const CATEGORIES = ["Allowance", "Bonus", "Benefit", "Other"]
 const FREQUENCIES = ["Monthly", "Quarterly", "Annual", "One-time"]
-const COMPUTATION_TYPES = ["Fixed", "Percentage", "Formula"]
 
-export function CompensationTypeForm({ onClose }: { onClose: () => void }) {
-    const createType = useCreateCompensationType()
+interface CompensationTypeFormProps {
+    onClose: () => void
+    editingType?: Doc<"compensationTypes"> | null
+}
+
+export function CompensationTypeForm({ onClose, editingType }: CompensationTypeFormProps) {
+    const { mutate: createType, isPending: isCreating } = useMutation({
+        mutationFn: useConvexMutation(api.compensation.createType)
+    })
+
+    const { mutate: updateType, isPending: isUpdating } = useMutation({
+        mutationFn: useConvexMutation(api.compensation.updateType)
+    })
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            taxable: false,
-            description: "",
+            name: editingType?.name || "",
+            description: editingType?.description || "",
+            category: editingType?.category || "",
+            taxable: editingType?.taxable || false,
+            frequency: editingType?.frequency || "",
+            defaultAmount: editingType?.defaultAmount || 0,
         },
     })
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        await createType(values)
-        form.reset()
-        onClose()
+        if (editingType) {
+            updateType(
+                { id: editingType._id, ...values },
+                {
+                    onSuccess: () => {
+                        toast.success("Compensation type updated successfully")
+                        form.reset()
+                        onClose()
+                    },
+                    onError: (error) => {
+                        toast.error("Failed to update compensation type")
+                    }
+                }
+            )
+        } else {
+            createType(values, {
+                onSuccess: () => {
+                    toast.success("Compensation type created successfully")
+                    form.reset()
+                    onClose()
+                },
+                onError: (error) => {
+                    toast.error("Failed to create compensation type")
+                }
+            })
+        }
     }
 
     return (
         <Dialog open onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Add New Compensation Type</DialogTitle>
+                    <DialogTitle>
+                        {editingType ? "Edit" : "Add New"} Compensation Type
+                    </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -60,6 +102,7 @@ export function CompensationTypeForm({ onClose }: { onClose: () => void }) {
                                     <FormControl>
                                         <Input placeholder="Transportation Allowance" {...field} />
                                     </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -70,20 +113,24 @@ export function CompensationTypeForm({ onClose }: { onClose: () => void }) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Category</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
+                                    <FormControl>
+                                        <Select 
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select category" />
                                             </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {CATEGORIES.map((category) => (
-                                                <SelectItem key={category} value={category}>
-                                                    {category}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                            <SelectContent>
+                                                {CATEGORIES.map((category) => (
+                                                    <SelectItem key={category} value={category}>
+                                                        {category}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -94,44 +141,24 @@ export function CompensationTypeForm({ onClose }: { onClose: () => void }) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Frequency</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
+                                    <FormControl>
+                                        <Select 
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select frequency" />
                                             </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {FREQUENCIES.map((frequency) => (
-                                                <SelectItem key={frequency} value={frequency}>
-                                                    {frequency}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="computationType"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Computation Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select computation type" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {COMPUTATION_TYPES.map((type) => (
-                                                <SelectItem key={type} value={type}>
-                                                    {type}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                            <SelectContent>
+                                                {FREQUENCIES.map((frequency) => (
+                                                    <SelectItem key={frequency} value={frequency}>
+                                                        {frequency}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -143,13 +170,14 @@ export function CompensationTypeForm({ onClose }: { onClose: () => void }) {
                                 <FormItem>
                                     <FormLabel>Default Amount</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            type="number" 
-                                            placeholder="0.00" 
+                                        <Input
+                                            type="number"
+                                            placeholder="0.00"
                                             {...field}
                                             onChange={e => field.onChange(e.target.valueAsNumber)}
                                         />
                                     </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -179,12 +207,13 @@ export function CompensationTypeForm({ onClose }: { onClose: () => void }) {
                                 <FormItem>
                                     <FormLabel>Description</FormLabel>
                                     <FormControl>
-                                        <Textarea 
+                                        <Textarea
                                             placeholder="Enter description"
                                             className="resize-none"
                                             {...field}
                                         />
                                     </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -193,8 +222,11 @@ export function CompensationTypeForm({ onClose }: { onClose: () => void }) {
                             <Button variant="outline" onClick={onClose}>
                                 Cancel
                             </Button>
-                            <Button type="submit">
-                                Create
+                            <Button
+                                type="submit"
+                                disabled={!form.formState.isValid || isCreating || isUpdating}
+                            >
+                                {editingType ? "Update" : "Create"}
                             </Button>
                         </div>
                     </form>
