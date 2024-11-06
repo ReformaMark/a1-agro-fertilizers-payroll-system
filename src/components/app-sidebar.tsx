@@ -126,7 +126,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         items: [
           {
             title: "Holidays",
-            url: "/admin/company/holidays",
+            url: "/admin/holidays",
           },
           {
             title: "Departments",

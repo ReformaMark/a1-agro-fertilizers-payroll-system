@@ -187,12 +187,18 @@ export default defineSchema({
 
     holidays: defineTable({
         name: v.string(),
-        type: v.string(), // Legal, Special Non-Working, Local
-        date: v.string(),
+        date: v.string(), // ISO string
+        type: v.string(), // "Regular" | "Special" | "Local"
         description: v.optional(v.string()),
+        isRecurring: v.boolean(), // true for annual holidays
+        location: v.optional(v.string()), // for local holidays
         createdBy: v.id("users"),
+        modifiedAt: v.string(),
+        isArchived: v.boolean(),
     })
-        .index("by_date", ["date"]),
+        .index("by_date", ["date"])
+        .index("by_type", ["type"])
+        .index("by_location", ["location"]),
 
     reportTemplates: defineTable({
         name: v.string(),
