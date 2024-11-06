@@ -64,6 +64,7 @@ export function CompensationTypes() {
                     // Handle row click - maybe open edit form
                     console.log("Clicked row:", row)
                 }}
+                filterLabel="Name"
             />
 
             {showForm && (

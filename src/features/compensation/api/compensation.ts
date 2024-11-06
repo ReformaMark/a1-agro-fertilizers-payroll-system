@@ -26,3 +26,15 @@ export function useCreateCompensationType() {
 export function useUpdateCompensationType() {
     return useMutation(api.compensation.updateType)
 }
+
+export function useCreateAdjustment() {
+    return useMutation(api.compensation.createAdjustment)
+}
+
+export function useEmployee(userId: Id<"users">) {
+    return useQuery(api.users.getEmployee, { userId })
+}
+
+export function useValidateAdjustment() {
+    return useMutation(api.compensation.validateAdjustment)
+}

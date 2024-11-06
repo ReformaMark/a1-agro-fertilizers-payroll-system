@@ -19,7 +19,7 @@ const columns: ColumnDef<EmployeeCompensationWithType>[] = [
     {
         accessorKey: "compensationType.name",
         header: "Compensation Type",
-        
+
     },
     {
         accessorKey: "amount",
@@ -52,7 +52,8 @@ export function EmployeeCompensations() {
             <DataTable
                 columns={columns}
                 data={compensations}
-                filter="userId"
+                filter="employeeTypeId"
+                filterLabel="Employee ID"
             />
         </div>
     )

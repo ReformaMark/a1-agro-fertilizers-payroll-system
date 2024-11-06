@@ -25,15 +25,12 @@ import {
 } from "@/components/ui/table"
 import { DataTablePagination } from "./data-table-pagination"
 
-
-
-
-
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
     filter?: string;
     onRowClick?: (row: TData) => void;
+    filterLabel?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -41,6 +38,7 @@ export function DataTable<TData, TValue>({
     data,
     filter,
     onRowClick,
+    filterLabel,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -61,29 +59,28 @@ export function DataTable<TData, TValue>({
     })
 
     return (
-        <div>
-
+        <div className="w-full space-y-4">
             {/* Input code */}
-            <div className="flex items-center py-4">
+            <div className="flex items-center justify-between gap-4">
                 <Input
-                    placeholder={`Filter ${filter}`}
+                    placeholder={`Filter ${filterLabel ?? filter}`}
                     value={(table.getColumn(`${filter}`)?.getFilterValue() as string) ?? ""}
                     onChange={(event) =>
                         table.getColumn(`${filter}`)?.setFilterValue(event.target.value)
                     }
-                    className="max-w-sm border-red-200 focus:border-red-500 focus:ring-red-500"
+                    className="max-w-sm border-emerald-100 focus:border-emerald-400 focus:ring-emerald-400"
                 />
             </div>
 
             {/* Table Code */}
-            <div className="rounded-md border border-red-200">
+            <div className="rounded-lg border border-emerald-100 bg-white shadow-sm">
                 <Table>
-                    <TableHeader className="bg-red-50">
+                    <TableHeader className="bg-emerald-50/50">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id} className="text-red-700">
+                                        <TableHead key={header.id} className="text-emerald-700 font-medium">
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
@@ -102,7 +99,7 @@ export function DataTable<TData, TValue>({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
-                                    className="hover:bg-red-50"
+                                    className="hover:bg-emerald-50/50 transition-colors"
                                     onClick={() => onRowClick && onRowClick(row.original)}
                                 >
                                     {row.getVisibleCells().map((cell) => (
@@ -119,7 +116,7 @@ export function DataTable<TData, TValue>({
                             <TableRow>
                                 <TableCell
                                     colSpan={columns.length}
-                                    className="h-24 text-center"
+                                    className="h-24 text-center text-muted-foreground"
                                 >
                                     No results.
                                 </TableCell>

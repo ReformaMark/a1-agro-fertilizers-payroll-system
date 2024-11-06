@@ -4,11 +4,15 @@ import { DataTable } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
 import { ColumnDef } from "@tanstack/react-table"
 import { Doc } from "../../../../convex/_generated/dataModel"
+import { useState } from "react"
+import { api } from "../../../../convex/_generated/api"
+import { CompensationAdjustmentForm } from "./compensation-adjustment-form"
+import { useQuery } from "convex/react"
 
 interface CompensationAdjustment extends Doc<"compensationAdjustments"> {
-    employeeCompensation: Doc<"employeeCompensation"> & {
-        compensationType: Doc<"compensationTypes">
-    }
+    employeeCompensation: (Doc<"employeeCompensation"> & {
+        compensationType: Doc<"compensationTypes"> | null
+    }) | null
 }
 
 const columns: ColumnDef<CompensationAdjustment>[] = [
@@ -47,21 +51,28 @@ const columns: ColumnDef<CompensationAdjustment>[] = [
 ]
 
 export function CompensationAdjustments() {
-    // TODO: Add query hook for adjustments
-    const adjustments: CompensationAdjustment[] = []
+    const [showForm, setShowForm] = useState(false)
+    const adjustments = useQuery(api.compensation.getAdjustments, {})
+
+    if (!adjustments) return <div>Loading...</div>
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between">
                 <h2 className="text-xl font-semibold">Compensation Adjustments</h2>
-                <Button>New Adjustment</Button>
+                <Button onClick={() => setShowForm(true)}>New Adjustment</Button>
             </div>
 
             <DataTable
                 columns={columns}
                 data={adjustments}
-                filter="employeeCompensation.userId"
+                filter="employeeCompensation.user.firstName"
+                filterLabel="Employee Name"
             />
+
+            {showForm && (
+                <CompensationAdjustmentForm onClose={() => setShowForm(false)} />
+            )}
         </div>
     )
 }

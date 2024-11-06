@@ -17,7 +17,7 @@ export default defineSchema({
         gender: v.boolean(),
 
         // Employment Information
-        employmentTypeId: v.string(),
+        employeeTypeId: v.string(),
         department: v.string(),
         position: v.string(),
         hiredDate: v.string(),
@@ -31,8 +31,8 @@ export default defineSchema({
 
         // Meta
         isArchived: v.boolean(),
-        modifiedBy: v.id("users"),
-        modifiedAt: v.string(),
+        modifiedBy: v.optional(v.id("users")),
+        modifiedAt: v.optional(v.string()),
     })
         .index("by_token", ["tokenIdentifier"]) // For auth lookups
         .index("by_email", ["email"]) // For user lookups
