@@ -1,33 +1,64 @@
+import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-    // Core users table with authentication
+    ...authTables,
     users: defineTable({
         // Auth & Role fields
         tokenIdentifier: v.string(),
         email: v.string(),
-        role: v.union(v.literal("admin"), v.literal("employee")), // HR is "admin"
+        role: v.union(v.literal("admin"), v.literal("employee")),
+        password: v.string(), // Note: Store hashed passwords only
 
         // Personal Information
         firstName: v.string(),
         middleName: v.optional(v.string()),
         lastName: v.string(),
+        image: v.optional(v.string()),
         dateOfBirth: v.string(),
-        gender: v.boolean(),
+        gender: v.union(v.literal("male"), v.literal("female")),
+        maritalStatus: v.union(
+            v.literal("single"),
+            v.literal("married"),
+            v.literal("widowed"),
+            v.literal("divorced"),
+            v.literal("separated")
+        ),
+        contactType: v.union(v.literal("mobile"), v.literal("landline")),
+        contactNumber: v.string(),
 
         // Employment Information
         employeeTypeId: v.string(),
         department: v.string(),
         position: v.string(),
         hiredDate: v.string(),
-        ratePerDay: v.number(),
 
-        // Government IDs
+        // Address Information
+        region: v.string(),
+        province: v.string(),
+        city: v.string(),
+        barangay: v.string(),
+        postalCode: v.string(),
+        street: v.string(),
+        houseNumber: v.string(),
+
+        // Payroll Information
+        ratePerDay: v.number(),
         philHealthNumber: v.optional(v.string()),
         pagIbigNumber: v.optional(v.string()),
         sssNumber: v.optional(v.string()),
         birTin: v.optional(v.string()),
+        philHealthContribution: v.optional(v.number()),
+        pagIbigContribution: v.optional(v.number()),
+        sssContribution: v.optional(v.number()),
+        incomeTax: v.optional(v.number()),
+        
+        // Payment Schedules
+        philHealthSchedule: v.union(v.literal("1st"), v.literal("2nd")),
+        pagIbigSchedule: v.union(v.literal("1st"), v.literal("2nd")),
+        sssSchedule: v.union(v.literal("1st"), v.literal("2nd")),
+        incomeTaxSchedule: v.union(v.literal("1st"), v.literal("2nd")),
 
         // Meta
         isArchived: v.boolean(),
