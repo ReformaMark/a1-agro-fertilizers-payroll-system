@@ -18,6 +18,7 @@ import type * as auth from "../auth.js";
 import type * as benefits from "../benefits.js";
 import type * as cashAdvance from "../cashAdvance.js";
 import type * as compensation from "../compensation.js";
+import type * as contributionTables from "../contributionTables.js";
 import type * as holidays from "../holidays.js";
 import type * as http from "../http.js";
 import type * as leaves from "../leaves.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   benefits: typeof benefits;
   cashAdvance: typeof cashAdvance;
   compensation: typeof compensation;
+  contributionTables: typeof contributionTables;
   holidays: typeof holidays;
   http: typeof http;
   leaves: typeof leaves;
