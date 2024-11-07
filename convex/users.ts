@@ -160,3 +160,23 @@ export const updateEmployee = mutation({
         return true
     }
 })
+
+export const listEmployeesWithContributions = query({
+    args: {
+        schedule: v.union(v.literal("1st half"), v.literal("2nd half"))
+    },
+    handler: async (ctx, args) => {
+        const employees = await ctx.db
+            .query("users")
+            .filter(q =>
+                q.and(
+                    q.eq(q.field("role"), "employee"),
+                    q.eq(q.field("filledUpByAdmin"), true),
+                    q.eq(q.field("sssSchedule"), args.schedule)
+                )
+            )
+            .collect();
+
+        return employees;
+    }
+});
