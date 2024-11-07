@@ -79,9 +79,7 @@ export default defineSchema({
         status: v.string(), // Present, Late, Absent
         remarks: v.optional(v.string()),
         date: v.string(), // Added for daily records
-        biometricVerified: v.boolean(),
-        verificationMethod: v.string(), // "fingerprint", "manual", etc.
-        deviceId: v.optional(v.string()), // Reference to the biometric device
+        
     })
         .index("by_user", ["userId"]) // For user's attendance history
         .index("by_date", ["date"]) // For daily reports

@@ -9,23 +9,23 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useAuthActions } from "@convex-dev/auth/react"
-import { useConvexAuth } from "convex/react"
+// import { useConvexAuth } from "convex/react"
 import { Loader2, TriangleAlertIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+// import { useRouter } from "next/navigation"
+import {  useState } from "react"
 // import { useCheckRole } from "../api/use-check-role"
 
 export const SignInCard = () => {
 
     const { signIn } = useAuthActions();
     // const { data: role } = useCheckRole()
-    const { isAuthenticated } = useConvexAuth();
+    // const { isAuthenticated } = useConvexAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [pending, setPending] = useState<boolean>(false);
     const [error, setError] = useState("");
 
-    const router = useRouter()
+    // const router = useRouter()
 
     // useEffect(() => {
     //     if (isAuthenticated) {
