@@ -73,11 +73,11 @@ export const getEmployees = query({
 
         const employees = await query.collect()
 
-        return employees.map(async (emp) => ({
+        return await Promise.all(employees.map(async (emp) => ({
             ...emp,
             imageUrl: emp.image ? await ctx.storage.getUrl(emp.image) : null,
             status: getEmployeeStatus(emp),
-        }))
+        })))
     }
 })
 export const getAllEmployees = query({
@@ -97,6 +97,7 @@ export const getAllEmployees = query({
         )
     }
 })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getEmployeeStatus(employee: any) {
     if (employee.isArchived) return "inactive"
 

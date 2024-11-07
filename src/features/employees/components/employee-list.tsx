@@ -114,7 +114,7 @@ export function EmployeeList() {
             <div className="rounded-lg border bg-card">
                 <DataTable
                     columns={columns}
-                    // @ts-expect-error
+          
                     data={employees}
                     filter="name"
                     filterLabel="Search employees"

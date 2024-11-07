@@ -11,9 +11,10 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useAuthActions } from "@convex-dev/auth/react"
 import { Loader2, TriangleAlertIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
+
 import { useState } from "react"
 import { AuthFlow } from "../types"
+import { useRouter } from "next/navigation"
 // import { useCheckRole } from "../api/use-check-role"
 
 interface SignInCardProps {
@@ -31,7 +32,7 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
     const [pending, setPending] = useState<boolean>(false);
     const [error, setError] = useState("");
 
-    // const router = useRouter()
+    const router = useRouter()
 
     // useEffect(() => {
     //     if (isAuthenticated) {
