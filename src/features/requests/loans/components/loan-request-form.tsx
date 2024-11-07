@@ -35,9 +35,17 @@ const governmentLoanSchema = z.object({
     applicationNo: z.string().min(1, "Application number is required"),
     amount: z.number().min(1, "Amount must be greater than 0"),
     startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().min(1, "End date is required"),
     monthlySchedule: z.enum(["1st Half", "2nd Half"]),
     amortization: z.number().min(1, "Amortization must be greater than 0"),
     additionalInfo: z.string().optional(),
+}).refine((data) => {
+    const start = new Date(data.startDate);
+    const end = new Date(data.endDate);
+    return end > start
+}, {
+    message: "End date must be after start date",
+    path: ["endDate"],
 })
 
 interface LoanRequestFormProps {
@@ -55,9 +63,9 @@ export function LoanRequestForm({ onClose }: LoanRequestFormProps) {
     const governmentLoanForm = useForm<z.infer<typeof governmentLoanSchema>>({
         resolver: zodResolver(governmentLoanSchema),
         defaultValues: {
-            startDate: new Date().toISOString(),
+            startDate: new Date().toISOString(), // Only set today's date for start date
         },
-    })
+    });
 
     async function onSubmitCompanyLoan(values: z.infer<typeof companyLoanSchema>) {
         try {
@@ -313,6 +321,49 @@ export function LoanRequestForm({ onClose }: LoanRequestFormProps) {
                                                         selected={field.value ? new Date(field.value) : undefined}
                                                         onSelect={(date) => field.onChange(date?.toISOString())}
                                                         disabled={(date) => date < new Date()}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={governmentLoanForm.control}
+                                    name="endDate"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>End Date</FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant="outline"
+                                                            className={cn(
+                                                                "w-full pl-3 text-left font-normal",
+                                                                !field.value && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            {field.value ? (
+                                                                format(new Date(field.value), "PPP")
+                                                            ) : (
+                                                                <span>Select end date</span>
+                                                            )}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value ? new Date(field.value) : undefined}
+                                                        onSelect={(date) => field.onChange(date?.toISOString())}
+                                                        disabled={(date) => {
+                                                            const startDate = governmentLoanForm.getValues().startDate;
+                                                            return startDate ? date <= new Date(startDate) : date <= new Date();
+                                                        }}
                                                         initialFocus
                                                     />
                                                 </PopoverContent>

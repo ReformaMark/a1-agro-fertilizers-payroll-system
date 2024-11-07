@@ -3,7 +3,7 @@
 import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import { AlertCircle, Check, MoreHorizontal, Wallet, X } from "lucide-react";
+import { AlertCircle, Check, CreditCardIcon, MoreHorizontal, Wallet, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Doc, Id } from "../../../../../convex/_generated/dataModel";
@@ -36,11 +36,16 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { getConvexErrorMessage } from "@/lib/utils";
+import { useMutation } from "convex/react";
 import { format } from "date-fns";
+import { api } from "../../../../../convex/_generated/api";
 
 interface BaseLoanFields {
     _id: Id<"companyLoans" | "governmentLoans">;
@@ -51,6 +56,8 @@ interface BaseLoanFields {
     rejectionReason?: string;
     createdAt: string;
     modifiedAt: string;
+    totalPaid?: number;
+    remainingBalance?: number;
     userId: Id<"users">;
 }
 
@@ -86,6 +93,12 @@ interface LoanRequestListProps {
     onCloseForm?: () => void;
 }
 
+// Add this type to handle both loan types for rejection/status updates
+type SelectedLoanType = {
+    loan: CompanyLoanWithUser | GovernmentLoanWithUser;
+    type: "company" | "government";
+} | null;
+
 export function LoanRequestList({
     filterStatus,
     showForm = false,
@@ -95,11 +108,12 @@ export function LoanRequestList({
 
     const [showRejectDialog, setShowRejectDialog] = useState(false);
     const [showRejectionReasonDialog, setShowRejectionReasonDialog] = useState(false);
+    const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+    const [paymentAmount, setPaymentAmount] = useState("");
+    const [selectedLoan, setSelectedLoan] = useState<SelectedLoanType>(null);
+    const [selectedCompanyLoan, setSelectedCompanyLoan] = useState<CompanyLoanWithUser | null>(null);
 
-    const [selectedLoan, setSelectedLoan] = useState<{
-        loan: CompanyLoanWithUser | GovernmentLoanWithUser;
-        type: "company" | "government";
-    } | null>(null);
+    const addPayment = useMutation(api.loans.addCompanyLoanPayment);
 
     const [rejectionReason, setRejectionReason] = useState("");
 
@@ -116,6 +130,21 @@ export function LoanRequestList({
     );
 
     const updateStatus = useUpdateLoanStatus();
+
+    async function handleAddPayment(loanId: Id<"companyLoans">, amount: number) {
+        try {
+            await addPayment({
+                loanId,
+                amount,
+            });
+            toast.success("Payment added successfully");
+            setShowPaymentDialog(false);
+            setPaymentAmount("");
+            setSelectedLoan(null);
+        } catch (error) {
+            toast.error(getConvexErrorMessage(error as Error));
+        }
+    }
 
     async function handleUpdateStatus(
         loanId: Id<"companyLoans"> | Id<"governmentLoans">,
@@ -141,13 +170,13 @@ export function LoanRequestList({
         }
     }
 
-    const actionColumn = {
+    const companyActionColumn = {
         id: "actions",
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         cell: ({ row }: { row: any }) => {
-            const loan = row.original as CompanyLoanWithUser | GovernmentLoanWithUser;
+            const loan = row.original as CompanyLoanWithUser;
             const isPending = loan.status === "Pending";
-            const loanType = "applicationType" in loan ? "government" : "company";
+            const isApproved = loan.status === "Approved";
 
             return (
                 <DropdownMenu>
@@ -160,17 +189,16 @@ export function LoanRequestList({
                     <DropdownMenuContent align="end">
                         {isAdmin && isPending && (
                             <>
-                                <DropdownMenuItem 
-                                    onClick={() => handleUpdateStatus(loan._id, loanType, "Approved")}
+                                <DropdownMenuItem
+                                    onClick={() => handleUpdateStatus(loan._id, "company", "Approved")}
                                     className="text-green-600"
                                 >
                                     <Check className="mr-2 h-4 w-4" />
                                     Approve
                                 </DropdownMenuItem>
-
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                     onClick={() => {
-                                        setSelectedLoan({ loan, type: loanType });
+                                        setSelectedLoan({ loan, type: "company" });
                                         setShowRejectDialog(true);
                                     }}
                                     className="text-destructive"
@@ -180,10 +208,21 @@ export function LoanRequestList({
                                 </DropdownMenuItem>
                             </>
                         )}
-                        {loan.status === "Rejected" && loan.rejectionReason && (
-                            <DropdownMenuItem 
+                        {isAdmin && isApproved && (
+                            <DropdownMenuItem
                                 onClick={() => {
-                                    setSelectedLoan({ loan, type: loanType });
+                                    setSelectedCompanyLoan(loan);
+                                    setShowPaymentDialog(true);
+                                }}
+                            >
+                                <CreditCardIcon className="mr-2 h-4 w-4" />
+                                Add Payment
+                            </DropdownMenuItem>
+                        )}
+                        {loan.status === "Rejected" && loan.rejectionReason && (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    setSelectedLoan({ loan, type: "company" });
                                     setShowRejectionReasonDialog(true);
                                 }}
                                 className="text-destructive"
@@ -194,9 +233,83 @@ export function LoanRequestList({
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
-            )
+            );
         },
-    }
+    };
+
+    const governmentActionColumn = {
+        id: "actions",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        cell: ({ row }: { row: any }) => {
+            const loan = row.original as GovernmentLoanWithUser;
+            const isPending = loan.status === "Pending";
+
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end">
+                        {isAdmin && isPending && (
+                            <>
+                                <DropdownMenuItem
+                                    onClick={() => handleUpdateStatus(loan._id, "government", "Approved")}
+                                    className="text-green-600"
+                                >
+                                    <Check className="mr-2 h-4 w-4" />
+                                    Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        setSelectedLoan({ loan, type: "government" });
+                                        setShowRejectDialog(true);
+                                    }}
+                                    className="text-destructive"
+                                >
+                                    <X className="mr-2 h-4 w-4" />
+                                    Reject
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                        {loan.status === "Rejected" && loan.rejectionReason && (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    setSelectedLoan({ loan, type: "government" });
+                                    setShowRejectionReasonDialog(true);
+                                }}
+                                className="text-destructive"
+                            >
+                                <AlertCircle className="mr-2 h-4 w-4" />
+                                View Rejection Reason
+                            </DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            );
+        },
+    };
+
+    const balanceColumn = {
+        accessorKey: "remainingBalance",
+        header: "Remaining Balance",
+        // @ts-expect-error - no need to put a type here
+        cell: ({ row }) => {
+            const loan = row.original;
+            const totalPaid = loan.totalPaid || 0;
+            const remainingBalance = loan.totalAmount - totalPaid;
+            return (
+                <div className="space-y-1">
+                    <div>₱{remainingBalance.toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">
+                        Paid: ₱{totalPaid.toLocaleString()}
+                    </div>
+                </div>
+            );
+        },
+    };
 
     const companyLoanColumns: ColumnDef<CompanyLoanWithUser>[] = [
         {
@@ -251,7 +364,8 @@ export function LoanRequestList({
                 );
             },
         },
-        actionColumn,
+        balanceColumn,
+        companyActionColumn,
     ];
 
     const governmentLoanColumns: ColumnDef<GovernmentLoanWithUser>[] = [
@@ -309,7 +423,7 @@ export function LoanRequestList({
                 );
             },
         },
-        actionColumn,
+        governmentActionColumn,
     ];
 
     if (!companyLoans || !governmentLoans) {
@@ -447,6 +561,73 @@ export function LoanRequestList({
                                 }}
                             >
                                 Close
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Add Payment for {selectedCompanyLoan?.type}</DialogTitle>
+                            <DialogDescription>
+                                Enter the payment amount for this company loan.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Payment Amount</Label>
+                                <Input
+                                    type="number"
+                                    value={paymentAmount}
+                                    onChange={(e) => setPaymentAmount(e.target.value)}
+                                    placeholder="0.00"
+                                />
+                            </div>
+
+                            {selectedCompanyLoan && (
+                                <div className="text-sm space-y-2">
+                                    <div>
+                                        <span className="font-medium">Total Amount:</span>{" "}
+                                        ₱{selectedCompanyLoan.totalAmount.toLocaleString()}
+                                    </div>
+                                    <div>
+                                        <span className="font-medium">Already Paid:</span>{" "}
+                                        ₱{(selectedCompanyLoan.totalPaid || 0).toLocaleString()}
+                                    </div>
+                                    <div>
+                                        <span className="font-medium">Remaining Balance:</span>{" "}
+                                        ₱{(selectedCompanyLoan.totalAmount - (selectedCompanyLoan.totalPaid || 0)).toLocaleString()}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setShowPaymentDialog(false);
+                                    setPaymentAmount("");
+                                    setSelectedCompanyLoan(null);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                onClick={() => {
+                                    if (selectedCompanyLoan && paymentAmount) {
+                                        handleAddPayment(
+                                            selectedCompanyLoan._id,
+                                            parseFloat(paymentAmount)
+                                        );
+                                    }
+                                }}
+                                disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
+                            >
+                                Add Payment
                             </Button>
                         </DialogFooter>
                     </DialogContent>

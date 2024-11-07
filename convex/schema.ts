@@ -309,6 +309,8 @@ export default defineSchema({
         amortization: v.number(),
         totalAmount: v.number(),
         remarks: v.optional(v.string()),
+        totalPaid: v.optional(v.number()),
+        remainingBalance: v.optional(v.number()),
     }).index("by_user", ["userId"]),
 
     governmentLoans: defineTable({
@@ -317,6 +319,7 @@ export default defineSchema({
         applicationNo: v.string(),
         amount: v.number(),
         startDate: v.string(),
+        endDate: v.string(),
         monthlySchedule: v.string(), // "1st Half", "2nd Half"
         status: v.string(),
         approvedBy: v.optional(v.id("users")),
@@ -327,7 +330,9 @@ export default defineSchema({
         amortization: v.number(),
         totalAmount: v.number(),
         additionalInfo: v.optional(v.string()),
-    }).index("by_user", ["userId"]),
+    })
+        .index("by_user", ["userId"])
+        .index("by_date_range", ["startDate", "endDate"]),
 
     cashAdvanceRequests: defineTable({
         userId: v.id("users"),
