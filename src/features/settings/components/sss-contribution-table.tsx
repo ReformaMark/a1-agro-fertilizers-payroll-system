@@ -9,6 +9,15 @@ import { api } from "../../../../convex/_generated/api"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Edit2 } from "lucide-react"
+import { SSSRange, ContributionTable } from "@/lib/types"
+
+function isSSSRange(range: any): range is SSSRange {
+    return 'regularSS' in range
+}
+
+function isSSSTable(table: ContributionTable): table is ContributionTable & { ranges: SSSRange[] } {
+    return table.type === "SSS" && table.ranges.length > 0 && isSSSRange(table.ranges[0])
+}
 
 export function SSSContributionTable() {
     const [bulkData, setBulkData] = useState("")
@@ -256,7 +265,7 @@ export function SSSContributionTable() {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentTable?.ranges.map((range, i) => (
+                            {currentTable && isSSSTable(currentTable) && currentTable.ranges.map((range, i) => (
                                 <tr key={i} className="border hover:bg-gray-50">
                                     <td className="border p-2">
                                         {formatRange(range)}
