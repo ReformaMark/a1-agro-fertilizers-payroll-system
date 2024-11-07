@@ -1,28 +1,27 @@
 "use client"
 
 import { DataTable } from "@/components/data-table"
-import { Button } from "@/components/ui/button"
-import { ColumnDef } from "@tanstack/react-table"
-import { Doc, Id } from "../../../../convex/_generated/dataModel"
-import { useState } from "react"
-import { useLeaveRequests, useUpdateLeaveRequestStatus } from "../api/leaves"
-import { toast } from "sonner"
-import { Plus, MoreHorizontal, Check, X } from "lucide-react"
-import { LeaveRequestForm } from "./leave-request-form"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger,
-    DropdownMenuSeparator,
+    DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { useCurrentUser } from "@/hooks/use-current-user"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
+import { useCurrentUser } from "@/hooks/use-current-user"
+import { ColumnDef } from "@tanstack/react-table"
+import { format } from "date-fns"
+import { AlertCircle, Check, MoreHorizontal, Plus, X } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { Doc, Id } from "../../../../convex/_generated/dataModel"
+import { useLeaveRequests, useUpdateLeaveRequestStatus } from "../api/leaves"
+import { LeaveRequestForm } from "./leave-request-form"
 
 interface LeaveRequestWithUser extends Doc<"leaveRequests"> {
     user: Doc<"users"> | null
@@ -38,6 +37,7 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
     const [showRejectDialog, setShowRejectDialog] = useState(false)
     const [selectedRequest, setSelectedRequest] = useState<LeaveRequestWithUser | null>(null)
     const [rejectionReason, setRejectionReason] = useState("")
+    const [showRejectionReasonDialog, setShowRejectionReasonDialog] = useState(false);
     const isAdmin = currentUser?.role === "admin"
 
     const leaveRequests = useLeaveRequests(
@@ -59,6 +59,7 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
             setSelectedRequest(null)
         } catch (error) {
             toast.error(`Failed to ${status.toLowerCase()} leave request`)
+            console.error(error)
         }
     }
 
@@ -111,8 +112,10 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
             cell: ({ row }) => {
                 const request = row.original
                 const isPending = request.status === "Pending"
+                const isRejected = request.status === "Rejected"
 
-                if (!isAdmin && request.status !== "Pending") return null
+                // If there are no actions to show, return null
+                if (!isAdmin && !isRejected && !isPending) return null
 
                 return (
                     <DropdownMenu>
@@ -122,6 +125,7 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            {/* Admin-only actions */}
                             {isAdmin && isPending && (
                                 <>
                                     <DropdownMenuItem
@@ -143,16 +147,18 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
                                     </DropdownMenuItem>
                                 </>
                             )}
-                            {request.rejectionReason && (
-                                <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="flex flex-col items-start">
-                                        <span className="font-medium mb-1">Rejection Reason:</span>
-                                        <span className="text-sm text-muted-foreground">
-                                            {request.rejectionReason}
-                                        </span>
-                                    </DropdownMenuItem>
-                                </>
+                            {/* Show rejection reason to both admin and employees */}
+                            {isRejected && (
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        setSelectedRequest(request);
+                                        setShowRejectionReasonDialog(true);
+                                    }}
+                                    className="text-destructive"
+                                >
+                                    <AlertCircle className="mr-2 h-4 w-4" />
+                                    View Rejection Reason
+                                </DropdownMenuItem>
                             )}
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -237,6 +243,43 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
                                 disabled={!rejectionReason}
                             >
                                 Reject Request
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={showRejectionReasonDialog} onOpenChange={setShowRejectionReasonDialog}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Rejection Reason</DialogTitle>
+                        </DialogHeader>
+                        {selectedRequest && (
+                            <div className="space-y-4">
+                                <div className="text-sm text-muted-foreground">
+                                    <span className="font-medium text-foreground">Status:</span>{" "}
+                                    <Badge variant="destructive">Rejected</Badge>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    <span className="font-medium text-foreground">Date:</span>{" "}
+                                    {format(new Date(selectedRequest._creationTime), "PPP")}
+                                </div>
+                                <div className="space-y-2">
+                                    <span className="text-sm font-medium">Reason:</span>
+                                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                                        {selectedRequest.rejectionReason}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setShowRejectionReasonDialog(false);
+                                    setSelectedRequest(null);
+                                }}
+                            >
+                                Close
                             </Button>
                         </DialogFooter>
                     </DialogContent>

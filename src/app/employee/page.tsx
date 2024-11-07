@@ -1,9 +1,6 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useQuery } from "convex/react"
-import { api } from "../../../convex/_generated/api"
 import { Badge } from "@/components/ui/badge"
-import { Clock, CalendarDays, HeartPulse, Wallet } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CalendarDays, Clock, HeartPulse, Wallet } from "lucide-react"
 
 export default function EmployeeDashboard() {
     return (

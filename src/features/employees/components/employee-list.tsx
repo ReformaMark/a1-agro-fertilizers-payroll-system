@@ -1,19 +1,16 @@
 "use client"
 
 import { DataTable } from "@/components/data-table"
-import { ColumnDef } from "@tanstack/react-table"
-import { Doc } from "../../../../convex/_generated/dataModel"
-import { useEmployees } from "../api/employees"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { PencilIcon, Shield, UserCog } from "lucide-react"
-import { useMutation } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
-import { toast } from "sonner"
+import { ColumnDef } from "@tanstack/react-table"
+import { PencilIcon } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Doc } from "../../../../convex/_generated/dataModel"
+import { useEmployees } from "../api/employees"
 import { CompleteProfileDialog } from "./complete-profile-dialog"
 import { ConfirmMakeAdminDialog } from "./confirm-make-admin-dialog"
 import { EditEmployeeDialog } from "./edit-employee-dialog"
-import { useMemo, useState } from "react"
 
 type Employee = Doc<"users">
 

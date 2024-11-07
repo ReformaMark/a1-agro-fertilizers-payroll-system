@@ -62,6 +62,7 @@ export function LeaveRequestForm({ onClose }: LeaveRequestFormProps) {
             onClose()
         } catch (error) {
             toast.error("Failed to submit leave request")
+            console.error(error)
         }
     }
 

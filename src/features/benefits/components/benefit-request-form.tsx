@@ -56,6 +56,7 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
             toast.success("Benefit request submitted successfully")
             onClose()
         } catch (error) {
+            console.error(error)
             toast.error("Failed to submit benefit request")
         }
     }

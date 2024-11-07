@@ -10,19 +10,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 
-import { Calendar } from "@/components/ui/calendar"
 import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
 import { useAuthActions } from "@convex-dev/auth/react"
-import { format } from "date-fns"
-import { ArrowLeftIcon, ArrowRightIcon, Calendar as CalendarIcon, CheckIcon, TriangleAlertIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { AuthFlow } from "../types"
-import { useCheckRole } from "../api/use-check-role"
 import { useConvexAuth } from "convex/react"
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, TriangleAlertIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { AuthFlow } from "../types"
 
 interface SignUpCardProps {
     setState: (state: AuthFlow) => void
@@ -32,7 +27,6 @@ export const SignUpCard = ({
     setState
 }: SignUpCardProps) => {
     const { signIn } = useAuthActions()
-    const { isAuthenticated } = useConvexAuth();
 
     const [firstName, setFirstName] = useState("");
     const [middleName, setMiddleName] = useState("");

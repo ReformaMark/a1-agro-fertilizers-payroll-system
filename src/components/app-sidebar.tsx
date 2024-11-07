@@ -2,6 +2,7 @@
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
+import { SectionSwitcher } from "@/components/section-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -13,14 +14,12 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import {
   Building2,
   Calculator,
-  Calendar,
   ClipboardList,
   FileText,
+  LayoutDashboard,
   Settings2,
-  Users,
-  LayoutDashboard
+  Users
 } from "lucide-react";
-import { SectionSwitcher } from "@/components/section-switcher";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const data = {
@@ -66,21 +65,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           },
         ],
       },
-      // {
-      //   title: "Leave Management",
-      //   url: "/admin/leaves",
-      //   icon: Calendar,
-      //   items: [
-      //     {
-      //       title: "Leave Requests",
-      //       url: "/admin/leaves/requests",
-      //     },
-      //     {
-      //       title: "Leave Types",
-      //       url: "/admin/leaves/types",
-      //     },
-      //   ],
-      // },
+      {
+        title: "Requests",
+        url: "/admin/requests",
+        icon: FileText,
+        items: [
+          {
+            title: "Benefits",
+            url: "/admin/requests/benefits",
+          },
+          {
+            title: "Leave Requests",
+            url: "/admin/requests/leaves",
+          },
+          {
+            title: "Loans",
+            url: "/admin/requests/loans",
+          },
+          {
+            title: "Cash Advances",
+            url: "/admin/requests/cash-advances",
+          }
+        ],
+      },
       {
         title: "Payroll",
         url: "/admin/payroll",
@@ -105,28 +112,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       },
       {
-        title: "Requests",
-        url: "/admin/requests",
-        icon: FileText,
-        items: [
-          {
-            title: "Benefits",
-            url: "/admin/requests/benefits",
-          },
-          {
-            title: "Leave Requests",
-            url: "/admin/requests/leaves",
-          },
-        ],
-      },
-      {
         title: "Company",
         url: "/admin/company",
         icon: Building2,
         items: [
           {
             title: "Holidays",
-            url: "/admin/holidays",
+            url: "/admin/company/holidays",
           },
           {
             title: "Departments",

@@ -20,6 +20,7 @@ export const get = query({
             email: user.email,
             role: user.role,
             department: user.department,
+            filledUpByAdmin: user.filledUpByAdmin,
             // employeeTypeId: user.employeeTypeId,
         }
     }

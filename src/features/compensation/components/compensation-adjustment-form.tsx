@@ -123,7 +123,7 @@ export function CompensationAdjustmentForm({ onClose }: { onClose: () => void })
                 <DialogHeader>
                     <DialogTitle>New Compensation Adjustment</DialogTitle>
                     <DialogDescription>
-                        Adjust an employee's compensation. Changes will take effect immediately.
+                        Adjust an employee&apos;s compensation. Changes will take effect immediately.
                         Please review the adjustment details carefully.
                     </DialogDescription>
                 </DialogHeader>

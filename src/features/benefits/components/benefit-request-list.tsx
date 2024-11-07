@@ -58,6 +58,7 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
             setRejectionReason("")
             setSelectedRequest(null)
         } catch (error) {
+            console.error(error)
             toast.error(`Failed to ${status.toLowerCase()} benefit request`)
         }
     }

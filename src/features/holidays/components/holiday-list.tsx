@@ -41,6 +41,7 @@ export function HolidayList() {
             toast.success("Holiday archived successfully")
         } catch (error) {
             toast.error("Failed to archive holiday")
+            console.error(error)
         }
     }
 
@@ -50,6 +51,7 @@ export function HolidayList() {
             toast.success("Holiday restored successfully")
         } catch (error) {
             toast.error("Failed to restore holiday")
+            console.error(error)
         }
     }
 

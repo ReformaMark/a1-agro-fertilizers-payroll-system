@@ -1,14 +1,15 @@
 "use client"
 
-import { BenefitRequestList } from "@/features/benefits/components/benefit-request-list"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { HeartPulse, Car, Home, GraduationCap, Briefcase, Gift } from "lucide-react"
+import { BenefitRequestList } from "@/features/benefits/components/benefit-request-list"
 import { useQuery } from "convex/react"
+import { Briefcase, Car, Gift, GraduationCap, HeartPulse, Home } from "lucide-react"
 import { api } from "../../../../convex/_generated/api"
 
 // Map compensation types to icons
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const BENEFIT_ICONS: Record<string, any> = {
     "Base Salary": Briefcase,
     "Health Insurance": HeartPulse,

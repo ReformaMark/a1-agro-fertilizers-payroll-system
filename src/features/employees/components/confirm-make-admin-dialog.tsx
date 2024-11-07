@@ -11,11 +11,11 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Shield } from "lucide-react"
 import { useMutation } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
-import { toast } from "sonner"
+import { Shield } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
+import { api } from "../../../../convex/_generated/api"
 import { Id } from "../../../../convex/_generated/dataModel"
 
 interface ConfirmMakeAdminDialogProps {
@@ -33,6 +33,7 @@ export function ConfirmMakeAdminDialog({ userId, userName }: ConfirmMakeAdminDia
             toast.success("Successfully made user an admin")
             setOpen(false)
         } catch (error) {
+            console.error(error)
             toast.error("Failed to make user an admin")
         }
     }

@@ -1,23 +1,23 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { useAuthActions } from "@convex-dev/auth/react"
 import {
-    BabyIcon,
+    BanknoteIcon,
     CalendarDays,
     Clock,
-    HeartPulse,
+    Coins,
+    Gift,
     Home,
     LogOut,
     Menu,
     Settings,
-    Wallet,
-    FileText,
+    Wallet
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { useAuthActions } from "@convex-dev/auth/react"
 
 const routes = [
     {
@@ -27,42 +27,34 @@ const routes = [
         color: "text-sky-500",
     },
     {
+        label: "Attendance",
+        icon: Clock,
+        href: "/employee/attendance",
+        color: "text-pink-700",
+    },
+    {
         label: "Leave Requests",
         icon: CalendarDays,
         href: "/employee/requests/leaves",
         color: "text-violet-500",
     },
     {
-        label: "Time & Attendance",
-        icon: Clock,
-        href: "/employee/attendance",
-        color: "text-pink-700",
+        label: "Benefits",
+        icon: Gift,
+        href: "/employee/benefits",
+        color: "text-rose-500",
     },
     {
-        label: "Requests",
-        icon: FileText,
-        href: "/employee/requests",
+        label: "Loans",
+        icon: BanknoteIcon,
+        href: "/employee/requests/loans",
+        color: "text-green-500",
+    },
+    {
+        label: "Cash Advances",
+        icon: Coins,
+        href: "/employee/requests/cash-advances",
         color: "text-violet-500",
-        subItems: [
-            {
-                label: "Benefits",
-                href: "/employee/requests/benefits",
-            },
-            {
-                label: "Loans",
-                href: "/employee/requests/loans",
-            },
-            {
-                label: "Cash Advances",
-                href: "/employee/requests/cash-advances",
-            },
-        ],
-    },
-    {
-        label: "Parental Leave",
-        icon: BabyIcon,
-        href: "/employee/parental",
-        color: "text-emerald-500",
     },
     {
         label: "Compensation",
@@ -141,6 +133,7 @@ const SidebarContent = ({ className }: SidebarContentProps) => {
         </div>
     )
 }
+
 export function EmployeeSidebar() {
     return (
         <>

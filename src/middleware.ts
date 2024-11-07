@@ -1,4 +1,4 @@
-import { convexAuthNextjsMiddleware, createRouteMatcher, nextjsMiddlewareRedirect } from "@convex-dev/auth/nextjs/server";
+import { convexAuthNextjsMiddleware } from "@convex-dev/auth/nextjs/server";
 
 export default convexAuthNextjsMiddleware();
 

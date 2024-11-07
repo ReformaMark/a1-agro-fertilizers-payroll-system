@@ -55,6 +55,7 @@ export function AssignCompensationForm({ onClose }: AssignCompensationFormProps)
             toast.success("Compensation assigned successfully")
             onClose()
         } catch (error) {
+            console.error(error)
             toast.error("Failed to assign compensation")
         }
     }

@@ -10,10 +10,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useAuthActions } from "@convex-dev/auth/react"
-import { useConvexAuth } from "convex/react"
 import { Loader2, TriangleAlertIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { AuthFlow } from "../types"
 // import { useCheckRole } from "../api/use-check-role"
 

@@ -80,6 +80,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
         e.preventDefault() // Prevent form submission
         const fields = getFieldsForStep(step)
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         form.trigger(fields as any[]).then((isValid) => {
             if (isValid) {
                 setStep(step + 1)

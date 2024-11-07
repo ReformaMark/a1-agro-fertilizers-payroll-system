@@ -295,4 +295,37 @@ export default defineSchema({
     })
         .index("by_user", ["userId"])
         .index("by_status", ["status"]),
+
+    companyLoans: defineTable({
+        userId: v.id("users"),
+        type: v.string(), // "VALE" or "Partial A/R"
+        amount: v.number(),
+        status: v.string(), // "Pending", "Approved", "Rejected"
+        approvedBy: v.optional(v.id("users")),
+        approvedAt: v.optional(v.string()),
+        rejectionReason: v.optional(v.string()),
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+        amortization: v.number(),
+        totalAmount: v.number(),
+        remarks: v.optional(v.string()),
+    }).index("by_user", ["userId"]),
+
+    governmentLoans: defineTable({
+        userId: v.id("users"),
+        applicationType: v.string(), // "SSS Salary", "SSS Calamity", "Pagibig Multi-purpose", "Pagibig Calamity"
+        applicationNo: v.string(),
+        amount: v.number(),
+        startDate: v.string(),
+        monthlySchedule: v.string(), // "1st Half", "2nd Half"
+        status: v.string(),
+        approvedBy: v.optional(v.id("users")),
+        approvedAt: v.optional(v.string()),
+        rejectionReason: v.optional(v.string()),
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+        amortization: v.number(),
+        totalAmount: v.number(),
+        additionalInfo: v.optional(v.string()),
+    }).index("by_user", ["userId"]),
 });
