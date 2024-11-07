@@ -21,6 +21,7 @@ const columns: ColumnDef<CompensationAdjustment>[] = [
         accessorKey: "employeeCompensation.user.firstName",
         header: "Employee",
         cell: ({ row }) => {
+            // @ts-expect-error - just a slight typing issue
             const user = row.original.employeeCompensation?.user
             return user ? `${user.firstName} ${user.lastName}` : "N/A"
         },
@@ -36,9 +37,9 @@ const columns: ColumnDef<CompensationAdjustment>[] = [
             const type = row.getValue<string>("adjustmentType")
             return (
                 <Badge variant={
-                    type === "Increase" ? "success" :
-                    type === "Decrease" ? "destructive" :
-                    "secondary"
+                    type === "Increase" ? "default" :
+                        type === "Decrease" ? "destructive" :
+                            "secondary"
                 }>
                     {type}
                 </Badge>

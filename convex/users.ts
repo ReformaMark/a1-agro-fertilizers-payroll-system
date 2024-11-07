@@ -152,6 +152,7 @@ export const updateEmployee = mutation({
 
         await ctx.db.patch(userId, {
             ...updateData,
+            filledUpByAdmin: true,
             modifiedBy: adminId,
             modifiedAt: new Date().toISOString(),
         })

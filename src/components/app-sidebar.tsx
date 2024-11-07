@@ -66,21 +66,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           },
         ],
       },
-      {
-        title: "Leave Management",
-        url: "/admin/leaves",
-        icon: Calendar,
-        items: [
-          {
-            title: "Leave Requests",
-            url: "/admin/leaves/requests",
-          },
-          {
-            title: "Leave Types",
-            url: "/admin/leaves/types",
-          },
-        ],
-      },
+      // {
+      //   title: "Leave Management",
+      //   url: "/admin/leaves",
+      //   icon: Calendar,
+      //   items: [
+      //     {
+      //       title: "Leave Requests",
+      //       url: "/admin/leaves/requests",
+      //     },
+      //     {
+      //       title: "Leave Types",
+      //       url: "/admin/leaves/types",
+      //     },
+      //   ],
+      // },
       {
         title: "Payroll",
         url: "/admin/payroll",
