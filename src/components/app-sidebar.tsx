@@ -84,7 +84,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           },
           {
             title: "Cash Advances",
-            url: "/admin/requests/cash-advances",
+            url: "/admin/requests/cash-advance",
           }
         ],
       },
@@ -118,12 +118,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         items: [
           {
             title: "Holidays",
-            url: "/admin/company/holidays",
+            url: "/admin/holidays",
           },
-          {
-            title: "Departments",
-            url: "/admin/company/departments",
-          },
+          // {
+          //   title: "Departments",
+          //   url: "/admin/company/departments",
+          // },
         ],
       },
       {

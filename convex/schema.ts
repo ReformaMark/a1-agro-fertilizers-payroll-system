@@ -328,4 +328,19 @@ export default defineSchema({
         totalAmount: v.number(),
         additionalInfo: v.optional(v.string()),
     }).index("by_user", ["userId"]),
+
+    cashAdvanceRequests: defineTable({
+        userId: v.id("users"),
+        type: v.string(),
+        amount: v.number(),
+        paymentTerm: v.string(),
+        reason: v.string(),
+        status: v.string(),
+        rejectionReason: v.optional(v.string()),
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_status", ["status"])
+        .index("by_user_and_status", ["userId", "status"]),
 });

@@ -53,7 +53,7 @@ const routes = [
     {
         label: "Cash Advances",
         icon: Coins,
-        href: "/employee/requests/cash-advances",
+        href: "/employee/requests/cash-advance",
         color: "text-violet-500",
     },
     {
