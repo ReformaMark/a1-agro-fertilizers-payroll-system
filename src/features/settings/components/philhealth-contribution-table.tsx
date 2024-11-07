@@ -2,13 +2,13 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { ContributionTable, PhilHealthRange } from "@/lib/types"
+import { useMutation, useQuery } from "convex/react"
 import { Edit2, Save, X } from "lucide-react"
 import { useState } from "react"
-import { useMutation, useQuery } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
 import { toast } from "sonner"
-import { Input } from "@/components/ui/input"
-import { PhilHealthRange, ContributionTable } from "@/lib/types"
+import { api } from "../../../../convex/_generated/api"
 
 const DEFAULT_RANGE: PhilHealthRange = {
     yearStart: 2024,
@@ -30,10 +30,24 @@ function isPhilHealthTable(table: ContributionTable): table is ContributionTable
 export function PhilHealthContributionTable() {
     const [isEditing, setIsEditing] = useState(false)
     const [editedRange, setEditedRange] = useState<PhilHealthRange>(DEFAULT_RANGE)
-    
+
     const currentTable = useQuery(api.contributionTables.getCurrentPhilHealth)
     const updateTable = useMutation(api.contributionTables.updatePhilHealth)
     const createTable = useMutation(api.contributionTables.createPhilHealth)
+
+    const lastModifiedBy = useQuery(api.users.get)
+
+    const formatDateTime = (dateString: string) => {
+        const date = new Date(dateString)
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        })
+    }
 
     const handleEdit = () => {
         if (currentTable && isPhilHealthTable(currentTable)) {
@@ -83,7 +97,7 @@ export function PhilHealthContributionTable() {
         }))
     }
 
-    const range = currentTable && isPhilHealthTable(currentTable) ? 
+    const range = currentTable && isPhilHealthTable(currentTable) ?
         currentTable.ranges[0] : DEFAULT_RANGE
 
     return (
@@ -95,9 +109,14 @@ export function PhilHealthContributionTable() {
                         <div className="text-sm font-normal text-muted-foreground text-right">
                             <div>
                                 Last Updated: {currentTable?.modifiedAt
-                                    ? new Date(currentTable.modifiedAt).toLocaleDateString()
+                                    ? formatDateTime(currentTable.modifiedAt)
                                     : 'Never'}
                             </div>
+                            {lastModifiedBy && (
+                                <div className="text-xs">
+                                    by {lastModifiedBy.firstName} {lastModifiedBy.lastName}
+                                </div>
+                            )}
                         </div>
                         {isEditing ? (
                             <div className="flex gap-2">
@@ -173,10 +192,10 @@ export function PhilHealthContributionTable() {
                 </div>
 
                 <div className="text-sm text-muted-foreground">
-                    <p>Note: The monthly premium is computed as {range.premiumRate}% of the employee's basic monthly salary. 
-                    The premium is shared equally (50-50) between the employee and the employer. 
-                    For example, if an employee's monthly salary is ₱20,000, the total monthly premium would be ₱1,000 
-                    (₱500 each for employee and employer share).</p>
+                    <p>Note: The monthly premium is computed as {range.premiumRate}% of the employee&apos;s basic monthly salary.
+                        The premium is shared equally (50-50) between the employee and the employer.
+                        For example, if an employee&apos;s monthly salary is ₱20,000, the total monthly premium would be ₱1,000
+                        (₱500 each for employee and employer share).</p>
                 </div>
             </CardContent>
         </Card>

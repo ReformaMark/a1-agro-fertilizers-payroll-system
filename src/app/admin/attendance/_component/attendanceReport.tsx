@@ -17,7 +17,7 @@ export default function AttendanceReport() {
     return (
         <div className="space-y-4">
             <div className="flex items-center gap-x-4">
-                <select 
+                <select
                     className="w-[200px] h-8 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
                     defaultValue="daily"
                     onChange={(e) => setReportType(e.target.value as "daily" | "weekly" | "monthly")}
@@ -29,17 +29,17 @@ export default function AttendanceReport() {
             </div>
 
             {reportType === "daily" && (
-                <DataTable 
+                <DataTable
 
-                    columns={columns} 
-                    data={data} 
-                     filter="userId"
+                    columns={columns}
+                    data={data}
+                    filter="userId"
                     filterLabel="Employee Id"
                 />
             )}
 
             {reportType === "weekly" && (
-                <DataTable 
+                <DataTable
 
                     columns={weeklyColumns}
                     data={data}
@@ -48,7 +48,7 @@ export default function AttendanceReport() {
                 />
             )}
             {reportType === "monthly" && (
-                <DataTable 
+                <DataTable
 
                     columns={monthlyColumns}
                     data={data}
@@ -57,7 +57,7 @@ export default function AttendanceReport() {
                 />
             )}
 
-         
+
         </div>
     )
 }

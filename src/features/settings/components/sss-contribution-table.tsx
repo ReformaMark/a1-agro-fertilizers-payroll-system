@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Edit2 } from "lucide-react"
 import { SSSRange, ContributionTable } from "@/lib/types"
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isSSSRange(range: any): range is SSSRange {
     return 'regularSS' in range
 }
@@ -28,7 +29,7 @@ export function SSSContributionTable() {
 
     // Add query to get user info
     const lastModifiedBy = useConvexQuery(
-        api.users.get, 
+        api.users.get,
         currentTable?.modifiedBy ? {} : "skip"
     )
 
@@ -36,12 +37,12 @@ export function SSSContributionTable() {
         try {
             // Split into lines and filter out empty lines
             const rows = data.trim().split('\n').filter(line => line.trim() !== '')
-            
+
             return rows.map(row => {
                 // Replace multiple spaces with a single space and split
                 const cleanedRow = row.replace(/\s+/g, ' ').trim()
                 const parts = cleanedRow.split(' ')
-                
+
                 // Parse range
                 let rangeStart: number
                 let rangeEnd: number
@@ -174,7 +175,7 @@ export function SSSContributionTable() {
                     <div className="flex items-center gap-4">
                         <div className="text-sm font-normal text-muted-foreground text-right">
                             <div>
-                                Last Updated: {currentTable?.modifiedAt 
+                                Last Updated: {currentTable?.modifiedAt
                                     ? formatDateTime(currentTable.modifiedAt)
                                     : 'Never'}
                             </div>
@@ -184,9 +185,9 @@ export function SSSContributionTable() {
                                 </div>
                             )}
                         </div>
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
+                        <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => setIsEditModalOpen(true)}
                             className="gap-2"
                         >
@@ -218,22 +219,22 @@ export function SSSContributionTable() {
                                 </th>
                                 <th rowSpan={2} className="border p-2">WISP</th>
                                 <th rowSpan={2} className="border p-2">TOTAL</th>
-                                
+
                                 {/* Regular SS */}
                                 <th colSpan={3} className="border p-2">
                                     REGULAR SS
                                 </th>
-                                
+
                                 {/* EC */}
                                 <th colSpan={3} className="border p-2">
                                     EC
                                 </th>
-                                
+
                                 {/* WISP */}
                                 <th colSpan={3} className="border p-2">
                                     WISP
                                 </th>
-                                
+
                                 {/* Total */}
                                 <th colSpan={3} className="border p-2">
                                     TOTAL
@@ -297,7 +298,7 @@ export function SSSContributionTable() {
                         <DialogHeader>
                             <DialogTitle>Edit SSS Contribution Table</DialogTitle>
                         </DialogHeader>
-                        
+
                         <div className="space-y-4">
                             <div className="text-sm text-muted-foreground mb-2">
                                 <p>Instructions:</p>
@@ -318,8 +319,8 @@ export function SSSContributionTable() {
                             />
 
                             <div className="flex justify-end gap-2">
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     onClick={() => {
                                         setBulkData("")
                                         setIsEditModalOpen(false)
@@ -327,7 +328,7 @@ export function SSSContributionTable() {
                                 >
                                     Cancel
                                 </Button>
-                                <Button 
+                                <Button
                                     onClick={async () => {
                                         await handleUpdateTable()
                                         setIsEditModalOpen(false)

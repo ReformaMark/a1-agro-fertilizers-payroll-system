@@ -12,6 +12,8 @@ import { useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { toast } from "sonner"
 import { Id } from "../../../../convex/_generated/dataModel"
+import { useEffect } from "react"
+import { SSSRange } from "@/lib/types"
 
 const rangeSchema = z.object({
     rangeStart: z.number().min(0),
@@ -55,13 +57,24 @@ export function EditContributionTableDialog({ open, tableId, onClose }: EditCont
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: table || {
+        defaultValues: {
             type: "SSS",
             effectiveDate: new Date().toISOString().split('T')[0],
             ranges: [],
             isActive: true,
         },
     })
+
+    useEffect(() => {
+        if (table) {
+            form.reset({
+                type: table.type,
+                effectiveDate: table.effectiveDate,
+                ranges: table.ranges as SSSRange[],
+                isActive: table.isActive,
+            })
+        }
+    }, [table, form])
 
     const onSubmit = async (values: FormValues) => {
         try {
@@ -86,6 +99,7 @@ export function EditContributionTableDialog({ open, tableId, onClose }: EditCont
             onClose()
         } catch (error) {
             toast.error("Failed to save contribution table")
+            console.error(error)
         }
     }
 

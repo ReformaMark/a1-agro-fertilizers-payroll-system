@@ -2,13 +2,13 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { ContributionTable, PagibigRange } from "@/lib/types"
+import { useMutation, useQuery } from "convex/react"
 import { Edit2, Save, X } from "lucide-react"
 import { useState } from "react"
-import { useMutation, useQuery } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
 import { toast } from "sonner"
-import { Input } from "@/components/ui/input"
-import { PagibigRange, ContributionTable } from "@/lib/types"
+import { api } from "../../../../convex/_generated/api"
 
 const DEFAULT_RANGES: PagibigRange[] = [
     {
@@ -36,10 +36,24 @@ function isPagibigTable(table: ContributionTable): table is ContributionTable & 
 export function PagibigContributionTable() {
     const [isEditing, setIsEditing] = useState(false)
     const [editedRanges, setEditedRanges] = useState<PagibigRange[]>(DEFAULT_RANGES)
-    
+
     const currentTable = useQuery(api.contributionTables.getCurrentPagibig)
     const updateTable = useMutation(api.contributionTables.updatePagibig)
     const createTable = useMutation(api.contributionTables.createPagibig)
+
+    const lastModifiedBy = useQuery(api.users.get)
+
+    const formatDateTime = (dateString: string) => {
+        const date = new Date(dateString)
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        })
+    }
 
     const handleEdit = () => {
         if (currentTable && isPagibigTable(currentTable)) {
@@ -107,7 +121,7 @@ export function PagibigContributionTable() {
         setEditedRanges(newRanges)
     }
 
-    const ranges = isEditing ? editedRanges : 
+    const ranges = isEditing ? editedRanges :
         (currentTable && isPagibigTable(currentTable) ? currentTable.ranges : DEFAULT_RANGES)
 
     return (
@@ -119,9 +133,14 @@ export function PagibigContributionTable() {
                         <div className="text-sm font-normal text-muted-foreground text-right">
                             <div>
                                 Last Updated: {currentTable?.modifiedAt
-                                    ? new Date(currentTable.modifiedAt).toLocaleDateString()
+                                    ? formatDateTime(currentTable.modifiedAt)
                                     : 'Never'}
                             </div>
+                            {lastModifiedBy && (
+                                <div className="text-xs">
+                                    by {lastModifiedBy.firstName} {lastModifiedBy.lastName}
+                                </div>
+                            )}
                         </div>
                         {isEditing ? (
                             <div className="flex gap-2">
@@ -260,9 +279,9 @@ export function PagibigContributionTable() {
 
                 {/* Update note about maximum contribution */}
                 <div className="text-sm text-muted-foreground">
-                    <p>Note: For monthly compensation over ₱1,500, the maximum monthly compensation used for computing contributions 
-                    is capped at the Max Contribution Base amount. For salaries exceeding this amount, the contribution will be 
-                    based on the maximum limit.</p>
+                    <p>Note: For monthly compensation over ₱1,500, the maximum monthly compensation used for computing contributions
+                        is capped at the Max Contribution Base amount. For salaries exceeding this amount, the contribution will be
+                        based on the maximum limit.</p>
                 </div>
             </CardContent>
         </Card>
