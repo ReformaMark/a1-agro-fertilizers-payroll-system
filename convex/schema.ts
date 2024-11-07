@@ -6,11 +6,12 @@ export default defineSchema({
     ...authTables,
     users: defineTable({
         // Auth & Role fields
-        tokenIdentifier: v.string(),
         email: v.string(),
         role: v.union(v.literal("admin"), v.literal("employee")),
-        password: v.string(), // Note: Store hashed passwords only
-
+        emailVerificationTime: v.optional(v.number()),
+        phone: v.optional(v.string()),
+        phoneVerificationTime: v.optional(v.number()),
+        isAnonymous: v.optional(v.boolean()),
         // Personal Information
         firstName: v.string(),
         middleName: v.optional(v.string()),
@@ -18,59 +19,49 @@ export default defineSchema({
         image: v.optional(v.string()),
         dateOfBirth: v.string(),
         gender: v.union(v.literal("male"), v.literal("female")),
-        maritalStatus: v.union(
-            v.literal("single"),
-            v.literal("married"),
-            v.literal("widowed"),
-            v.literal("divorced"),
-            v.literal("separated")
-        ),
+        maritalStatus: v.union(v.literal("single"), v.literal("married"), v.literal("widowed"), v.literal("divorced"), v.literal("separated")),
         contactType: v.union(v.literal("mobile"), v.literal("landline")),
         contactNumber: v.string(),
-
         // Employment Information
-        employeeTypeId: v.string(),
-        department: v.string(),
-        position: v.string(),
-        hiredDate: v.string(),
-
+        // employeeTypeId: v.string(),
+        department: v.optional(v.string()),
+        position: v.optional(v.string()),
+        hiredDate: v.optional(v.string()),
         // Address Information
-        region: v.string(),
-        province: v.string(),
-        city: v.string(),
-        barangay: v.string(),
-        postalCode: v.string(),
-        street: v.string(),
-        houseNumber: v.string(),
-
+        region: v.optional(v.string()),
+        province: v.optional(v.string()),
+        city: v.optional(v.string()),
+        barangay: v.optional(v.string()),
+        postalCode: v.optional(v.string()),
+        street: v.optional(v.string()),
+        houseNumber: v.optional(v.string()),
         // Payroll Information
-        ratePerDay: v.number(),
+        // government ids
+        ratePerDay: v.optional(v.number()),
         philHealthNumber: v.optional(v.string()),
         pagIbigNumber: v.optional(v.string()),
         sssNumber: v.optional(v.string()),
         birTin: v.optional(v.string()),
+        // contributions
         philHealthContribution: v.optional(v.number()),
         pagIbigContribution: v.optional(v.number()),
         sssContribution: v.optional(v.number()),
         incomeTax: v.optional(v.number()),
-        
         // Payment Schedules
-        philHealthSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        pagIbigSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        sssSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        incomeTaxSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-
+        philHealthSchedule: v.optional(v.union(v.literal("1st half"), v.literal("2nd half"))),
+        pagIbigSchedule: v.optional(v.union(v.literal("1st half"), v.literal("2nd half"))),
+        sssSchedule: v.optional(v.union(v.literal("1st half"), v.literal("2nd half"))),
+        incomeTaxSchedule: v.optional(v.union(v.literal("1st half"), v.literal("2nd half"))),
         // Meta
-        isArchived: v.boolean(),
+        isArchived: v.optional(v.boolean()),
+        filledUpByAdmin: v.optional(v.boolean()),
         modifiedBy: v.optional(v.id("users")),
         modifiedAt: v.optional(v.string()),
     })
-        .index("by_token", ["tokenIdentifier"]) // For auth lookups
         .index("by_email", ["email"]) // For user lookups
         .index("by_role", ["role"]) // For filtering admins/employees
         .index("by_department", ["department"]) // For department-based queries
         .index("by_archived", ["isArchived"]), // For filtering active/inactive users
-
     attendance: defineTable({
         userId: v.id("users"),
         timeIn: v.number(),
@@ -84,7 +75,6 @@ export default defineSchema({
         .index("by_user", ["userId"]) // For user's attendance history
         .index("by_date", ["date"]) // For daily reports
         .index("by_user_and_date", ["userId", "date"]), // For specific user's attendance on a date
-
     leaves: defineTable({
         userId: v.id("users"),
         type: v.string(), // Vacation, Sick, Maternity, etc.
@@ -97,7 +87,6 @@ export default defineSchema({
         .index("by_user", ["userId"]) // For user's leave history
         .index("by_status", ["status"]) // For pending approvals
         .index("by_date_range", ["startDate", "endDate"]), // For date range queries
-
     payrollPeriods: defineTable({
         startDate: v.string(),
         endDate: v.string(),
@@ -106,7 +95,6 @@ export default defineSchema({
     })
         .index("by_status", ["status"]) // For filtering by processing status
         .index("by_date_range", ["startDate", "endDate"]), // For period lookups
-
     salaryComponents: defineTable({
         userId: v.id("users"),
         payrollPeriodId: v.id("payrollPeriods"),
@@ -143,7 +131,6 @@ export default defineSchema({
     })
         .index("by_user", ["userId"]) // For user's salary history
         .index("by_payroll_period", ["payrollPeriodId"]), // For payroll processing
-
     requests: defineTable({
         userId: v.id("users"),
         type: v.string(), // Loan, Cash Advance, etc.
@@ -157,15 +144,62 @@ export default defineSchema({
         .index("by_user", ["userId"]) // For user's requests
         .index("by_status", ["status"]) // For pending approvals
         .index("by_type", ["type"]), // For filtering request types
-
     contributionTables: defineTable({
-        type: v.string(), // SSS, PhilHealth, PagIbig, Tax
+        type: v.string(), // "SSS", "PAGIBIG", "PHILHEALTH", "TAX"
         effectiveDate: v.string(),
-        data: v.string(), // JSON string of rates/brackets
+        // Make the ranges union type to handle different contribution table structures
+        ranges: v.union(
+            // SSS contribution table structure
+            v.array(v.object({
+                rangeStart: v.number(),
+                rangeEnd: v.number(),
+                regularSS: v.number(),
+                wisp: v.number(),
+                totalMonthlySalaryCredit: v.number(),
+                regularSSER: v.number(),
+                regularSSEE: v.number(),
+                regularSSTotal: v.number(),
+                ecER: v.number(),
+                ecEE: v.number(),
+                ecTotal: v.number(),
+                wispER: v.number(),
+                wispEE: v.number(),
+                wispTotal: v.number(),
+                totalER: v.number(),
+                totalEE: v.number(),
+                grandTotal: v.number(),
+            })),
+            // Updated Pag-IBIG contribution table structure
+            v.array(v.object({
+                rangeStart: v.number(),
+                rangeEnd: v.number(),
+                description: v.string(),
+                employeeRate: v.number(),
+                employerRate: v.number(),
+                maxLimit: v.number(),
+            })),
+            // PhilHealth contribution table structure
+            v.array(v.object({
+                yearStart: v.number(),
+                yearEnd: v.number(),
+                basicSalary: v.object({
+                    from: v.number(),
+                    to: v.union(v.number(), v.null()),
+                }),
+                premiumRate: v.number(),
+                monthlyPremium: v.number(),
+                employeeShare: v.number(),
+                employerShare: v.number(),
+            }))
+        ),
+        isActive: v.boolean(),
+        createdBy: v.id("users"),
         modifiedBy: v.id("users"),
+        modifiedAt: v.string(),
     })
-        .index("by_type_and_date", ["type", "effectiveDate"]), // For latest rates lookup
-
+        .index("by_type", ["type"])
+        .index("by_type_and_date", ["type", "effectiveDate"])
+        .index("by_active", ["isActive"]),
     biometricData: defineTable({
         userId: v.id("users"),
         fingerprintHash: v.string(), // Store hashed fingerprint data
@@ -176,16 +210,20 @@ export default defineSchema({
     })
         .index("by_user", ["userId"])
         .index("by_fingerprint", ["fingerprintHash"]), // For quick fingerprint matching
-
     holidays: defineTable({
         name: v.string(),
-        type: v.string(), // Legal, Special Non-Working, Local
-        date: v.string(),
+        date: v.string(), // ISO string
+        type: v.string(), // "Regular" | "Special" | "Local"
         description: v.optional(v.string()),
+        isRecurring: v.boolean(), // true for annual holidays
+        location: v.optional(v.string()), // for local holidays
         createdBy: v.id("users"),
+        modifiedAt: v.string(),
+        isArchived: v.boolean(),
     })
-        .index("by_date", ["date"]),
-
+        .index("by_date", ["date"])
+        .index("by_type", ["type"])
+        .index("by_location", ["location"]),
     reportTemplates: defineTable({
         name: v.string(),
         type: v.string(), // "BIR", "SSS", "Payroll", etc.
@@ -193,7 +231,6 @@ export default defineSchema({
         createdBy: v.id("users"),
         lastModified: v.string(),
     }),
-
     compensationTypes: defineTable({
         name: v.string(), // "Transportation Allowance", "Performance Bonus", etc.
         description: v.string(),
@@ -210,7 +247,6 @@ export default defineSchema({
     })
         .index("by_category", ["category"])
         .index("by_archived", ["isArchived"]),
-
     employeeCompensation: defineTable({
         userId: v.id("users"),
         compensationTypeId: v.id("compensationTypes"),
@@ -230,7 +266,6 @@ export default defineSchema({
         .index("by_status", ["status"])
         .index("by_date_range", ["startDate", "endDate"])
         .index("by_payroll_period", ["payrollPeriodId"]),
-
     compensationAdjustments: defineTable({
         employeeCompensationId: v.id("employeeCompensation"),
         adjustmentType: v.string(), // "Increase", "Decrease", "Suspension"
@@ -247,4 +282,86 @@ export default defineSchema({
     })
         .index("by_status", ["status"])
         .index("by_effective_date", ["effectiveDate"]),
+    leaveRequests: defineTable({
+        userId: v.id("users"),
+        type: v.string(), // "Annual", "Sick", "Maternity", "Paternity", "Emergency", "Other"
+        startDate: v.string(),
+        endDate: v.string(),
+        reason: v.string(),
+        status: v.string(), // "Pending", "Approved", "Rejected"
+        approvedBy: v.optional(v.id("users")),
+        approvedAt: v.optional(v.string()),
+        rejectionReason: v.optional(v.string()),
+        attachments: v.optional(v.array(v.string())), // URLs to uploaded documents
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_status", ["status"])
+        .index("by_date", ["startDate"]),
+    benefitRequests: defineTable({
+        userId: v.id("users"),
+        type: v.string(), // "Health", "Insurance", "Allowance", "Other"
+        description: v.string(),
+        amount: v.optional(v.number()),
+        status: v.string(), // "Pending", "Approved", "Rejected"
+        approvedBy: v.optional(v.id("users")),
+        approvedAt: v.optional(v.string()),
+        rejectionReason: v.optional(v.string()),
+        attachments: v.optional(v.array(v.string())), // URLs to uploaded documents
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_status", ["status"]),
+    companyLoans: defineTable({
+        userId: v.id("users"),
+        type: v.string(), // "VALE" or "Partial A/R"
+        amount: v.number(),
+        status: v.string(), // "Pending", "Approved", "Rejected"
+        approvedBy: v.optional(v.id("users")),
+        approvedAt: v.optional(v.string()),
+        rejectionReason: v.optional(v.string()),
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+        amortization: v.number(),
+        totalAmount: v.number(),
+        remarks: v.optional(v.string()),
+        totalPaid: v.optional(v.number()),
+        remainingBalance: v.optional(v.number()),
+    }).index("by_user", ["userId"]),
+    governmentLoans: defineTable({
+        userId: v.id("users"),
+        applicationType: v.string(), // "SSS Salary", "SSS Calamity", "Pagibig Multi-purpose", "Pagibig Calamity"
+        applicationNo: v.string(),
+        amount: v.number(),
+        startDate: v.string(),
+        endDate: v.string(),
+        monthlySchedule: v.string(), // "1st Half", "2nd Half"
+        status: v.string(),
+        approvedBy: v.optional(v.id("users")),
+        approvedAt: v.optional(v.string()),
+        rejectionReason: v.optional(v.string()),
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+        amortization: v.number(),
+        totalAmount: v.number(),
+        additionalInfo: v.optional(v.string()),
+    })
+        .index("by_user", ["userId"])
+        .index("by_date_range", ["startDate", "endDate"]),
+    cashAdvanceRequests: defineTable({
+        userId: v.id("users"),
+        type: v.string(),
+        amount: v.number(),
+        paymentTerm: v.string(),
+        reason: v.string(),
+        status: v.string(),
+        rejectionReason: v.optional(v.string()),
+        createdAt: v.string(),
+        modifiedAt: v.string(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_status", ["status"])
+        .index("by_user_and_status", ["userId", "status"]),
 });

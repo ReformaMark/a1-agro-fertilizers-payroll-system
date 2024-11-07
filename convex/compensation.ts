@@ -32,7 +32,8 @@ export const createType = mutation({
         defaultAmount: v.number(),
     },
     handler: async (ctx, args) => {
-        const userId = "k17359jw11zmwqw5zya0m9btm9742g3x" as Id<"users">
+        const userId = await getAuthUserId(ctx)
+        if (!userId) throw new ConvexError("User not found")
 
         return await ctx.db.insert("compensationTypes", {
             ...args,
@@ -168,12 +169,26 @@ export const createAdjustment = mutation({
         const userId = await getAuthUserId(ctx)
         if (!userId) throw new ConvexError("Unauthorized")
 
-        return await ctx.db.insert("compensationAdjustments", {
+        // Get the compensation record
+        const compensation = await ctx.db.get(args.employeeCompensationId)
+        if (!compensation) throw new ConvexError("Compensation not found")
+
+        // Create the adjustment record
+        const adjustment = await ctx.db.insert("compensationAdjustments", {
             ...args,
-            status: "Pending",
+            status: "Completed",
             modifiedAt: new Date().toISOString(),
             modifiedBy: userId,
         })
+
+        // Immediately update the compensation amount
+        await ctx.db.patch(args.employeeCompensationId, {
+            amount: args.newAmount,
+            modifiedAt: new Date().toISOString(),
+            modifiedBy: userId,
+        })
+
+        return adjustment
     },
 })
 
@@ -206,5 +221,36 @@ export const validateAdjustment = mutation({
         }
 
         return true
+    },
+})
+
+export const assignCompensation = mutation({
+    args: {
+        userId: v.id("users"),
+        compensationTypeId: v.id("compensationTypes"),
+        amount: v.number(),
+        startDate: v.string(),
+        endDate: v.optional(v.string()),
+        remarks: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) throw new ConvexError("Unauthorized")
+
+        // Verify user exists
+        const user = await ctx.db.get(args.userId)
+        if (!user) throw new ConvexError("Employee not found")
+
+        // Verify compensation type exists
+        const compensationType = await ctx.db.get(args.compensationTypeId)
+        if (!compensationType) throw new ConvexError("Compensation type not found")
+
+        return await ctx.db.insert("employeeCompensation", {
+            ...args,
+            status: "Active",
+            isArchived: false,
+            modifiedBy: adminId,
+            modifiedAt: new Date().toISOString(),
+        })
     },
 })

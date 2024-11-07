@@ -66,6 +66,7 @@ export function CompensationTypeForm({ onClose, editingType }: CompensationTypeF
                         onClose()
                     },
                     onError: (error) => {
+                        console.error(error)
                         toast.error("Failed to update compensation type")
                     }
                 }
@@ -78,6 +79,7 @@ export function CompensationTypeForm({ onClose, editingType }: CompensationTypeF
                     onClose()
                 },
                 onError: (error) => {
+                    console.error(error)
                     toast.error("Failed to create compensation type")
                 }
             })

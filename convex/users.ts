@@ -1,16 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { getAuthUserId } from "@convex-dev/auth/server";
-import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-import { Id } from "./_generated/dataModel";
+import { mutation, query } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const get = query({
     args: {},
     handler: async (ctx) => {
-        // const userId = await getAuthUserId(ctx)
-        // if (!userId) throw new ConvexError("User not found")
-
-        const userId = "kn7ar73k80x8yjq5wgd75s8ht5742943" as Id<"users">
+        const userId = await getAuthUserId(ctx)
+        if (!userId) throw new ConvexError("User not found")
 
         const user = await ctx.db.get(userId)
         if (!user) throw new ConvexError("User not found")
@@ -23,7 +19,8 @@ export const get = query({
             email: user.email,
             role: user.role,
             department: user.department,
-            employeeTypeId: user.employeeTypeId,
+            filledUpByAdmin: user.filledUpByAdmin,
+            // employeeTypeId: user.employeeTypeId,
         }
     }
 })
@@ -107,61 +104,33 @@ function getEmployeeStatus(employee: any) {
 }
 
 
-// export const createAdmin = mutation({
-//     args: {},
-//     handler: async (ctx) => {
-//         const userId = await ctx.db.insert("users", {
-//             firstName: "Admin",
-//             lastName: "Admin",
-//             email: "admin@admin.com",
-//             role: "admin",
-//             department: "Human Resources",
-//             position: "HR Administrator",
-//             employeeTypeId: "ADMIN-001",
-//             dateOfBirth: "1990-01-01",
-//             gender: false,
-//             hiredDate: "2024-01-01",
-//             ratePerDay: 1000,
-//             isArchived: false,
-//             tokenIdentifier: "admin-user",
-//             modifiedAt: new Date().toISOString()
-//         })
+export const makeAdmin = mutation({
+    args: { userId: v.id("users") },
+    handler: async (ctx, args) => {
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) throw new ConvexError("Not authenticated")
 
-//         return userId
-//     }
-// })
+        // Check if current user is admin
+        const admin = await ctx.db.get(adminId)
+        if (admin?.role !== "admin") {
+            throw new ConvexError("Not authorized")
+        }
 
-export const createEmployee = mutation({
+        // Update user to admin
+        await ctx.db.patch(args.userId, {
+            role: "admin"
+        })
+
+        return true
+    }
+})
+
+export const updateEmployee = mutation({
     args: {
-        // Auth & Role
-        email: v.string(),
-        password: v.string(),
-        role: v.union(v.literal("admin"), v.literal("employee")),
-
-        // Personal Info
-        firstName: v.string(),
-        middleName: v.optional(v.string()),
-        lastName: v.string(),
-        image: v.optional(v.string()),
-        dateOfBirth: v.string(),
-        gender: v.union(v.literal("male"), v.literal("female")),
-        maritalStatus: v.union(
-            v.literal("single"),
-            v.literal("married"),
-            v.literal("widowed"),
-            v.literal("divorced"),
-            v.literal("separated")
-        ),
-        contactType: v.union(v.literal("mobile"), v.literal("landline")),
-        contactNumber: v.string(),
-
-        // Employment Info
-        employeeTypeId: v.string(),
+        userId: v.id("users"),
         department: v.string(),
         position: v.string(),
         hiredDate: v.string(),
-
-        // Address Info
         region: v.string(),
         province: v.string(),
         city: v.string(),
@@ -169,45 +138,62 @@ export const createEmployee = mutation({
         postalCode: v.string(),
         street: v.string(),
         houseNumber: v.string(),
-
-        // Payroll Info
         ratePerDay: v.number(),
-        philHealthNumber: v.optional(v.string()),
-        pagIbigNumber: v.optional(v.string()),
-        sssNumber: v.optional(v.string()),
-        birTin: v.optional(v.string()),
-        philHealthContribution: v.optional(v.number()),
-        pagIbigContribution: v.optional(v.number()),
-        sssContribution: v.optional(v.number()),
-        incomeTax: v.optional(v.number()),
-
-        // Payment Schedules
-        philHealthSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        pagIbigSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        sssSchedule: v.union(v.literal("1st"), v.literal("2nd")),
-        incomeTaxSchedule: v.union(v.literal("1st"), v.literal("2nd")),
+        // Government IDs
+        philHealthNumber: v.string(),
+        pagIbigNumber: v.string(),
+        sssNumber: v.string(),
+        birTin: v.string(),
+        // Contributions
+        philHealthContribution: v.number(),
+        pagIbigContribution: v.number(),
+        sssContribution: v.number(),
+        incomeTax: v.number(),
+        // Schedules
+        philHealthSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        incomeTaxSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx)
-        if (!userId) throw new ConvexError("User not found")
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) throw new ConvexError("Not authenticated")
 
-        // Check if email already exists
-        const existingUser = await ctx.db
-            .query("users")
-            .filter(q => q.eq(q.field("email"), args.email))
-            .first();
+        // Check if current user is admin
+        const admin = await ctx.db.get(adminId)
+        if (admin?.role !== "admin") {
+            throw new ConvexError("Not authorized")
+        }
 
-        if (existingUser) throw new Error("Email already exists");
+        const { userId, ...updateData } = args
 
-        // Create the employee
-        const userCreatedId = await ctx.db.insert("users", {
-            ...args,
-            tokenIdentifier: `local:${args.email}`,
-            isArchived: false,
-            modifiedBy: userId,
+        await ctx.db.patch(userId, {
+            ...updateData,
+            filledUpByAdmin: true,
+            modifiedBy: adminId,
             modifiedAt: new Date().toISOString(),
-        });
+        })
 
-        return userCreatedId;
+        return true
+    }
+})
+
+export const listEmployeesWithContributions = query({
+    args: {
+        schedule: v.union(v.literal("1st half"), v.literal("2nd half"))
     },
+    handler: async (ctx, args) => {
+        const employees = await ctx.db
+            .query("users")
+            .filter(q =>
+                q.and(
+                    q.eq(q.field("role"), "employee"),
+                    q.eq(q.field("filledUpByAdmin"), true),
+                    q.eq(q.field("sssSchedule"), args.schedule)
+                )
+            )
+            .collect();
+
+        return employees;
+    }
 });

@@ -8,18 +8,24 @@ import {
     CardTitle
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
 import { useAuthActions } from "@convex-dev/auth/react"
-// import { useConvexAuth } from "convex/react"
 import { Loader2, TriangleAlertIcon } from "lucide-react"
-// import { useRouter } from "next/navigation"
-import {  useState } from "react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { AuthFlow } from "../types"
 // import { useCheckRole } from "../api/use-check-role"
 
-export const SignInCard = () => {
+interface SignInCardProps {
+    setState: (state: AuthFlow) => void
+}
+
+export const SignInCard = ({ setState }: SignInCardProps) => {
 
     const { signIn } = useAuthActions();
-    // const { data: role } = useCheckRole()
     // const { isAuthenticated } = useConvexAuth();
+
+    // const { data: role } = useCheckRole()
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [pending, setPending] = useState<boolean>(false);
@@ -107,6 +113,24 @@ export const SignInCard = () => {
                         )}
                     </Button>
                 </form>
+                <Separator />
+                <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                        Don&apos;t have an account? <span
+                            className="text-primary hover:underline cursor-pointer"
+                            onClick={() => setState("signUp")}>
+                            Sign up
+                        </span>
+                    </p>
+
+                    <p className="block lg:hidden text-sm text-muted-foreground">
+                        Changed your mind? <span
+                            className="text-primary hover:underline cursor-pointer"
+                            onClick={() => router.push("/")}>
+                            Go back to homepage.
+                        </span>
+                    </p>
+                </div>
             </CardContent>
         </Card>
     )

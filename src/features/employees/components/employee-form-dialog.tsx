@@ -10,27 +10,25 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import { Form } from "@/components/ui/form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
 import { UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Form } from "@/components/ui/form"
-import { useConvexMutation } from "@convex-dev/react-query"
-import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { employeeFormSchema, EmployeeFormValues } from "../lib/schema"
-import { api } from "../../../../convex/_generated/api"
-import { PersonalInfoForm } from "./forms/personal-info-form"
-import { EmploymentInfoForm } from "./forms/employment-info-form"
 import { AddressInfoForm } from "./forms/address-info-form"
+import { EmploymentInfoForm } from "./forms/employment-info-form"
 import { PayrollInfoForm } from "./forms/payroll-info-form"
+import { PersonalInfoForm } from "./forms/personal-info-form"
 
 export function EmployeeFormDialog() {
     const [open, setOpen] = useState(false)
 
     const { mutate: createEmployee, isPending } = useMutation({
-        mutationFn: useConvexMutation(api.users.createEmployee)
+        // mutationFn: useConvexMutation(api.users.createEmployee)
     })
 
     const form = useForm<EmployeeFormValues>({
@@ -44,6 +42,7 @@ export function EmployeeFormDialog() {
         }
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async function onSubmit(data: any) {
         createEmployee(data, {
             onSuccess: () => {
@@ -52,6 +51,7 @@ export function EmployeeFormDialog() {
                 form.reset()
             },
             onError: (error) => {
+                console.error(error)
                 toast.error("Failed to add employee")
             }
         })
