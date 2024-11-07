@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SSSContributionTable } from "@/features/settings/components/sss-contribution-table"
 import { PagibigContributionTable } from "@/features/settings/components/pagibig-contribution-table"
+import { PhilHealthContributionTable } from "@/features/settings/components/philhealth-contribution-table"
 import { Card } from "@/components/ui/card"
 
 const SystemSettingsPage = () => {
@@ -28,18 +29,12 @@ const SystemSettingsPage = () => {
                     <SSSContributionTable />
                 </TabsContent>
 
-                <TabsContent value="pagibig">
-                    <PagibigContributionTable />
+                <TabsContent value="philhealth">
+                    <PhilHealthContributionTable />
                 </TabsContent>
 
-                <TabsContent value="philhealth">
-                    <Card className="p-6">
-                        <h2 className="text-xl font-semibold mb-4">PhilHealth Contribution Table</h2>
-                        {/* Add PhilHealth table component here */}
-                        <div className="text-muted-foreground">
-                            PhilHealth contribution table will be implemented here
-                        </div>
-                    </Card>
+                <TabsContent value="pagibig">
+                    <PagibigContributionTable />
                 </TabsContent>
 
                 <TabsContent value="tax">

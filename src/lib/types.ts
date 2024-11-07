@@ -29,11 +29,24 @@ export interface PagibigRange {
     maxLimit: number
 }
 
+export interface PhilHealthRange {
+    yearStart: number
+    yearEnd: number
+    basicSalary: {
+        from: number
+        to: number | null // null for "and up" ranges
+    }
+    premiumRate: number
+    monthlyPremium: number
+    employeeShare: number
+    employerShare: number
+}
+
 export interface ContributionTable {
     _id: Id<"contributionTables">
     type: string
     effectiveDate: string
-    ranges: SSSRange[] | PagibigRange[]
+    ranges: SSSRange[] | PagibigRange[] | PhilHealthRange[]
     isActive: boolean
     createdBy: Id<"users">
     modifiedBy: Id<"users">

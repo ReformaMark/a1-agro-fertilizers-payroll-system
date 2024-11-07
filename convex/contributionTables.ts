@@ -236,3 +236,111 @@ export const getCurrentPagibig = query({
         return tables[0];
     },
 });
+
+export const createPhilHealth = mutation({
+    args: {
+        effectiveDate: v.string(),
+        ranges: v.array(v.object({
+            yearStart: v.number(),
+            yearEnd: v.number(),
+            basicSalary: v.object({
+                from: v.number(),
+                to: v.union(v.number(), v.null()),
+            }),
+            premiumRate: v.number(),
+            monthlyPremium: v.number(),
+            employeeShare: v.number(),
+            employerShare: v.number(),
+        })),
+        isActive: v.boolean(),
+    },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+        if (!userId) throw new Error("Not authenticated");
+
+        // If this is marked as active, deactivate other tables
+        if (args.isActive) {
+            const activeTables = await ctx.db
+                .query("contributionTables")
+                .withIndex("by_type", q => q.eq("type", "PHILHEALTH"))
+                .filter(q => q.eq(q.field("isActive"), true))
+                .collect();
+
+            for (const table of activeTables) {
+                await ctx.db.patch(table._id, { isActive: false });
+            }
+        }
+
+        return await ctx.db.insert("contributionTables", {
+            type: "PHILHEALTH",
+            effectiveDate: args.effectiveDate,
+            ranges: args.ranges,
+            isActive: args.isActive,
+            createdBy: userId,
+            modifiedBy: userId,
+            modifiedAt: new Date().toISOString(),
+        });
+    },
+});
+
+export const updatePhilHealth = mutation({
+    args: {
+        id: v.id("contributionTables"),
+        effectiveDate: v.string(),
+        ranges: v.array(v.object({
+            yearStart: v.number(),
+            yearEnd: v.number(),
+            basicSalary: v.object({
+                from: v.number(),
+                to: v.union(v.number(), v.null()),
+            }),
+            premiumRate: v.number(),
+            monthlyPremium: v.number(),
+            employeeShare: v.number(),
+            employerShare: v.number(),
+        })),
+        isActive: v.boolean(),
+    },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+        if (!userId) throw new Error("Not authenticated");
+
+        const { id, ...updates } = args;
+
+        // If this is marked as active, deactivate other tables
+        if (updates.isActive) {
+            const activeTables = await ctx.db
+                .query("contributionTables")
+                .withIndex("by_type", q => q.eq("type", "PHILHEALTH"))
+                .filter(q => q.eq(q.field("isActive"), true))
+                .collect();
+
+            for (const table of activeTables) {
+                if (table._id !== id) {
+                    await ctx.db.patch(table._id, { isActive: false });
+                }
+            }
+        }
+
+        return await ctx.db.patch(id, {
+            effectiveDate: updates.effectiveDate,
+            ranges: updates.ranges,
+            isActive: updates.isActive,
+            modifiedBy: userId,
+            modifiedAt: new Date().toISOString(),
+        });
+    },
+});
+
+export const getCurrentPhilHealth = query({
+    handler: async (ctx) => {
+        const tables = await ctx.db
+            .query("contributionTables")
+            .withIndex("by_type", q => q.eq("type", "PHILHEALTH"))
+            .filter(q => q.eq(q.field("isActive"), true))
+            .order("desc")
+            .take(1);
+
+        return tables[0];
+    },
+});

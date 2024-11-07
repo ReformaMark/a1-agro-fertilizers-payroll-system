@@ -400,6 +400,32 @@ export default defineSchema({
 
                 maxLimit: v.number(),
 
+            })),
+
+            // PhilHealth contribution table structure
+
+            v.array(v.object({
+
+                yearStart: v.number(),
+
+                yearEnd: v.number(),
+
+                basicSalary: v.object({
+
+                    from: v.number(),
+
+                    to: v.union(v.number(), v.null()),
+
+                }),
+
+                premiumRate: v.number(),
+
+                monthlyPremium: v.number(),
+
+                employeeShare: v.number(),
+
+                employerShare: v.number(),
+
             }))
 
         ),
