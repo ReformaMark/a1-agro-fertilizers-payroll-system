@@ -91,10 +91,10 @@ export default defineSchema({
         .index("by_status", ["status"]) // For pending approvals
         .index("by_date_range", ["startDate", "endDate"]), // For date range queries
     payrollPeriods: defineTable({
-        startDate: v.string(),
-        endDate: v.string(),
-        status: v.string(), // Draft, Processing, Completed
-        processedBy: v.id("users"),
+        startDate: v.string(), // YYYY-MM-DD format
+        endDate: v.string(), // YYYY-MM-DD format
+        status: v.optional(v.string()), // Draft, Processing, Completed
+        processedBy: v.optional(v.id("users")),
     })
         .index("by_status", ["status"]) // For filtering by processing status
         .index("by_date_range", ["startDate", "endDate"]), // For period lookups
@@ -105,7 +105,7 @@ export default defineSchema({
         allowances: v.array(v.object({
             type: v.string(),
             amount: v.number(),
-        })),
+        })), 
         deductions: v.array(v.object({
             type: v.string(),
             amount: v.number(),
@@ -216,7 +216,7 @@ export default defineSchema({
     holidays: defineTable({
         name: v.string(),
         date: v.string(), // ISO string
-        type: v.string(), // "Regular" | "Special" | "Local"
+        type: v.string(), // "Regular" | "Special" only
         description: v.optional(v.string()),
         isRecurring: v.boolean(), // true for annual holidays
         location: v.optional(v.string()), // for local holidays

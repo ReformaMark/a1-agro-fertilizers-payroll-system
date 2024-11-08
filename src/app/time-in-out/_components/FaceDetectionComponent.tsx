@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import React, { useEffect, useRef, useState } from 'react';
@@ -7,6 +8,8 @@ import { Employee } from '@/lib/types';
 import { api } from '../../../../convex/_generated/api';
 import { TimeDisplay } from '@/components/time-display';
 import { ConvexError } from 'convex/values';
+import { formatDate } from '@/lib/utils';
+import Image from 'next/image';
 
 interface FaceAPI {
     nets: any;
@@ -28,7 +31,6 @@ export default function FaceDetectionComponent() {
   const imageUrls = filteredEmployees?.map((employee) => employee.imageUrl)
   const [detectedFace, setDetectedFace] = useState<Employee | undefined>(undefined)
   const [isDetecting, setIsDetecting] = useState<string>("")
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState<Date>();
   const createAttendance = useMutation(api.attendance.timeIn)
@@ -74,7 +76,13 @@ export default function FaceDetectionComponent() {
     }
 
     loadModels();
+
+    setOpenVideo(true)
+    startVideo()
+    
   }, [faceapi]);
+
+ 
 
   const startVideo = async () => {
     if (videoRef.current) {
@@ -89,22 +97,10 @@ export default function FaceDetectionComponent() {
 
   const detectFace = async () => {
     if (!faceapi || !videoRef.current) return;
-    setIsDetecting("Detecting...")
+    setIsDetecting("Recognizing...")
     setError(null)
     setDetectedFace(undefined)
-    setCurrentTime(undefined)
-    setTimeoutId(null)
-    // Set a timeout to stop detection after 10 seconds
-    const timeout = setTimeout(() => {
-      setIsDetecting("Detection timeout - Please try again");
-      setOpenVideo(false);
-      if (videoRef.current) {
-        videoRef.current.removeEventListener('play', detectFace);
-      }
-    }, 10000); // 10 seconds
-    
-    setTimeoutId(timeout);
-
+   
     if (videoRef.current) {
       const video = videoRef.current;
       const result = await faceapi.detectSingleFace(video)
@@ -145,18 +141,19 @@ export default function FaceDetectionComponent() {
               console.log('Match found:', matchedEmployee);
               
               setIsDetecting("")
-              setOpenVideo(false)
               
-              setCurrentTime(new Date())
-              clearTimeout(timeout);
+              const now = new Date();
+              setCurrentTime(now);
+            
               if (matchedEmployee?._id) {
                 const now = new Date();
                 const isTimeOut = now.getHours() >= 0 && now.getHours() < 12; // 12am-11:59am is timeout period
                 if (isTimeOut) {
+                  
                   createAttendance({
                     timeIn: now.getTime(),
                     userId: matchedEmployee._id,
-                    date: now.toISOString().split('T')[0],
+                    date: formatDate(now),
                     type: "Regular",
                   }).then((res) => {
                     console.log('Attendance created:', res);
@@ -204,13 +201,7 @@ export default function FaceDetectionComponent() {
   }
 
   // Clean up timeout when component unmounts
-  useEffect(() => {
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [timeoutId]);
+
 
   // Add this new function to stop the video stream
   const stopVideo = () => {
@@ -221,10 +212,7 @@ export default function FaceDetectionComponent() {
     }
     setOpenVideo(false);
     setIsDetecting("");
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setTimeoutId(null);
-    }
+   
   };
 
   if (isLoading) {
@@ -232,78 +220,94 @@ export default function FaceDetectionComponent() {
   }
 
   return (
-    <div className="h-screen flex flex-col md:grid md:grid-cols-2 gap-4 p-4 md:p-6">
-      <div className="flex flex-col gap-4 h-full">
-        <div className="bg-white rounded-lg p-4 md:p-6 shadow-md text-center">
-          <div className="text-2xl md:text-3xl">
-            <TimeDisplay />
+    <div className="max-h-screen flex flex-col ">
+      <div className='flex justify-center items-center bg-white p-4 rounded-lg gap-x-56 mb-10 px-20'>
+        <h1 className='text-6xl md:text-3xl font-bold text-gray-900'>Attendance Monitoring</h1>
+        <Image src="/logo.svg" alt="Attendance" width={100} height={100} className='size-20' />
+      </div>
+      <div className="flex flex-col items-center justify-center md:grid-cols-12 gap-4 h-full px-5 md:px-10 ">
+        <div className="grid grid-cols-12 col-span-1 md:col-span-3 gap-4 justify-center">
+          <div className="col-span-1 md:col-span-3"></div>
+          <div className="col-span-1 md:col-span-6 relative rounded-2xl overflow-hidden bg-[#7ed957] shadow-lg w-full h-96">
+            <video 
+              id='video' 
+              ref={videoRef} 
+              autoPlay 
+              muted 
+              className='w-[50rem] h-96 object-cover'
+            />
+            {isDetecting && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <h1 className='text-xl md:text-2xl font-bold text-white'>{isDetecting}</h1>
+              </div>
+            )}
+            {openVideo && (
+              <button
+                onClick={()=> {
+                  stopVideo()
+                
+                }}
+                className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
+          <div className="col-span-1 md:col-span-3"></div>
         </div>
-        <div className="relative rounded-lg overflow-hidden bg-gray-100 shadow-md flex-grow">
-          <video 
-            id='video' 
-            ref={videoRef} 
-            autoPlay 
-            muted 
-            className='w-full h-full object-cover'
-          />
-          {isDetecting && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <h1 className='text-xl md:text-2xl font-bold text-white'>{isDetecting}</h1>
-            </div>
-          )}
-          {openVideo && (
-            <button
-              onClick={stopVideo}
-              className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
-        <div className="flex gap-4 justify-center">
+   
+        <div className="grid grid-cols-12 col-span-1 md:col-span-3 gap-4 items-center justify-center">
           <button
             disabled={openVideo}
             onClick={() => {
               setOpenVideo(true)
               startVideo()
-              if (videoRef.current) {
-                videoRef.current.addEventListener('play', detectFace);
-              }
+             
             }}
-            className="px-4 py-2 md:px-6 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+            className="col-span-1 md:col-span-3 h-fit  px-4 py-2 md:px-6 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
           >
-            Start Detection
+            Open Camera
           </button>
+          <div className='col-span-1 md:col-span-6'>
+            <TimeDisplay />
+          </div>
           <button
             onClick={() => detectFace()}
-            className="px-4 py-2 md:px-6 md:py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors text-sm md:text-base"
+            disabled={!openVideo}
+            className="col-span-1 h-fit  md:col-span-3 px-4 py-2 md:px-6 md:py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors text-sm md:text-base"
           >
-            Retry Detection
+            Scan Face
           </button>
         </div>
+       
+       
       </div>
-      <div className="flex flex-col justify-center gap-4">
+      <div className="grid grid-cols-1 gap-x-20 md:grid-cols-12 items-center justify-center mt-5">
+        <div className='col-span-1 md:col-span-3'></div>
+        <div className='col-span-1 md:col-span-6 p-5 text-center min-h-20 bg-[#7ed957] rounded-2xl shadow-lg '>
       {detectedFace && error === null ? (
-           <div className="bg-white rounded-lg p-6 md:p-8 shadow-md">
+        <div className="bg-white rounded-lg p-6 md:p-8 shadow-md">
            <p className="text-2xl md:text-3xl font-bold text-gray-900">
            {currentTime && currentTime.getHours() >= 8 && currentTime.getHours() < 13 && (
              <span className="text-red-500 font-semibold block mb-2">Late</span>
            )}
            {currentTime && (currentTime.getHours() >= 1 && currentTime.getHours() <= 13 ? 'Time In' : 'Time Out')} :  {currentTime?.toLocaleTimeString()}    
-         </p>
-         <p className="text-xl md:text-2xl text-gray-700 mt-4">
-           {detectedFace.firstName} {detectedFace.lastName}
-         </p>
-       </div>
+          </p>
+          <p className="text-xl md:text-2xl text-gray-700 mt-4">
+            {detectedFace.firstName} {detectedFace.lastName}
+          </p>
+        </div>
       ) : (
         <p className="text-2xl md:text-3xl font-bold text-red-500">
           {error}
         </p>
       )}
       </div>
+      <div className='col-span-1 md:col-span-3'></div>
+      </div>
+
     </div>
   );
 }
