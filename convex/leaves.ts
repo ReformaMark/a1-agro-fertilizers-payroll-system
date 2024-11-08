@@ -19,7 +19,20 @@ export const getLeaveRequests = query({
             query = query.filter(q => q.eq(q.field("status"), args.status))
         }
 
-        return await query.collect()
+        const requests = await query.collect()
+
+        // Fetch user details for each request
+        const requestsWithUsers = await Promise.all(
+            requests.map(async (request) => {
+                const user = await ctx.db.get(request.userId)
+                return {
+                    ...request,
+                    user
+                }
+            })
+        )
+
+        return requestsWithUsers
     },
 })
 
