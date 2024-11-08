@@ -20,6 +20,9 @@ export const get = query({
             role: user.role,
             department: user.department,
             filledUpByAdmin: user.filledUpByAdmin,
+            isDeclinedByAdmin: user.isDeclinedByAdmin,
+            declinedReason: user.declinedReason,
+            declinedAt: user.declinedAt,
             // employeeTypeId: user.employeeTypeId,
         }
     }
@@ -81,7 +84,7 @@ export const getEmployees = query({
     }
 })
 export const getAllEmployees = query({
-    
+
     handler: async (ctx) => {
         const query = ctx.db.query("users")
             .filter(q => q.eq(q.field("role"), "employee"))
@@ -190,11 +193,65 @@ export const listEmployeesWithContributions = query({
                 q.and(
                     q.eq(q.field("role"), "employee"),
                     q.eq(q.field("filledUpByAdmin"), true),
-                    q.eq(q.field("sssSchedule"), args.schedule)
+                    q.eq(q.field("philHealthSchedule"), args.schedule)
                 )
             )
             .collect();
 
+        // Debug log to check the data
+        console.log('Employees found:', employees.length);
+        console.log('Sample employee:', employees[0]);
+
         return employees;
     }
 });
+
+export const declineRegistration = mutation({
+    args: {
+        userId: v.id("users"),
+        reason: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) throw new ConvexError("Unauthorized")
+
+        const admin = await ctx.db.get(adminId)
+        if (!admin || admin.role !== "admin") {
+            throw new ConvexError("Unauthorized: Only admins can decline registrations")
+        }
+
+        return await ctx.db.patch(args.userId, {
+            isDeclinedByAdmin: true,
+            declinedReason: args.reason,
+            declinedAt: new Date().toISOString(),
+            modifiedBy: adminId,
+            modifiedAt: new Date().toISOString(),
+        })
+    },
+})
+
+// export const reverseDeclineRegistration = mutation({
+//     args: {
+//         userId: v.id("users"),
+//     },
+//     handler: async (ctx, args) => {
+//         const adminId = await getAuthUserId(ctx)
+//         if (!adminId) throw new ConvexError("Unauthorized")
+
+//         const admin = await ctx.db.get(adminId)
+//         if (!admin || admin.role !== "admin") {
+//             throw new ConvexError("Unauthorized: Only admins can reverse declined registrations")
+//         }
+
+//         const user = await ctx.db.get(args.userId)
+//         if (!user) throw new ConvexError("User not found")
+
+//         return await ctx.db.patch(args.userId, {
+//             isDeclinedByAdmin: false,
+//             declinedReason: undefined,
+//             declinedAt: undefined,
+//             modifiedBy: adminId,
+//             modifiedAt: new Date().toISOString(),
+//         })
+//     },
+// })

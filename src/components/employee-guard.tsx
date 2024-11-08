@@ -5,7 +5,7 @@ import { useEffect } from "react"
 import { useCheckRole } from "@/features/auth/api/use-check-role"
 import { useConvexAuth } from "convex/react"
 
-export function AdminGuard({ children }: { children: React.ReactNode }) {
+export function EmployeeGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter()
     const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth()
     const { data: role, isLoading: isRoleLoading } = useCheckRole()
@@ -17,8 +17,8 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
                 return
             }
 
-            if (role !== "admin") {
-                router.push("/employee")
+            if (role !== "employee") {
+                router.push("/admin")
                 return
             }
         }
@@ -29,8 +29,8 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
         return null // Or a loading spinner
     }
 
-    // Only render children if authenticated and admin
-    if (isAuthenticated && role === "admin") {
+    // Only render children if authenticated and employee
+    if (isAuthenticated && role === "employee") {
         return <>{children}</>
     }
 

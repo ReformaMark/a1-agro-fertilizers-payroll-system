@@ -31,7 +31,7 @@ export function PhilHealthContributionTable() {
     const [isEditing, setIsEditing] = useState(false)
     const [editedRange, setEditedRange] = useState<PhilHealthRange>(DEFAULT_RANGE)
 
-    const currentTable = useQuery(api.contributionTables.getCurrentPhilHealth)
+    const currentTable = useQuery(api.contributionTables.getCurrentPhilhealth)
     const updateTable = useMutation(api.contributionTables.updatePhilHealth)
     const createTable = useMutation(api.contributionTables.createPhilHealth)
 

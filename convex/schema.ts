@@ -57,6 +57,9 @@ export default defineSchema({
         filledUpByAdmin: v.optional(v.boolean()),
         modifiedBy: v.optional(v.id("users")),
         modifiedAt: v.optional(v.string()),
+        isDeclinedByAdmin: v.optional(v.boolean()),
+        declinedReason: v.optional(v.string()),
+        declinedAt: v.optional(v.string()),
     })
         .index("by_email", ["email"]) // For user lookups
         .index("by_role", ["role"]) // For filtering admins/employees
@@ -70,7 +73,7 @@ export default defineSchema({
         status: v.string(), // Present, Late, Absent
         remarks: v.optional(v.string()),
         date: v.string(), // Added for daily records
-        
+
     })
         .index("by_user", ["userId"]) // For user's attendance history
         .index("by_date", ["date"]) // For daily reports

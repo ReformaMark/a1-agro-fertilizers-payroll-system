@@ -16,12 +16,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { AlertCircle, Check, MoreHorizontal, Plus, X } from "lucide-react"
+import { AlertCircle, Check, Download, MoreHorizontal, Plus, X } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { Doc, Id } from "../../../../convex/_generated/dataModel"
 import { useLeaveRequests, useUpdateLeaveRequestStatus } from "../api/leaves"
 import { LeaveRequestForm } from "./leave-request-form"
+import { downloadCSV } from "@/lib/export-utils"
 
 interface LeaveRequestWithUser extends Doc<"leaveRequests"> {
     user: Doc<"users"> | null
@@ -176,6 +177,18 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
         )
     }
 
+    function formatLeaveDataForExport(data: LeaveRequestWithUser[]) {
+        return data.map(request => ({
+            Employee: request.user ? `${request.user.firstName} ${request.user.lastName}` : 'N/A',
+            'Leave Type': request.type,
+            'Start Date': format(new Date(request.startDate), "PPP"),
+            'End Date': format(new Date(request.endDate), "PPP"),
+            Status: request.status,
+            'Created At': format(new Date(request._creationTime), "PPP"),
+            'Rejection Reason': request.rejectionReason || 'N/A'
+        }))
+    }
+
     return (
         <Card>
             <CardHeader className="border-b">
@@ -186,18 +199,30 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
                             {isAdmin ? "Manage employee leave requests" : "Submit and track your leave requests"}
                         </CardDescription>
                     </div>
-                    {!isAdmin && (
-                        <Button onClick={() => setShowForm(true)}>
-                            <Plus className="h-4 w-4 mr-1" />
-                            Request Leave
+                    <div className="flex gap-2">
+                        {!isAdmin && (
+                            <Button onClick={() => setShowForm(true)}>
+                                <Plus className="h-4 w-4 mr-1" />
+                                Request Leave
+                            </Button>
+                        )}
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                if (!leaveRequests) return
+                                const exportData = formatLeaveDataForExport(leaveRequests)
+                                downloadCSV(exportData, `leave-requests-${format(new Date(), "yyyy-MM-dd")}`)
+                            }}
+                        >
+                            <Download className="h-4 w-4 mr-1" />
+                            Export CSV
                         </Button>
-                    )}
+                    </div>
                 </div>
             </CardHeader>
 
             <CardContent className="pt-6">
                 <DataTable
-                    // @ts-expect-error - TODO: fix this
                     columns={columns}
                     data={leaveRequests}
                     filter={isAdmin ? "user.firstName" : "type"}

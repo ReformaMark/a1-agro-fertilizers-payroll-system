@@ -332,7 +332,7 @@ export const updatePhilHealth = mutation({
     },
 });
 
-export const getCurrentPhilHealth = query({
+export const getCurrentPhilhealth = query({
     handler: async (ctx) => {
         const tables = await ctx.db
             .query("contributionTables")

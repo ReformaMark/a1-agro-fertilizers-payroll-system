@@ -56,7 +56,7 @@ export function NavUser({ user }: { user: User }) {
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => {
               signOut();
-              window.location.href = "/";
+              window.location.href = "/auth";
             }}>
               <LogOut className="mr-2 h-4 w-4" />
               Log out
