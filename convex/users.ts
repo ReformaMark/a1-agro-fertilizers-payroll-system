@@ -172,10 +172,14 @@ export const listEmployeesWithContributions = query({
                 q.and(
                     q.eq(q.field("role"), "employee"),
                     q.eq(q.field("filledUpByAdmin"), true),
-                    q.eq(q.field("sssSchedule"), args.schedule)
+                    q.eq(q.field("philHealthSchedule"), args.schedule)
                 )
             )
             .collect();
+
+        // Debug log to check the data
+        console.log('Employees found:', employees.length);
+        console.log('Sample employee:', employees[0]);
 
         return employees;
     }
