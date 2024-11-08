@@ -3,18 +3,17 @@
 import { DataTable } from "@/components/data-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DeclineRegistrationDialog } from "@/features/auth/components/decline-registration-dialog"
 import { ColumnDef } from "@tanstack/react-table"
 import { PencilIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Doc } from "../../../../convex/_generated/dataModel"
 import { useEmployees } from "../api/employees"
+import { AuditLogDialog } from "./audit-log-dialog"
 import { CompleteProfileDialog } from "./complete-profile-dialog"
 import { ConfirmMakeAdminDialog } from "./confirm-make-admin-dialog"
 import { EditEmployeeDialog } from "./edit-employee-dialog"
-import { DeclineRegistrationDialog } from "@/features/auth/components/decline-registration-dialog"
 import { EmployeeFormDialog } from "./employee-form-dialog"
-import { AuditLogDialog } from "./audit-log-dialog"
 
 type Employee = Doc<"users">
 

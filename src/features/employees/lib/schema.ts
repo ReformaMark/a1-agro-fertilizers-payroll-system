@@ -34,6 +34,7 @@ export const employeeFormSchema = z.object({
     pagIbigSchedule: z.enum(["1st half", "2nd half"]),
     sssSchedule: z.enum(["1st half", "2nd half"]),
     incomeTaxSchedule: z.enum(["1st half", "2nd half"]),
+    employeeTypeId: z.string().min(1, "Employee ID is required"),
 })
 
 export type EmployeeFormValues = z.infer<typeof employeeFormSchema>

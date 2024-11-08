@@ -32,7 +32,9 @@ export const getPhilhealthReport = query({
 
             if (philhealthTable?.ranges) {
                 const range = philhealthTable.ranges.find(r =>
+                    // @ts-expect-error - TODO: fix this
                     monthlyBasicSalary >= r.basicSalary.from &&
+                    // @ts-expect-error - TODO: fix this
                     (!r.basicSalary.to || monthlyBasicSalary <= r.basicSalary.to)
                 );
 
@@ -40,6 +42,7 @@ export const getPhilhealthReport = query({
                     if (monthlyBasicSalary <= 10000) {
                         monthlyPremium = 500;
                     } else if (monthlyBasicSalary <= 99999.99) {
+                        // @ts-expect-error - TODO: fix this
                         monthlyPremium = monthlyBasicSalary * (range.premiumRate / 100);
                     } else {
                         monthlyPremium = 5000;

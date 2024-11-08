@@ -32,6 +32,7 @@ export function EmployeeFormDialog() {
     const form = useForm<EmployeeFormValues>({
         resolver: zodResolver(employeeFormSchema),
         defaultValues: {
+            employeeTypeId: "",
             philHealthSchedule: "1st half",
             pagIbigSchedule: "1st half",
             sssSchedule: "1st half",

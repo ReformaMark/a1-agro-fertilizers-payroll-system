@@ -317,6 +317,7 @@ export const createEmployee = mutation({
         pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
         sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
         incomeTaxSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        employeeTypeId: v.string(),
     },
     handler: async (ctx, args) => {
         try {

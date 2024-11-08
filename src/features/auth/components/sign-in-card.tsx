@@ -14,14 +14,13 @@ import { Loader2, TriangleAlertIcon } from "lucide-react"
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { AuthFlow } from "../types"
 // import { useCheckRole } from "../api/use-check-role"
 
-interface SignInCardProps {
-    setState: (state: AuthFlow) => void
-}
+// interface SignInCardProps {
+//     setState: (state: AuthFlow) => void
+// }
 
-export const SignInCard = ({ setState }: SignInCardProps) => {
+export const SignInCard = () => {
 
     const { signIn } = useAuthActions();
     // const { isAuthenticated } = useConvexAuth();
