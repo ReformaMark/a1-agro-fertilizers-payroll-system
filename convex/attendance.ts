@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server"
 
 export const list = query({
@@ -97,13 +97,14 @@ export const timeOut = mutation({
           )
         )
         .unique();
-
-      if (!existingRecord) {
-        throw new Error("User has not timed in for this date");
+      console.log(args.date)
+      console.log(args.userId)
+      if (existingRecord === null) {
+        throw new ConvexError({ message: "You need to time in first before timing out" });
       }
       
       if(existingRecord.timeOut) {
-        throw new Error("User has already timed out for this date");
+        throw new ConvexError({ message: "You have already timed out for today" });
       }
 
       return await ctx.db.patch(existingRecord._id, {
