@@ -1,8 +1,17 @@
+"use client"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useQuery } from "convex/react"
 import { CalendarDays, Clock, HeartPulse, Wallet } from "lucide-react"
+import { api } from "../../../convex/_generated/api"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 export default function EmployeeDashboard() {
+    const { data: currentUser } = useCurrentUser()
+    const leaveBalance = useQuery(api.leaves.getLeaveBalance, {
+        userId: currentUser?._id
+    })
+
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
@@ -19,7 +28,7 @@ export default function EmployeeDashboard() {
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">15 days</div>
+                        <div className="text-2xl font-bold">{leaveBalance ?? '...'} days</div>
                         <p className="text-xs text-muted-foreground">
                             Annual leave remaining
                         </p>

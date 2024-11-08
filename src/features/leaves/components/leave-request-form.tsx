@@ -15,6 +15,11 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { useCreateLeaveRequest } from "../api/leaves"
+import { api } from "../../../../convex/_generated/api"
+import { differenceInDays } from "date-fns"
+import { Card } from "@/components/ui/card"
+import { useQuery } from "convex/react"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 const formSchema = z.object({
     type: z.string().min(1, "Please select a leave type"),
@@ -38,6 +43,10 @@ interface LeaveRequestFormProps {
 
 export function LeaveRequestForm({ onClose }: LeaveRequestFormProps) {
     const createLeaveRequest = useCreateLeaveRequest()
+    const { data: currentUser } = useCurrentUser()
+    const leaveBalance = useQuery(api.leaves.getLeaveBalance, { 
+        userId: currentUser?._id 
+    })
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -57,6 +66,18 @@ export function LeaveRequestForm({ onClose }: LeaveRequestFormProps) {
             console.error(error)
         }
     }
+
+    const startDate = form.watch("startDate")
+    const endDate = form.watch("endDate")
+    const leaveType = form.watch("type")
+
+    const leaveDuration = startDate && endDate
+        ? differenceInDays(new Date(endDate), new Date(startDate)) + 1
+        : 0
+
+    // Show warning if insufficient balance
+    const isAnnualLeave = leaveType === "Annual Leave"
+    const hasInsufficientBalance = isAnnualLeave && leaveBalance !== undefined && leaveDuration > leaveBalance
 
     return (
         <Dialog open onOpenChange={onClose}>
@@ -181,6 +202,24 @@ export function LeaveRequestForm({ onClose }: LeaveRequestFormProps) {
                             />
                         </div>
 
+                        {startDate && endDate && (
+                            <Card className="p-3">
+                                <p className="text-sm text-muted-foreground">
+                                    Duration: <span className="font-medium">{leaveDuration} day{leaveDuration > 1 ? 's' : ''}</span>
+                                </p>
+                                {isAnnualLeave && (
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        Leave Balance: <span className="font-medium">{leaveBalance ?? '...'} days</span>
+                                        {hasInsufficientBalance && (
+                                            <span className="text-destructive ml-2">
+                                                Insufficient balance
+                                            </span>
+                                        )}
+                                    </p>
+                                )}
+                            </Card>
+                        )}
+
                         <FormField
                             control={form.control}
                             name="reason"
@@ -205,7 +244,11 @@ export function LeaveRequestForm({ onClose }: LeaveRequestFormProps) {
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={!form.formState.isValid || form.formState.isSubmitting}
+                                disabled={
+                                    !form.formState.isValid || 
+                                    form.formState.isSubmitting || 
+                                    hasInsufficientBalance
+                                }
                             >
                                 Submit Request
                             </Button>

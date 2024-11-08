@@ -60,6 +60,7 @@ export default defineSchema({
         isDeclinedByAdmin: v.optional(v.boolean()),
         declinedReason: v.optional(v.string()),
         declinedAt: v.optional(v.string()),
+        annualLeaveBalance: v.optional(v.number()),
     })
         .index("by_email", ["email"]) // For user lookups
         .index("by_role", ["role"]) // For filtering admins/employees
