@@ -1,4 +1,4 @@
-import { useQuery } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 
 export function useEmployees(
@@ -9,4 +9,8 @@ export function useEmployees(
     department,
     status
   })
+}
+
+export function useDeclineRegistration() {
+  return useMutation(api.users.declineRegistration)
 }

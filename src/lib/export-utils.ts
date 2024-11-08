@@ -49,6 +49,7 @@ export function formatLoanDataForExport(loans: any[], type: 'company' | 'governm
     })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function downloadCSV(data: any[], filename: string) {
     // Define headers based on the first data item's keys
     const headers = Object.keys(data[0]);
