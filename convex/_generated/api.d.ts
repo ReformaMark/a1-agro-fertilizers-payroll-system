@@ -23,6 +23,8 @@ import type * as holidays from "../holidays.js";
 import type * as http from "../http.js";
 import type * as leaves from "../leaves.js";
 import type * as loans from "../loans.js";
+import type * as payrollPeriods from "../payrollPeriods.js";
+import type * as salaryComponents from "../salaryComponents.js";
 import type * as users from "../users.js";
 
 /**
@@ -44,6 +46,8 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   leaves: typeof leaves;
   loans: typeof loans;
+  payrollPeriods: typeof payrollPeriods;
+  salaryComponents: typeof salaryComponents;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

@@ -73,13 +73,31 @@ export const getEmployees = query({
 
         const employees = await query.collect()
 
-        return employees.map((emp) => ({
+        return await Promise.all(employees.map(async (emp) => ({
             ...emp,
+            imageUrl: emp.image ? await ctx.storage.getUrl(emp.image) : null,
             status: getEmployeeStatus(emp),
-        }))
+        })))
     }
 })
+export const getAllEmployees = query({
+    
+    handler: async (ctx) => {
+        const query = ctx.db.query("users")
+            .filter(q => q.eq(q.field("role"), "employee"))
+            .filter(q => q.eq(q.field("isArchived"), false))
 
+        const employees = await query.collect()
+
+        return await Promise.all(
+            employees.map(async (employee) => ({
+                ...employee,
+                imageUrl: employee.image ? await ctx.storage.getUrl(employee.image) : null
+            }))
+        )
+    }
+})
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getEmployeeStatus(employee: any) {
     if (employee.isArchived) return "inactive"
 

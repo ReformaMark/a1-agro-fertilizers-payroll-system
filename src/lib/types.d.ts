@@ -69,3 +69,12 @@ export interface User {
     firstName: string
     lastName: string
 } 
+
+  export interface SalaryComponent extends Doc<"salaryComponents"> {
+    employee: Doc<"users">
+    payrollPeriod: Doc<"payrollPeriods">
+  }
+
+  export interface Employee extends Doc<"users"> {
+    imageUrl: string | null
+  }

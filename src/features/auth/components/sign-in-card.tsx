@@ -11,9 +11,10 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useAuthActions } from "@convex-dev/auth/react"
 import { Loader2, TriangleAlertIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
+
 import { useState } from "react"
 import { AuthFlow } from "../types"
+import { useRouter } from "next/navigation"
 // import { useCheckRole } from "../api/use-check-role"
 
 interface SignInCardProps {

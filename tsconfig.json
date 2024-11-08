@@ -19,8 +19,13 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "typeRoots": [
+        "node_modules/@types",
+        "./@types",
+        "src/modules"
+      ],
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".cursorrules"],
+  "include": ["next-env.d.ts","**/*js", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".cursorrules"],
   "exclude": ["node_modules"]
 }

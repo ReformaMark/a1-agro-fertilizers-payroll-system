@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 "use client"
 
 import { DataTable } from "@/components/data-table"
@@ -113,6 +114,7 @@ export function EmployeeList() {
             <div className="rounded-lg border bg-card">
                 <DataTable
                     columns={columns}
+          
                     data={employees}
                     filter="name"
                     filterLabel="Search employees"
