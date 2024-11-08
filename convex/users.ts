@@ -35,18 +35,48 @@ export const getEmployee = query({
         userId: v.id("users")
     },
     handler: async (ctx, args) => {
+        console.log('getEmployee query called with userId:', args.userId);
+
         const userId = await getAuthUserId(ctx)
         if (!userId) throw new ConvexError("User not found")
 
-        // find the employee by role
+        // find the employee by role and ID
         const employee = await ctx.db
             .query("users")
-            .filter(q => q.eq(q.field("_id"), args.userId) && q.eq(q.field("role"), "employee"))
-            .first()
+            .filter(q => 
+                q.and(
+                    q.eq(q.field("_id"), args.userId),
+                    q.eq(q.field("role"), "employee")
+                )
+            )
+            .unique()
+
+        console.log('Employee found:', {
+            requestedId: args.userId,
+            foundEmployee: employee ? {
+                id: employee._id,
+                name: `${employee.firstName} ${employee.lastName}`
+            } : null
+        });
 
         if (!employee) throw new ConvexError("Employee not found")
 
-        return employee
+        // Get the image URL if image exists
+        const imageUrl = employee.image ? await ctx.storage.getUrl(employee.image) : null;
+
+        const response = {
+            data: {
+                ...employee,
+                imageUrl,
+            }
+        };
+
+        console.log('Returning employee data:', {
+            id: response.data._id,
+            name: `${response.data.firstName} ${response.data.lastName}`
+        });
+
+        return response;
     }
 })
 
@@ -396,3 +426,45 @@ export const createEmployee = mutation({
         }
     }
 })
+
+export const generateUploadUrl = mutation({
+    args: {},
+    handler: async (ctx) => {
+        return await ctx.storage.generateUploadUrl();
+    },
+});
+
+export const updateProfileImage = mutation({
+    args: {
+        userId: v.id("users"),
+        storageId: v.id("_storage"),
+    },
+    handler: async (ctx, args) => {
+        const { userId, storageId } = args;
+
+        // Update the user's image field with the storage ID
+        await ctx.db.patch(userId, {
+            image: storageId,
+            modifiedAt: new Date().toISOString(),
+        });
+
+        // Create audit log
+        await ctx.db.insert("auditLogs", {
+            action: "Updated Profile Image",
+            entityType: "employee",
+            entityId: userId,
+            performedBy: userId,
+            performedAt: new Date().toISOString(),
+            details: "Updated employee profile image",
+        });
+
+        // Return the updated user data
+        const updatedUser = await ctx.db.get(userId);
+        const imageUrl = updatedUser?.image ? await ctx.storage.getUrl(updatedUser.image) : null;
+
+        return {
+            ...updatedUser,
+            imageUrl
+        };
+    },
+});

@@ -23,7 +23,7 @@ export default defineSchema({
         contactType: v.union(v.literal("mobile"), v.literal("landline")),
         contactNumber: v.string(),
         // Employment Information
-        // employeeTypeId: v.string(),
+        employeeTypeId: v.optional(v.string()),
         department: v.optional(v.string()),
         position: v.optional(v.string()),
         hiredDate: v.optional(v.string()),

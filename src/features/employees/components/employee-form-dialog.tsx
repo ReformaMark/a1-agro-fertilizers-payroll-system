@@ -23,16 +23,23 @@ import { AddressInfoForm } from "./forms/address-info-form"
 import { EmploymentInfoForm } from "./forms/employment-info-form"
 import { PayrollInfoForm } from "./forms/payroll-info-form"
 import { PersonalInfoForm } from "./forms/personal-info-form"
+import { ImageUpload } from "./image-upload"
+import { Id } from "../../../../convex/_generated/dataModel"
 
 export function EmployeeFormDialog() {
     const [open, setOpen] = useState(false)
     const [step, setStep] = useState(1)
+    const [createdUserId, setCreatedUserId] = useState<Id<"users"> | null>(null)
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const createEmployee = useMutation(api.users.createEmployee)
+    const generateUploadUrl = useMutation(api.users.generateUploadUrl)
+    const updateProfileImage = useMutation(api.users.updateProfileImage)
 
     const form = useForm<EmployeeFormValues>({
         resolver: zodResolver(employeeFormSchema),
         defaultValues: {
-            employeeTypeId: "",
+            _id: undefined,
+            image: undefined,
             philHealthSchedule: "1st half",
             pagIbigSchedule: "1st half",
             sssSchedule: "1st half",
@@ -47,13 +54,36 @@ export function EmployeeFormDialog() {
 
     async function onSubmit(data: EmployeeFormValues) {
         try {
-            console.log("Submitting form data:", data)
-            const result = await createEmployee(data)
-            console.log("Creation result:", result)
-            toast.success("Employee added successfully")
-            setOpen(false)
-            form.reset()
-            setStep(1)
+            const { _id, image, ...submitData } = data
+            const result = await createEmployee(submitData)
+            
+            if (result) {
+                const newUserId = result._id
+                setCreatedUserId(newUserId)
+                form.setValue("_id", newUserId as string)
+                
+                if (selectedFile) {
+                    const postUrl = await generateUploadUrl()
+                    const uploadResult = await fetch(postUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": selectedFile.type },
+                        body: selectedFile,
+                    })
+                    const { storageId } = await uploadResult.json()
+                    
+                    await updateProfileImage({
+                        userId: newUserId,
+                        storageId,
+                    })
+                }
+                
+                toast.success("Employee added successfully")
+                setOpen(false)
+                form.reset()
+                setStep(1)
+                setSelectedFile(null)
+                setCreatedUserId(null)
+            }
         } catch (error) {
             console.error("Detailed error:", error)
             toast.error(error instanceof Error ? error.message : "Failed to add employee")
@@ -92,7 +122,6 @@ export function EmployeeFormDialog() {
     }
 
     const handleOpenChange = (newOpen: boolean) => {
-        console.log("Dialog open state changing to:", newOpen)
         setOpen(newOpen)
     }
 
@@ -122,7 +151,17 @@ export function EmployeeFormDialog() {
                             ))}
                         </div>
 
-                        {step === 1 && <PersonalInfoForm form={form} />}
+                        {step === 1 && (
+                            <div className="space-y-6">
+                                <div className="flex justify-center">
+                                    <ImageUpload 
+                                        previewMode={true}
+                                        onFileSelect={setSelectedFile}
+                                    />
+                                </div>
+                                <PersonalInfoForm form={form} />
+                            </div>
+                        )}
                         {step === 2 && <EmploymentInfoForm form={form} />}
                         {step === 3 && <AddressInfoForm form={form} />}
                         {step === 4 && <PayrollInfoForm form={form} />}

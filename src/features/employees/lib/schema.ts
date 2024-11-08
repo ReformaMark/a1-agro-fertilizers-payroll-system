@@ -1,6 +1,8 @@
 import { z } from "zod"
 
 export const employeeFormSchema = z.object({
+    _id: z.string().optional(),
+    image: z.string().optional(),
     email: z.string().email(),
     password: z.string().min(8),
     firstName: z.string().min(1),
@@ -34,7 +36,7 @@ export const employeeFormSchema = z.object({
     pagIbigSchedule: z.enum(["1st half", "2nd half"]),
     sssSchedule: z.enum(["1st half", "2nd half"]),
     incomeTaxSchedule: z.enum(["1st half", "2nd half"]),
-    employeeTypeId: z.string().min(1, "Employee ID is required"),
+    employeeTypeId: z.string(),
 })
 
 export type EmployeeFormValues = z.infer<typeof employeeFormSchema>
