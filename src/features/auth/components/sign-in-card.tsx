@@ -116,13 +116,13 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                 </form>
                 <Separator />
                 <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
+                    {/* <p className="text-sm text-muted-foreground">
                         Don&apos;t have an account? <span
                             className="text-primary hover:underline cursor-pointer"
                             onClick={() => setState("signUp")}>
                             Sign up
                         </span>
-                    </p>
+                    </p> */}
 
                     <p className="block lg:hidden text-sm text-muted-foreground">
                         Changed your mind? <span

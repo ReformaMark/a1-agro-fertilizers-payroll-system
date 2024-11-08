@@ -13,6 +13,7 @@ import { CompleteProfileDialog } from "./complete-profile-dialog"
 import { ConfirmMakeAdminDialog } from "./confirm-make-admin-dialog"
 import { EditEmployeeDialog } from "./edit-employee-dialog"
 import { DeclineRegistrationDialog } from "@/features/auth/components/decline-registration-dialog"
+import { EmployeeFormDialog } from "./employee-form-dialog"
 
 type Employee = Doc<"users">
 
@@ -123,6 +124,7 @@ export function EmployeeList() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold tracking-tight">Registered Employees</h2>
+                <EmployeeFormDialog />
             </div>
 
             <Tabs defaultValue="active" className="space-y-6">

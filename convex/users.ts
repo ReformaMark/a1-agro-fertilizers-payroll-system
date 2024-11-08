@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { createAccount } from "@convex-dev/auth/server";
 
 export const get = query({
     args: {},
@@ -83,8 +84,8 @@ export const getEmployees = query({
         })))
     }
 })
-export const getAllEmployees = query({
 
+export const getAllEmployees = query({
     handler: async (ctx) => {
         const query = ctx.db.query("users")
             .filter(q => q.eq(q.field("role"), "employee"))
@@ -100,13 +101,12 @@ export const getAllEmployees = query({
         )
     }
 })
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getEmployeeStatus(employee: any) {
     if (employee.isArchived) return "inactive"
-
     return "active"
 }
-
 
 export const makeAdmin = mutation({
     args: { userId: v.id("users") },
@@ -255,3 +255,109 @@ export const declineRegistration = mutation({
 //         })
 //     },
 // })
+
+export const createEmployee = mutation({
+    args: {
+        email: v.string(),
+        password: v.string(),
+        firstName: v.string(),
+        middleName: v.optional(v.string()),
+        lastName: v.string(),
+        dateOfBirth: v.string(),
+        gender: v.union(v.literal("male"), v.literal("female")),
+        maritalStatus: v.union(v.literal("single"), v.literal("married"), v.literal("widowed"), v.literal("divorced"), v.literal("separated")),
+        contactType: v.union(v.literal("mobile"), v.literal("landline")),
+        contactNumber: v.string(),
+        department: v.string(),
+        position: v.string(),
+        hiredDate: v.string(),
+        region: v.string(),
+        province: v.string(),
+        city: v.string(),
+        barangay: v.string(),
+        postalCode: v.string(),
+        street: v.string(),
+        houseNumber: v.string(),
+        ratePerDay: v.number(),
+        philHealthNumber: v.string(),
+        pagIbigNumber: v.string(),
+        sssNumber: v.string(),
+        birTin: v.string(),
+        philHealthContribution: v.number(),
+        pagIbigContribution: v.number(),
+        sssContribution: v.number(),
+        incomeTax: v.number(),
+        philHealthSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        incomeTaxSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+    },
+    handler: async (ctx, args) => {
+        try {
+            console.log("Starting employee creation with args:", args)
+            const adminId = await getAuthUserId(ctx)
+            if (!adminId) throw new ConvexError("Not authenticated")
+
+            console.log("Admin ID:", adminId)
+
+            // Check if current user is admin
+            const admin = await ctx.db.get(adminId)
+            console.log("Admin user:", admin)
+
+            if (admin?.role !== "admin") {
+                throw new ConvexError("Not authorized")
+            }
+
+            // Check if email already exists
+            const existingUser = await ctx.db
+                .query("users")
+                .filter(q => q.eq(q.field("email"), args.email))
+                .first()
+
+            if (existingUser) {
+                throw new ConvexError("Email already exists")
+            }
+
+            const { email, password, ...userData } = args
+
+            // Create the account using createAccount
+            // @ts-expect-error convex does not support password provider types yet
+            const { user } = await createAccount(ctx, {
+                provider: "password",
+                account: {
+                    id: email,
+                    secret: password,
+                },
+                profile: {
+                    email,
+                    firstName: userData.firstName,
+                    middleName: userData.middleName,
+                    lastName: userData.lastName,
+                    dateOfBirth: userData.dateOfBirth,
+                    gender: userData.gender,
+                    maritalStatus: userData.maritalStatus,
+                    contactType: userData.contactType,
+                    contactNumber: userData.contactNumber,
+                    role: "employee",
+                },
+            });
+
+            // Create the user record with all fields
+            const newUser = await ctx.db.patch(user._id, {
+                ...userData,
+                email,
+                role: "employee",
+                isArchived: false,
+                filledUpByAdmin: true,
+                modifiedBy: adminId,
+                modifiedAt: new Date().toISOString(),
+            })
+
+            console.log("Successfully created employee")
+            return newUser
+        } catch (error) {
+            console.error("Error in createEmployee:", error)
+            throw error
+        }
+    }
+})
