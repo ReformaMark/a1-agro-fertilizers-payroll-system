@@ -6,7 +6,6 @@ import Image from "next/image"
 import { useState } from "react"
 import { AuthFlow } from "../types"
 import { SignInCard } from "./sign-in-card"
-import { SignUpCard } from "./sign-up-card"
 
 export const AuthScreen = () => {
     const [state, setState] = useState<AuthFlow>("signIn")

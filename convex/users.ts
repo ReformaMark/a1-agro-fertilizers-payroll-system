@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { createAccount } from "@convex-dev/auth/server";
+import { Id } from "./_generated/dataModel";
 
 export const get = query({
     args: {},
@@ -123,7 +124,17 @@ export const makeAdmin = mutation({
         // Update user to admin
         await ctx.db.patch(args.userId, {
             role: "admin"
-        })
+        });
+
+        // Create audit log entry
+        await ctx.db.insert("auditLogs", {
+            action: "Made Admin",
+            entityType: "employee",
+            entityId: args.userId,
+            performedBy: adminId,
+            performedAt: new Date().toISOString(),
+            details: `Granted admin privileges to user`,
+        });
 
         return true
     }
@@ -171,11 +182,26 @@ export const updateEmployee = mutation({
 
         const { userId, ...updateData } = args
 
+        // Get the employee being updated
+        const employee = await ctx.db.get(userId)
+        if (!employee) throw new ConvexError("Employee not found")
+
+        // Update the employee
         await ctx.db.patch(userId, {
             ...updateData,
             filledUpByAdmin: true,
             modifiedBy: adminId,
             modifiedAt: new Date().toISOString(),
+        })
+
+        // Create audit log entry
+        await ctx.db.insert("auditLogs", {
+            action: "Updated Employee",
+            entityType: "employee",
+            entityId: userId,
+            performedBy: adminId,
+            performedAt: new Date().toISOString(),
+            details: `Updated profile for ${employee.firstName} ${employee.lastName}`,
         })
 
         return true
@@ -294,16 +320,11 @@ export const createEmployee = mutation({
     },
     handler: async (ctx, args) => {
         try {
-            console.log("Starting employee creation with args:", args)
             const adminId = await getAuthUserId(ctx)
             if (!adminId) throw new ConvexError("Not authenticated")
 
-            console.log("Admin ID:", adminId)
-
             // Check if current user is admin
             const admin = await ctx.db.get(adminId)
-            console.log("Admin user:", admin)
-
             if (admin?.role !== "admin") {
                 throw new ConvexError("Not authorized")
             }
@@ -322,7 +343,7 @@ export const createEmployee = mutation({
 
             // Create the account using createAccount
             // @ts-expect-error convex does not support password provider types yet
-            const { user } = await createAccount(ctx, {
+            const accountResponse = await createAccount(ctx, {
                 provider: "password",
                 account: {
                     id: email,
@@ -342,8 +363,12 @@ export const createEmployee = mutation({
                 },
             });
 
+            if (!accountResponse?.user?._id) {
+                throw new ConvexError("Failed to create user account");
+            }
+
             // Create the user record with all fields
-            const newUser = await ctx.db.patch(user._id, {
+            const newUser = await ctx.db.patch(accountResponse.user._id as Id<"users">, {
                 ...userData,
                 email,
                 role: "employee",
@@ -351,13 +376,22 @@ export const createEmployee = mutation({
                 filledUpByAdmin: true,
                 modifiedBy: adminId,
                 modifiedAt: new Date().toISOString(),
-            })
+            });
 
-            console.log("Successfully created employee")
-            return newUser
+            // Create audit log entry
+            await ctx.db.insert("auditLogs", {
+                action: "Created Employee",
+                entityType: "employee",
+                entityId: accountResponse.user._id as Id<"users">,
+                performedBy: adminId,
+                performedAt: new Date().toISOString(),
+                details: `Created employee account for ${args.firstName} ${args.lastName}`,
+            });
+
+            return newUser;
         } catch (error) {
-            console.error("Error in createEmployee:", error)
-            throw error
+            console.error("Error in createEmployee:", error);
+            throw error;
         }
     }
 })
