@@ -1,6 +1,8 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { createAccount } from "@convex-dev/auth/server";
+import { Id } from "./_generated/dataModel";
 
 export const get = query({
     args: {},
@@ -83,8 +85,8 @@ export const getEmployees = query({
         })))
     }
 })
-export const getAllEmployees = query({
 
+export const getAllEmployees = query({
     handler: async (ctx) => {
         const query = ctx.db.query("users")
             .filter(q => q.eq(q.field("role"), "employee"))
@@ -100,13 +102,12 @@ export const getAllEmployees = query({
         )
     }
 })
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getEmployeeStatus(employee: any) {
     if (employee.isArchived) return "inactive"
-
     return "active"
 }
-
 
 export const makeAdmin = mutation({
     args: { userId: v.id("users") },
@@ -123,7 +124,17 @@ export const makeAdmin = mutation({
         // Update user to admin
         await ctx.db.patch(args.userId, {
             role: "admin"
-        })
+        });
+
+        // Create audit log entry
+        await ctx.db.insert("auditLogs", {
+            action: "Made Admin",
+            entityType: "employee",
+            entityId: args.userId,
+            performedBy: adminId,
+            performedAt: new Date().toISOString(),
+            details: `Granted admin privileges to user`,
+        });
 
         return true
     }
@@ -171,11 +182,26 @@ export const updateEmployee = mutation({
 
         const { userId, ...updateData } = args
 
+        // Get the employee being updated
+        const employee = await ctx.db.get(userId)
+        if (!employee) throw new ConvexError("Employee not found")
+
+        // Update the employee
         await ctx.db.patch(userId, {
             ...updateData,
             filledUpByAdmin: true,
             modifiedBy: adminId,
             modifiedAt: new Date().toISOString(),
+        })
+
+        // Create audit log entry
+        await ctx.db.insert("auditLogs", {
+            action: "Updated Employee",
+            entityType: "employee",
+            entityId: userId,
+            performedBy: adminId,
+            performedAt: new Date().toISOString(),
+            details: `Updated profile for ${employee.firstName} ${employee.lastName}`,
         })
 
         return true
@@ -255,3 +281,118 @@ export const declineRegistration = mutation({
 //         })
 //     },
 // })
+
+export const createEmployee = mutation({
+    args: {
+        email: v.string(),
+        password: v.string(),
+        firstName: v.string(),
+        middleName: v.optional(v.string()),
+        lastName: v.string(),
+        dateOfBirth: v.string(),
+        gender: v.union(v.literal("male"), v.literal("female")),
+        maritalStatus: v.union(v.literal("single"), v.literal("married"), v.literal("widowed"), v.literal("divorced"), v.literal("separated")),
+        contactType: v.union(v.literal("mobile"), v.literal("landline")),
+        contactNumber: v.string(),
+        department: v.string(),
+        position: v.string(),
+        hiredDate: v.string(),
+        region: v.string(),
+        province: v.string(),
+        city: v.string(),
+        barangay: v.string(),
+        postalCode: v.string(),
+        street: v.string(),
+        houseNumber: v.string(),
+        ratePerDay: v.number(),
+        philHealthNumber: v.string(),
+        pagIbigNumber: v.string(),
+        sssNumber: v.string(),
+        birTin: v.string(),
+        philHealthContribution: v.number(),
+        pagIbigContribution: v.number(),
+        sssContribution: v.number(),
+        incomeTax: v.number(),
+        philHealthSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        incomeTaxSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+        employeeTypeId: v.string(),
+    },
+    handler: async (ctx, args) => {
+        try {
+            const adminId = await getAuthUserId(ctx)
+            if (!adminId) throw new ConvexError("Not authenticated")
+
+            // Check if current user is admin
+            const admin = await ctx.db.get(adminId)
+            if (admin?.role !== "admin") {
+                throw new ConvexError("Not authorized")
+            }
+
+            // Check if email already exists
+            const existingUser = await ctx.db
+                .query("users")
+                .filter(q => q.eq(q.field("email"), args.email))
+                .first()
+
+            if (existingUser) {
+                throw new ConvexError("Email already exists")
+            }
+
+            const { email, password, ...userData } = args
+
+            // Create the account using createAccount
+            // @ts-expect-error convex does not support password provider types yet
+            const accountResponse = await createAccount(ctx, {
+                provider: "password",
+                account: {
+                    id: email,
+                    secret: password,
+                },
+                profile: {
+                    email,
+                    firstName: userData.firstName,
+                    middleName: userData.middleName,
+                    lastName: userData.lastName,
+                    dateOfBirth: userData.dateOfBirth,
+                    gender: userData.gender,
+                    maritalStatus: userData.maritalStatus,
+                    contactType: userData.contactType,
+                    contactNumber: userData.contactNumber,
+                    role: "employee",
+                },
+            });
+
+            if (!accountResponse?.user?._id) {
+                throw new ConvexError("Failed to create user account");
+            }
+
+            // Create the user record with all fields
+            const newUser = await ctx.db.patch(accountResponse.user._id as Id<"users">, {
+                ...userData,
+                email,
+                role: "employee",
+                isArchived: false,
+                filledUpByAdmin: true,
+                modifiedBy: adminId,
+                modifiedAt: new Date().toISOString(),
+            });
+
+            // Create audit log entry
+            await ctx.db.insert("auditLogs", {
+                action: "Created Employee",
+                entityType: "employee",
+                entityId: accountResponse.user._id as Id<"users">,
+                performedBy: adminId,
+                performedAt: new Date().toISOString(),
+                details: `Created employee account for ${args.firstName} ${args.lastName}`,
+            });
+
+            return newUser;
+        } catch (error) {
+            console.error("Error in createEmployee:", error);
+            throw error;
+        }
+    }
+})

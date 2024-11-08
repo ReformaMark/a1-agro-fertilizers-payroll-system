@@ -10,6 +10,7 @@ export const getLeaveRequests = query({
     handler: async (ctx, args) => {
         let query = ctx.db.query("leaveRequests")
             .withIndex("by_user")
+            .order("desc")
 
         if (args.userId) {
             query = query.filter(q => q.eq(q.field("userId"), args.userId))
@@ -48,6 +49,17 @@ export const createLeaveRequest = mutation({
         const userId = await getAuthUserId(ctx)
         if (!userId) throw new ConvexError("Unauthorized")
 
+        // Check leave balance for Annual Leave type
+        if (args.type === "Annual Leave") {
+            const user = await ctx.db.get(userId)
+            if (!user) throw new ConvexError("User not found")
+
+            const balance = user.annualLeaveBalance ?? 15
+            if (balance <= 0) {
+                throw new ConvexError("Insufficient leave balance")
+            }
+        }
+
         // Validate dates
         const start = new Date(args.startDate)
         const end = new Date(args.endDate)
@@ -82,6 +94,27 @@ export const updateLeaveRequestStatus = mutation({
 
         const request = await ctx.db.get(args.requestId)
         if (!request) throw new ConvexError("Request not found")
+
+        // If approving an annual leave request, deduct from balance
+        if (args.status === "Approved" && request.type === "Annual Leave") {
+            const employee = await ctx.db.get(request.userId)
+            if (!employee) throw new ConvexError("Employee not found")
+
+            const balance = employee.annualLeaveBalance ?? 15
+            if (balance <= 0) {
+                throw new ConvexError("Employee has insufficient leave balance")
+            }
+
+            // Calculate days
+            const start = new Date(request.startDate)
+            const end = new Date(request.endDate)
+            const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+
+            // Update employee's leave balance
+            await ctx.db.patch(request.userId, {
+                annualLeaveBalance: Math.max(0, balance - days)
+            })
+        }
 
         return await ctx.db.patch(args.requestId, {
             status: args.status,
@@ -129,5 +162,21 @@ export const getLeaveRequestStats = query({
             }, {} as Record<string, number>),
             requests: requestsWithUsers
         }
+    },
+})
+
+// Add new query to get leave balance
+export const getLeaveBalance = query({
+    args: {
+        userId: v.optional(v.id("users")),
+    },
+    handler: async (ctx, args) => {
+        const userId = args.userId ?? (await getAuthUserId(ctx))
+        if (!userId) throw new ConvexError("Unauthorized")
+
+        const user = await ctx.db.get(userId)
+        if (!user) throw new ConvexError("User not found")
+
+        return user.annualLeaveBalance ?? 15 // Default to 15 if not set
     },
 }) 

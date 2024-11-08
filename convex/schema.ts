@@ -60,6 +60,7 @@ export default defineSchema({
         isDeclinedByAdmin: v.optional(v.boolean()),
         declinedReason: v.optional(v.string()),
         declinedAt: v.optional(v.string()),
+        annualLeaveBalance: v.optional(v.number()),
     })
         .index("by_email", ["email"]) // For user lookups
         .index("by_role", ["role"]) // For filtering admins/employees
@@ -367,4 +368,14 @@ export default defineSchema({
         .index("by_user", ["userId"])
         .index("by_status", ["status"])
         .index("by_user_and_status", ["userId", "status"]),
+    auditLogs: defineTable({
+        action: v.string(),
+        entityType: v.string(),
+        entityId: v.id("users"),
+        performedBy: v.string(),
+        performedAt: v.string(),
+        details: v.optional(v.string()),
+    })
+        .index("by_entity", ["entityType", "entityId"])
+        .index("by_date", ["performedAt"]),
 });

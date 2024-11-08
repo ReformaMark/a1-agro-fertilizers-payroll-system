@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as attendance from "../attendance.js";
+import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
 import type * as benefits from "../benefits.js";
 import type * as cashAdvance from "../cashAdvance.js";
@@ -24,6 +25,7 @@ import type * as http from "../http.js";
 import type * as leaves from "../leaves.js";
 import type * as loans from "../loans.js";
 import type * as payrollPeriods from "../payrollPeriods.js";
+import type * as philhealth from "../philhealth.js";
 import type * as salaryComponents from "../salaryComponents.js";
 import type * as users from "../users.js";
 
@@ -37,6 +39,7 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   attendance: typeof attendance;
+  auditLogs: typeof auditLogs;
   auth: typeof auth;
   benefits: typeof benefits;
   cashAdvance: typeof cashAdvance;
@@ -47,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   leaves: typeof leaves;
   loans: typeof loans;
   payrollPeriods: typeof payrollPeriods;
+  philhealth: typeof philhealth;
   salaryComponents: typeof salaryComponents;
   users: typeof users;
 }>;

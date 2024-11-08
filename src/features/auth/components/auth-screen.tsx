@@ -3,13 +3,10 @@
 import { RoleCheck } from "@/components/role-check"
 import { useConvexAuth } from "convex/react"
 import Image from "next/image"
-import { useState } from "react"
-import { AuthFlow } from "../types"
 import { SignInCard } from "./sign-in-card"
-import { SignUpCard } from "./sign-up-card"
 
 export const AuthScreen = () => {
-    const [state, setState] = useState<AuthFlow>("signIn")
+    // const [, setState] = useState<AuthFlow>("signIn")
     const { isAuthenticated } = useConvexAuth()
 
     if (isAuthenticated) {
@@ -39,7 +36,8 @@ export const AuthScreen = () => {
             <div className="h-full w-full lg:w-[50%] flex flex-col flex-1 items-center justify-center">
                 <div className="h-full flex items-center justify-center ">
                     <div className="md:h-auto md:w-[420px]">
-                        {state === "signIn" ? <SignInCard setState={setState} /> : <SignUpCard setState={setState} />}
+                        {/* {state === "signIn" ? <SignInCard setState={setState} /> : <SignUpCard setState={setState} />} */}
+                        <SignInCard />
                     </div>
                 </div>
             </div>

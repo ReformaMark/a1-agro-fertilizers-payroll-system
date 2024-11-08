@@ -16,6 +16,7 @@ const CustomPassword = Password<DataModel>({
       contactType: params.contactType as "mobile" | "landline",
       contactNumber: params.contactNumber as string,
       isArchived: false,
+      isAdminCreated: true,
     }
   }
 })

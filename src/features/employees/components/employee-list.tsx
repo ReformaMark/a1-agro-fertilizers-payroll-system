@@ -3,16 +3,17 @@
 import { DataTable } from "@/components/data-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DeclineRegistrationDialog } from "@/features/auth/components/decline-registration-dialog"
 import { ColumnDef } from "@tanstack/react-table"
 import { PencilIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Doc } from "../../../../convex/_generated/dataModel"
 import { useEmployees } from "../api/employees"
+import { AuditLogDialog } from "./audit-log-dialog"
 import { CompleteProfileDialog } from "./complete-profile-dialog"
 import { ConfirmMakeAdminDialog } from "./confirm-make-admin-dialog"
 import { EditEmployeeDialog } from "./edit-employee-dialog"
-import { DeclineRegistrationDialog } from "@/features/auth/components/decline-registration-dialog"
+import { EmployeeFormDialog } from "./employee-form-dialog"
 
 type Employee = Doc<"users">
 
@@ -117,15 +118,19 @@ export function EmployeeList() {
     }
 
     const activeEmployees = employees.filter(emp => !emp.isDeclinedByAdmin)
-    const declinedEmployees = employees.filter(emp => emp.isDeclinedByAdmin)
+    // const declinedEmployees = employees.filter(emp => emp.isDeclinedByAdmin)
 
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold tracking-tight">Registered Employees</h2>
+                <div className="flex gap-2">
+                    <AuditLogDialog />
+                    <EmployeeFormDialog />
+                </div>
             </div>
 
-            <Tabs defaultValue="active" className="space-y-6">
+            {/* <Tabs defaultValue="active" className="space-y-6">
                 <TabsList>
                     <TabsTrigger value="active">
                         Active Employees
@@ -142,14 +147,7 @@ export function EmployeeList() {
                 </TabsList>
 
                 <TabsContent value="active" className="space-y-4">
-                    <div className="rounded-lg border bg-card">
-                        <DataTable
-                            columns={columns}
-                            data={activeEmployees}
-                            filter="name"
-                            filterLabel="Search active employees"
-                        />
-                    </div>
+
                 </TabsContent>
 
                 <TabsContent value="declined" className="space-y-4">
@@ -162,7 +160,15 @@ export function EmployeeList() {
                         />
                     </div>
                 </TabsContent>
-            </Tabs>
+            </Tabs> */}
+            <div className="rounded-lg border p-5 bg-card">
+                <DataTable
+                    columns={columns}
+                    data={activeEmployees}
+                    filter="name"
+                    filterLabel="Search active employees"
+                />
+            </div>
 
             {editingEmployee && (
                 <EditEmployeeDialog

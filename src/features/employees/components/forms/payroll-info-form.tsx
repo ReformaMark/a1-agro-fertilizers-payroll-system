@@ -11,8 +11,8 @@ interface PayrollInfoFormProps {
 }
 
 const SCHEDULE_OPTIONS = [
-  { value: "1st", label: "1st Half" },
-  { value: "2nd", label: "2nd Half" },
+  { value: "1st half", label: "1st Half" },
+  { value: "2nd half", label: "2nd Half" },
 ]
 
 export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
@@ -25,9 +25,9 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           <FormItem>
             <FormLabel>Rate Per Day</FormLabel>
             <FormControl>
-              <Input 
-                type="number" 
-                placeholder="0.00" 
+              <Input
+                type="number"
+                placeholder="0.00"
                 {...field}
                 onChange={e => field.onChange(e.target.valueAsNumber)}
               />
@@ -209,9 +209,9 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>PhilHealth Contribution</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="0.00" 
+                <Input
+                  type="number"
+                  placeholder="0.00"
                   {...field}
                   onChange={e => field.onChange(e.target.valueAsNumber)}
                 />
@@ -228,9 +228,9 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>Pag-IBIG Contribution</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="0.00" 
+                <Input
+                  type="number"
+                  placeholder="0.00"
                   {...field}
                   onChange={e => field.onChange(e.target.valueAsNumber)}
                 />
@@ -249,9 +249,9 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>SSS Contribution</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="0.00" 
+                <Input
+                  type="number"
+                  placeholder="0.00"
                   {...field}
                   onChange={e => field.onChange(e.target.valueAsNumber)}
                 />
@@ -268,9 +268,9 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>Income Tax</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="0.00" 
+                <Input
+                  type="number"
+                  placeholder="0.00"
                   {...field}
                   onChange={e => field.onChange(e.target.valueAsNumber)}
                 />

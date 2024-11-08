@@ -12,16 +12,15 @@ import { Separator } from "@/components/ui/separator"
 import { useAuthActions } from "@convex-dev/auth/react"
 import { Loader2, TriangleAlertIcon } from "lucide-react"
 
-import { useState } from "react"
-import { AuthFlow } from "../types"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 // import { useCheckRole } from "../api/use-check-role"
 
-interface SignInCardProps {
-    setState: (state: AuthFlow) => void
-}
+// interface SignInCardProps {
+//     setState: (state: AuthFlow) => void
+// }
 
-export const SignInCard = ({ setState }: SignInCardProps) => {
+export const SignInCard = () => {
 
     const { signIn } = useAuthActions();
     // const { isAuthenticated } = useConvexAuth();
@@ -116,13 +115,13 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                 </form>
                 <Separator />
                 <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
+                    {/* <p className="text-sm text-muted-foreground">
                         Don&apos;t have an account? <span
                             className="text-primary hover:underline cursor-pointer"
                             onClick={() => setState("signUp")}>
                             Sign up
                         </span>
-                    </p>
+                    </p> */}
 
                     <p className="block lg:hidden text-sm text-muted-foreground">
                         Changed your mind? <span

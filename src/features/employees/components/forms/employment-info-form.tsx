@@ -19,7 +19,7 @@ export function EmploymentInfoForm({ form }: EmploymentInfoFormProps) {
           <FormItem>
             <FormLabel>Employee ID</FormLabel>
             <FormControl>
-              <Input placeholder="EMP-001" {...field} />
+              <Input placeholder="Enter employee ID" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
