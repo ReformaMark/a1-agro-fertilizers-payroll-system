@@ -96,15 +96,15 @@ export const SignUpCard = ({
             return
         }
 
-        const checkedFirstName = /^[a-zA-Z]+$/.test(firstName)
-        const checkedLastName = /^[a-zA-Z]+$/.test(lastName)
+        const checkedFirstName = /^[a-zA-Z\s]+$/.test(firstName)
+        const checkedLastName = /^[a-zA-Z\s]+$/.test(lastName)
         const checkedEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
         if (checkedFirstName && checkedLastName && checkedEmail) {
             setStep((prevStep) => prevStep + 1)
             setError("")
         } else {
-            setError("Please check your inputs: Names should only contain letters and email should be valid")
+            setError("Please check your inputs: Names should only contain letters and spaces, and email should be valid")
         }
     }
 
