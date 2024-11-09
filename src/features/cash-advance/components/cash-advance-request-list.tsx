@@ -61,7 +61,8 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
 
     const columns: ColumnDef<CashAdvanceRequestWithUser>[] = [
         {
-            accessorKey: "user",
+            accessorKey: "employeeName",
+            accessorFn: (row) => row.user ? `${row.user.firstName} ${row.user.lastName}` : "N/A",
             header: "Employee",
             cell: ({ row }) => {
                 const user = row.original.user
@@ -275,8 +276,8 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
                     <DataTable
                         columns={columns}
                         data={cashAdvanceRequests}
-                        filter={isAdmin ? "user.firstName" : "type"}
-                        filterLabel={isAdmin ? "Employee Name" : "Type"}
+                        filter="employeeName"
+                        filterLabel="requests by employee name"
                     />
                 </CardContent>
             </Card>

@@ -17,11 +17,11 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,12 +34,12 @@ import { format } from "date-fns";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -118,22 +118,17 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
 
   const columns: ColumnDef<BenefitRequestWithUser>[] = [
     {
-      accessorKey: "user",
-
+      accessorKey: "employeeName",
+      accessorFn: (row) => row.user ? `${row.user.firstName} ${row.user.lastName}` : "N/A", // Combine first and last name
       header: "Employee",
-
       cell: ({ row }) => {
         const user = row.original.user;
-
         return user ? `${user.firstName} ${user.lastName}` : "N/A";
       },
     },
-
     {
       accessorKey: "type",
-
       header: "Voucher Type",
-
       cell: ({ row }) => (
         <Badge variant="outline">{row.getValue("type")}</Badge>
       ),
@@ -253,7 +248,6 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-20 w-full" />
-
         <Skeleton className="h-[400px] w-full" />
       </div>
     );
@@ -349,8 +343,8 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
           <DataTable
             columns={columns}
             data={benefitRequests}
-            filter={isAdmin ? "user.firstName" : "type"}
-            filterLabel={isAdmin ? "Employee Name" : "Voucher Type"}
+            filter="employeeName"
+            filterLabel="requests by employee name"
           />
         </CardContent>
       </Card>

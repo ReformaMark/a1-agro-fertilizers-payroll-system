@@ -313,7 +313,8 @@ export function LoanRequestList({
 
     const companyLoanColumns: ColumnDef<CompanyLoanWithUser>[] = [
         {
-            accessorKey: "user",
+            accessorKey: "employeeName",
+            accessorFn: (row) => row.user ? `${row.user.firstName} ${row.user.lastName}` : "N/A",
             header: "Employee",
             cell: ({ row }) => {
                 const user = row.original.user;
@@ -370,7 +371,8 @@ export function LoanRequestList({
 
     const governmentLoanColumns: ColumnDef<GovernmentLoanWithUser>[] = [
         {
-            accessorKey: "user",
+            accessorKey: "employeeName",
+            accessorFn: (row) => row.user ? `${row.user.firstName} ${row.user.lastName}` : "N/A",
             header: "Employee",
             cell: ({ row }) => {
                 const user = row.original.user;
@@ -464,8 +466,8 @@ export function LoanRequestList({
                         <DataTable
                             columns={companyLoanColumns}
                             data={companyLoans as CompanyLoanWithUser[]}
-                            filter={isAdmin ? "user.firstName" : "type"}
-                            filterLabel={isAdmin ? "Employee Name" : "Loan Type"}
+                            filter="employeeName"
+                            filterLabel="requests by employee name"
                         />
                     </TabsContent>
 
@@ -473,8 +475,8 @@ export function LoanRequestList({
                         <DataTable
                             columns={governmentLoanColumns}
                             data={governmentLoans as GovernmentLoanWithUser[]}
-                            filter={isAdmin ? "user.firstName" : "applicationType"}
-                            filterLabel={isAdmin ? "Employee Name" : "Loan Type"}
+                            filter="employeeName"
+                            filterLabel="requests by employee name"
                         />
                     </TabsContent>
                 </Tabs>
