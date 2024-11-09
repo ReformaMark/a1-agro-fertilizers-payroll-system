@@ -173,9 +173,7 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
         try {
             await updateStatus({
                 requestId,
-
                 status,
-
                 rejectionReason: reason,
             });
 
