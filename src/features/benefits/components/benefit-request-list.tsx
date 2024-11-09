@@ -53,13 +53,13 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
                 status,
                 rejectionReason: reason,
             })
-            toast.success(`Benefit request ${status.toLowerCase()} successfully`)
+            toast.success(`Voucher request ${status.toLowerCase()} successfully`)
             setShowRejectDialog(false)
             setRejectionReason("")
             setSelectedRequest(null)
         } catch (error) {
             console.error(error)
-            toast.error(`Failed to ${status.toLowerCase()} benefit request`)
+            toast.error(`Failed to ${status.toLowerCase()} voucher request`)
         }
     }
 
@@ -74,7 +74,7 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
         },
         {
             accessorKey: "type",
-            header: "Benefit Type",
+            header: "Voucher Type",
             cell: ({ row }) => (
                 <Badge variant="outline">
                     {row.getValue("type")}
@@ -189,15 +189,15 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
             <CardHeader className="border-b">
                 <div className="flex justify-between items-center">
                     <div>
-                        <CardTitle>Benefit Requests</CardTitle>
+                        <CardTitle>Voucher Requests</CardTitle>
                         <CardDescription>
-                            {isAdmin ? "Manage employee benefit requests" : "Submit and track your benefit requests"}
+                            {isAdmin ? "Manage employee voucher requests" : "Submit and track your voucher requests"}
                         </CardDescription>
                     </div>
                     {!isAdmin && (
                         <Button onClick={() => setShowForm(true)}>
                             <Plus className="h-4 w-4 mr-1" />
-                            Request Benefit
+                            Request Voucher
                         </Button>
                     )}
                 </div>
@@ -208,7 +208,7 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
                     columns={columns}
                     data={benefitRequests}
                     filter={isAdmin ? "user.firstName" : "type"}
-                    filterLabel={isAdmin ? "Employee Name" : "Benefit Type"}
+                    filterLabel={isAdmin ? "Employee Name" : "Voucher Type"}
                 />
 
                 {showForm && (
@@ -218,9 +218,9 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
                 <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Reject Benefit Request</DialogTitle>
+                            <DialogTitle>Reject Voucher Request</DialogTitle>
                             <DialogDescription>
-                                Please provide a reason for rejecting this benefit request.
+                                Please provide a reason for rejecting this voucher request.
                             </DialogDescription>
                         </DialogHeader>
                         <Textarea

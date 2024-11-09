@@ -4,6 +4,7 @@ import { DataTable } from "@/components/data-table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ColumnDef } from "@tanstack/react-table"
 import { PencilIcon } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -117,21 +118,19 @@ export function EmployeeList() {
 
                 return (
                     <div className="flex gap-2">
-                        {isComplete
-                            && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleEditClick(row.original)
-                                    }}
-                                    title="Edit Employee"
-                                >
-                                    <PencilIcon className="h-4 w-4" />
-                                </Button>
-                            )
-                        }
+                        {isComplete && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleEditClick(row.original)
+                                }}
+                                title="Edit Employee"
+                            >
+                                <PencilIcon className="h-4 w-4" />
+                            </Button>
+                        )}
                         <ConfirmMakeAdminDialog
                             userId={row.original._id}
                             userName={`${row.original.firstName} ${row.original.lastName}`}
@@ -142,6 +141,8 @@ export function EmployeeList() {
         }
     ], [])
 
+    const adminColumns = useMemo<ColumnDef<Employee>[]>(() => columns.filter(col => col.id !== "actions"), [columns])
+
     if (!employees) {
         return (
             <div className="flex items-center justify-center h-48 text-muted-foreground">
@@ -150,35 +151,57 @@ export function EmployeeList() {
         )
     }
 
-    const activeEmployees = employees.filter(emp => !emp.isDeclinedByAdmin)
+    const activeEmployees = employees.filter(emp =>
+        !emp.isDeclinedByAdmin &&
+        emp.role === "employee"
+    )
+    const admins = employees.filter(emp => emp.role === "admin")
 
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold tracking-tight">Registered Employees</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">Registered Users</h2>
                 <div className="flex gap-2">
                     <AuditLogDialog />
                     <EmployeeFormDialog key="employee-form" />
                 </div>
             </div>
 
-            <div className="rounded-lg border p-5 bg-card">
-                <DataTable
-                    columns={columns}
-                    data={activeEmployees}
-                    filter="name"
-                    filterLabel="Search active employees"
-                />
-            </div>
+            <Tabs defaultValue="employees" className="w-full">
+                <TabsList className="grid w-[400px] grid-cols-2">
+                    <TabsTrigger value="employees">Employees</TabsTrigger>
+                    <TabsTrigger value="admins">Administrators</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="employees" className="mt-4">
+                    <div className="rounded-lg border p-5 bg-card">
+                        <DataTable
+                            columns={columns}
+                            data={activeEmployees}
+                            filter="name"
+                            filterLabel="Search active employees"
+                        />
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="admins" className="mt-4">
+                    <div className="rounded-lg border p-5 bg-card">
+                        <DataTable
+                            columns={adminColumns}
+                            data={admins}
+                            filter="name"
+                            filterLabel="Search administrators"
+                        />
+                    </div>
+                </TabsContent>
+            </Tabs>
 
             {editingEmployee && (
                 <EditEmployeeDialog
                     key={`edit-dialog-${editingEmployee._id}`}
                     employee={editingEmployee}
                     open={isEditDialogOpen}
-                    onOpenChange={() => {
-                        handleEditDialogClose();
-                    }}
+                    onOpenChange={handleEditDialogClose}
                 />
             )}
         </div>

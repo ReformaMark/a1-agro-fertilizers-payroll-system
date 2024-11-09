@@ -83,7 +83,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: FileText,
         items: [
           {
-            title: "Benefits",
+            title: "Vouchers",
             url: "/admin/requests/benefits",
           },
           {
@@ -95,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/admin/requests/loans",
           },
           {
-            title: "Cash Advances",
+            title: "VALE",
             url: "/admin/requests/cash-advance",
           }
         ],
@@ -124,21 +124,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       },
       {
-        title: "Company",
-        url: "/admin/company",
-        icon: Building2,
-        items: [
-          {
-            title: "Holidays",
-            url: "/admin/holidays",
-          },
-          // {
-          //   title: "Departments",
-          //   url: "/admin/company/departments",
-          // },
-        ],
-      },
-      {
         title: "Settings",
         url: "/admin/settings",
         icon: Settings2,
@@ -150,6 +135,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "User Management",
             url: "/admin/settings/users",
+          },
+          {
+            title: "Holidays",
+            url: "/admin/holidays",
           },
         ],
       },

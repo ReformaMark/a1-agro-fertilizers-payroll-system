@@ -46,7 +46,7 @@ const routes = [
         color: "text-violet-500",
     },
     {
-        label: "Benefits",
+        label: "Vouchers",
         icon: Gift,
         href: "/employee/benefits",
         color: "text-rose-500",
@@ -58,7 +58,7 @@ const routes = [
         color: "text-green-500",
     },
     {
-        label: "Cash Advances",
+        label: "VALE",
         icon: Coins,
         href: "/employee/requests/cash-advance",
         color: "text-violet-500",
@@ -110,7 +110,7 @@ const SidebarContent = ({ className }: SidebarContentProps) => {
                             )}
                         >
                             <div className="flex items-center flex-1">
-                                <route.icon className={cn("h-5 w-5 mr-3", 
+                                <route.icon className={cn("h-5 w-5 mr-3",
                                     pathname === route.href ? "text-[#8BC34A]" : "text-gray-500"
                                 )} />
                                 {route.label}

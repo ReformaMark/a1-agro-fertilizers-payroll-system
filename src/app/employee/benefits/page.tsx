@@ -24,7 +24,7 @@ export default function BenefitsPage() {
     const compensationTypes = useQuery(api.compensation.getTypes, { isArchived: false })
     const activeBenefits = useQuery(api.benefits.getActiveBenefits, { userId: user?._id })
 
-    // Filter compensation types to only show allowances and benefits
+    // Filter compensation types to only show allowances and vouchers
     const availableBenefits = compensationTypes?.filter(type =>
         type.category === "Allowance" || type.category === "Benefit"
     ).map(type => ({
@@ -35,7 +35,7 @@ export default function BenefitsPage() {
         coverage: type.defaultAmount ? `₱${type.defaultAmount.toLocaleString()}/month` : "Variable",
         details: [
             "Standard coverage",
-            "Subject to eligibility",
+            "Subject to eligibility", 
             "Terms and conditions apply"
         ]
     }))
@@ -43,15 +43,15 @@ export default function BenefitsPage() {
     return (
         <div className="container py-6">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold">Benefits & Allowances</h1>
+                <h1 className="text-3xl font-bold">Vouchers & Allowances</h1>
                 <p className="text-muted-foreground">
-                    View and manage your benefits and submit requests
+                    View and manage your vouchers and submit requests
                 </p>
             </div>
 
             <Tabs defaultValue="available" className="space-y-6">
                 <TabsList>
-                    <TabsTrigger value="available">Available Benefits</TabsTrigger>
+                    <TabsTrigger value="available">Available Vouchers</TabsTrigger>
                     <TabsTrigger value="requests">My Requests</TabsTrigger>
                 </TabsList>
 

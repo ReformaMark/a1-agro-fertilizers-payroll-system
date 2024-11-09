@@ -15,7 +15,7 @@ import { toast } from "sonner"
 import { useEffect } from "react"
 
 const formSchema = z.object({
-    type: z.string().min(1, "Please select a benefit type"),
+    type: z.string().min(1, "Please select a voucher type"),
     description: z.string().min(10, "Please provide a detailed description"),
     amount: z.number().optional(),
 })
@@ -53,11 +53,11 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
             await createRequest(values)
-            toast.success("Benefit request submitted successfully")
+            toast.success("Voucher request submitted successfully")
             onClose()
         } catch (error) {
             console.error(error)
-            toast.error("Failed to submit benefit request")
+            toast.error("Failed to submit voucher request")
         }
     }
 
@@ -65,9 +65,9 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
         <Dialog open onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Request Benefit</DialogTitle>
+                    <DialogTitle>Request Voucher</DialogTitle>
                     <DialogDescription>
-                        Submit a new benefit or allowance request
+                        Submit a new voucher or allowance request
                     </DialogDescription>
                 </DialogHeader>
 
@@ -78,11 +78,11 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
                             name="type"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Benefit Type</FormLabel>
+                                    <FormLabel>Voucher Type</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select benefit type" />
+                                                <SelectValue placeholder="Select voucher type" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -135,7 +135,7 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
                                     <FormLabel>Description</FormLabel>
                                     <FormControl>
                                         <Textarea
-                                            placeholder="Please provide details about your benefit request"
+                                            placeholder="Please provide details about your voucher request"
                                             className="resize-none"
                                             {...field}
                                         />

@@ -40,9 +40,9 @@ const EmployeeCashAdvancePage = () => {
     return (
         <div className="container py-6">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold">My Cash Advance Requests</h1>
+                <h1 className="text-3xl font-bold">My VALE Requests</h1>
                 <p className="text-muted-foreground">
-                    Submit and track your cash advance requests
+                    Submit and track your VALE requests
                 </p>
             </div>
 

@@ -27,6 +27,7 @@ import { PayrollInfoForm } from "./forms/payroll-info-form"
 import { PersonalInfoForm } from "./forms/personal-info-form"
 import { ImageUpload } from "./image-upload"
 import { generateEmployeeId } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function EmployeeFormDialog() {
     const [open, setOpen] = useState(false)
@@ -190,76 +191,80 @@ export function EmployeeFormDialog() {
                     Add Employee
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-4xl max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>Add New Employee</DialogTitle>
                 </DialogHeader>
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="mb-6 flex justify-between">
-                            {[1, 2, 3, 4].map((stepNumber) => (
-                                <div
-                                    key={stepNumber}
-                                    className={`flex h-8 w-8 items-center justify-center rounded-full ${step >= stepNumber ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'}`}
-                                >
-                                    {stepNumber}
+                <ScrollArea className="h-[calc(90vh-120px)]">
+                    <div className="pr-4">
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                <div className="mb-6 flex justify-between">
+                                    {[1, 2, 3, 4].map((stepNumber) => (
+                                        <div
+                                            key={stepNumber}
+                                            className={`flex h-8 w-8 items-center justify-center rounded-full ${step >= stepNumber ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'}`}
+                                        >
+                                            {stepNumber}
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
 
-                        {step === 1 && (
-                            <div className="space-y-6">
-                                <div className="flex justify-center">
-                                    <ImageUpload
-                                        previewMode={true}
-                                        onFileSelect={setSelectedFile}
-                                    />
-                                </div>
-                                <PersonalInfoForm form={form} />
-                            </div>
-                        )}
-                        {step === 2 && <EmploymentInfoForm form={form} />}
-                        {step === 3 && <AddressInfoForm form={form} />}
-                        {step === 4 && <PayrollInfoForm form={form} />}
+                                {step === 1 && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-center">
+                                            <ImageUpload
+                                                previewMode={true}
+                                                onFileSelect={setSelectedFile}
+                                            />
+                                        </div>
+                                        <PersonalInfoForm form={form} />
+                                    </div>
+                                )}
+                                {step === 2 && <EmploymentInfoForm form={form} />}
+                                {step === 3 && <AddressInfoForm form={form} />}
+                                {step === 4 && <PayrollInfoForm form={form} />}
 
-                        <div className="flex justify-end gap-2">
-                            {step > 1 && (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={previousStep}
-                                    disabled={isSubmitting}
-                                >
-                                    Previous
-                                </Button>
-                            )}
-                            {step < 4 ? (
-                                <Button
-                                    type="button"
-                                    onClick={nextStep}
-                                    disabled={isSubmitting}
-                                >
-                                    Next
-                                </Button>
-                            ) : (
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting || isUploading}
-                                >
-                                    {isSubmitting || isUploading ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            {isUploading ? 'Uploading...' : 'Creating...'}
-                                        </>
-                                    ) : (
-                                        'Create Employee Account'
+                                <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 border-t">
+                                    {step > 1 && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={previousStep}
+                                            disabled={isSubmitting}
+                                        >
+                                            Previous
+                                        </Button>
                                     )}
-                                </Button>
-                            )}
-                        </div>
-                    </form>
-                </Form>
+                                    {step < 4 ? (
+                                        <Button
+                                            type="button"
+                                            onClick={nextStep}
+                                            disabled={isSubmitting}
+                                        >
+                                            Next
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="submit"
+                                            disabled={isSubmitting || isUploading}
+                                        >
+                                            {isSubmitting || isUploading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    {isUploading ? 'Uploading...' : 'Creating...'}
+                                                </>
+                                            ) : (
+                                                'Create Employee Account'
+                                            )}
+                                        </Button>
+                                    )}
+                                </div>
+                            </form>
+                        </Form>
+                    </div>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     )

@@ -1,309 +1,447 @@
 import { ConvexError, v } from "convex/values";
+
 import { mutation, query } from "./_generated/server";
+
 import { getAuthUserId } from "@convex-dev/auth/server";
+
 import { createAccount } from "@convex-dev/auth/server";
+
 import { Id } from "./_generated/dataModel";
 
 export const get = query({
-    args: {},
-    handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx)
-        if (!userId) throw new ConvexError("User not found")
+  args: {},
 
-        const user = await ctx.db.get(userId)
-        if (!user) throw new ConvexError("User not found")
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
 
-        return {
-            _id: user._id,
-            _creationTime: user._creationTime,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            role: user.role,
-            department: user.department,
-            filledUpByAdmin: user.filledUpByAdmin,
-            isDeclinedByAdmin: user.isDeclinedByAdmin,
-            declinedReason: user.declinedReason,
-            declinedAt: user.declinedAt,
-            image: user.image,
-            imageUrl: user.image ? await ctx.storage.getUrl(user.image) : null,
-            ratePerDay: user.ratePerDay,
-            // employeeTypeId: user.employeeTypeId,
-        }
-    }
-})
+    if (!userId) throw new ConvexError("User not found");
+
+    const user = await ctx.db.get(userId);
+
+    if (!user) throw new ConvexError("User not found");
+
+    return {
+      _id: user._id,
+
+      _creationTime: user._creationTime,
+
+      firstName: user.firstName,
+
+      lastName: user.lastName,
+
+      email: user.email,
+
+      role: user.role,
+
+      department: user.department,
+
+      filledUpByAdmin: user.filledUpByAdmin,
+
+      isDeclinedByAdmin: user.isDeclinedByAdmin,
+
+      declinedReason: user.declinedReason,
+
+      declinedAt: user.declinedAt,
+
+      image: user.image,
+
+      imageUrl: user.image ? await ctx.storage.getUrl(user.image) : null,
+
+      ratePerDay: user.ratePerDay,
+
+      // employeeTypeId: user.employeeTypeId,
+    };
+  },
+});
 
 export const getEmployee = query({
-    args: {
-        userId: v.id("users")
-    },
-    handler: async (ctx, args) => {
-        console.log('getEmployee query called with userId:', args.userId);
+  args: {
+    userId: v.id("users"),
+  },
 
-        const userId = await getAuthUserId(ctx)
-        if (!userId) throw new ConvexError("User not found")
+  handler: async (ctx, args) => {
+    console.log("getEmployee query called with userId:", args.userId);
 
-        // find the employee by role and ID
-        const employee = await ctx.db
-            .query("users")
-            .filter(q =>
-                q.and(
-                    q.eq(q.field("_id"), args.userId),
-                    q.eq(q.field("role"), "employee")
-                )
-            )
-            .unique()
+    const userId = await getAuthUserId(ctx);
 
-        console.log('Employee found:', {
-            requestedId: args.userId,
-            foundEmployee: employee ? {
-                id: employee._id,
-                name: `${employee.firstName} ${employee.lastName}`
-            } : null
-        });
+    if (!userId) throw new ConvexError("User not found");
 
-        if (!employee) throw new ConvexError("Employee not found")
+    // find the employee by role and ID
 
-        // Get the image URL if image exists
-        const imageUrl = employee.image ? await ctx.storage.getUrl(employee.image) : null;
+    const employee = await ctx.db
 
-        const response = {
-            data: {
-                ...employee,
-                imageUrl,
-            }
-        };
+      .query("users")
 
-        return response;
-    }
-})
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("_id"), args.userId),
+
+          q.eq(q.field("role"), "employee")
+        )
+      )
+
+      .unique();
+
+    console.log("Employee found:", {
+      requestedId: args.userId,
+
+      foundEmployee: employee
+        ? {
+            id: employee._id,
+
+            name: `${employee.firstName} ${employee.lastName}`,
+          }
+        : null,
+    });
+
+    if (!employee) throw new ConvexError("Employee not found");
+
+    // Get the image URL if image exists
+
+    const imageUrl = employee.image
+      ? await ctx.storage.getUrl(employee.image)
+      : null;
+
+    const response = {
+      data: {
+        ...employee,
+
+        imageUrl,
+      },
+    };
+
+    return response;
+  },
+});
 
 export const checkRole = query({
-    args: {},
-    handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx)
-        if (!userId) throw new ConvexError("User not found")
+  args: {},
 
-        const user = await ctx.db.get(userId)
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
 
-        return user?.role
-    }
-})
+    if (!userId) throw new ConvexError("User not found");
+
+    const user = await ctx.db.get(userId);
+
+    return user?.role;
+  },
+});
 
 export const getEmployees = query({
-    args: {
-        department: v.optional(v.string()),
-        status: v.optional(v.string()),
-    },
-    handler: async (ctx, args) => {
-        let query = ctx.db.query("users")
-            .filter(q => q.eq(q.field("role"), "employee"))
-            .filter(q => q.eq(q.field("isArchived"), false))
+  args: {
+    department: v.optional(v.string()),
 
-        if (args.department) {
-            query = query.filter(q => q.eq(q.field("department"), args.department))
-        }
+    status: v.optional(v.string()),
+  },
 
-        const employees = await query.collect()
+  handler: async (ctx, args) => {
+    let query = ctx.db
+      .query("users")
 
-        return await Promise.all(employees.map(async (emp) => ({
-            ...emp,
-            imageUrl: emp.image ? await ctx.storage.getUrl(emp.image) : null,
-            status: getEmployeeStatus(emp),
-        })))
+      .filter((q) => q.eq(q.field("isArchived"), false));
+
+    if (args.department) {
+      query = query.filter((q) => q.eq(q.field("department"), args.department));
     }
-})
+
+    const employees = await query.collect();
+
+    return await Promise.all(
+      employees.map(async (emp) => ({
+        ...emp,
+
+        imageUrl: emp.image ? await ctx.storage.getUrl(emp.image) : null,
+
+        status: getEmployeeStatus(emp),
+      }))
+    );
+  },
+});
 
 export const getAllEmployees = query({
-    handler: async (ctx) => {
-        const query = ctx.db.query("users")
-            .filter(q => q.eq(q.field("role"), "employee"))
-            .filter(q => q.eq(q.field("isArchived"), false))
+  handler: async (ctx) => {
+    const query = ctx.db
+      .query("users")
 
-        const employees = await query.collect()
+      .filter((q) => q.eq(q.field("role"), "employee"))
 
-        return await Promise.all(
-            employees.map(async (employee) => ({
-                ...employee,
-                imageUrl: employee.image ? await ctx.storage.getUrl(employee.image) : null
-            }))
-        )
-    }
-})
+      .filter((q) => q.eq(q.field("isArchived"), false));
+
+    const employees = await query.collect();
+
+    return await Promise.all(
+      employees.map(async (employee) => ({
+        ...employee,
+
+        imageUrl: employee.image
+          ? await ctx.storage.getUrl(employee.image)
+          : null,
+      }))
+    );
+  },
+});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 function getEmployeeStatus(employee: any) {
-    if (employee.isArchived) return "inactive"
-    return "active"
+  if (employee.isArchived) return "inactive";
+
+  return "active";
 }
 
 export const makeAdmin = mutation({
-    args: { userId: v.id("users") },
-    handler: async (ctx, args) => {
-        const adminId = await getAuthUserId(ctx)
-        if (!adminId) throw new ConvexError("Not authenticated")
+  args: { userId: v.id("users") },
 
-        // Check if current user is admin
-        const admin = await ctx.db.get(adminId)
-        if (admin?.role !== "admin") {
-            throw new ConvexError("Not authorized")
-        }
+  handler: async (ctx, args) => {
+    const adminId = await getAuthUserId(ctx);
 
-        // Update user to admin
-        await ctx.db.patch(args.userId, {
-            role: "admin"
-        });
+    if (!adminId) throw new ConvexError("Not authenticated");
 
-        // Create audit log entry
-        await ctx.db.insert("auditLogs", {
-            action: "Made Admin",
-            entityType: "employee",
-            entityId: args.userId,
-            performedBy: adminId,
-            performedAt: new Date().toISOString(),
-            details: `Granted admin privileges to user`,
-        });
+    // Check if current user is admin
 
-        return true
+    const admin = await ctx.db.get(adminId);
+
+    if (admin?.role !== "admin") {
+      throw new ConvexError("Not authorized");
     }
-})
+
+    // Update user to admin
+
+    await ctx.db.patch(args.userId, {
+      role: "admin",
+    });
+
+    // Create audit log entry
+
+    await ctx.db.insert("auditLogs", {
+      action: "Made Admin",
+
+      entityType: "employee",
+
+      entityId: args.userId,
+
+      performedBy: adminId,
+
+      performedAt: new Date().toISOString(),
+
+      details: `Granted admin privileges to user`,
+    });
+
+    return true;
+  },
+});
 
 export const updateEmployee = mutation({
-    args: {
-        userId: v.id("users"),
-        department: v.string(),
-        position: v.string(),
-        hiredDate: v.string(),
-        region: v.string(),
-        province: v.string(),
-        city: v.string(),
-        barangay: v.string(),
-        postalCode: v.string(),
-        street: v.string(),
-        houseNumber: v.string(),
-        ratePerDay: v.number(),
-        philHealthNumber: v.string(),
-        pagIbigNumber: v.string(),
-        sssNumber: v.string(),
-        birTin: v.string(),
-        philHealthContribution: v.number(),
-        pagIbigContribution: v.number(),
-        sssContribution: v.number(),
-        incomeTax: v.number(),
-        philHealthSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
-        pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
-        sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
-        incomeTaxSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
-    },
-    handler: async (ctx, args) => {
-        const adminId = await getAuthUserId(ctx)
-        if (!adminId) throw new ConvexError("Not authenticated")
+  args: {
+    userId: v.id("users"),
 
-        // Check if current user is admin
-        const admin = await ctx.db.get(adminId)
-        if (admin?.role !== "admin") {
-            throw new ConvexError("Not authorized")
-        }
+    department: v.string(),
 
-        const { userId, ...updateData } = args
+    position: v.string(),
 
-        // Get the employee being updated
-        const employee = await ctx.db.get(userId)
-        if (!employee) throw new ConvexError("Employee not found")
+    hiredDate: v.string(),
 
-        // Update the employee
-        await ctx.db.patch(userId, {
-            ...updateData,
-            modifiedBy: adminId,
-            modifiedAt: new Date().toISOString(),
-        })
+    region: v.string(),
 
-        // Create audit log entry
-        await ctx.db.insert("auditLogs", {
-            action: "Updated Employee",
-            entityType: "employee",
-            entityId: userId,
-            performedBy: adminId,
-            performedAt: new Date().toISOString(),
-            details: `Updated profile for ${employee.firstName} ${employee.lastName}`,
-        })
+    province: v.string(),
 
-        return true
+    city: v.string(),
+
+    barangay: v.string(),
+
+    postalCode: v.string(),
+
+    street: v.string(),
+
+    houseNumber: v.string(),
+
+    ratePerDay: v.number(),
+
+    philHealthNumber: v.string(),
+
+    pagIbigNumber: v.string(),
+
+    sssNumber: v.string(),
+
+    birTin: v.string(),
+
+    philHealthContribution: v.number(),
+
+    pagIbigContribution: v.number(),
+
+    sssContribution: v.number(),
+
+    incomeTax: v.number(),
+
+    philHealthSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+
+    pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+
+    sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+
+    incomeTaxSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+  },
+
+  handler: async (ctx, args) => {
+    const adminId = await getAuthUserId(ctx);
+
+    if (!adminId) throw new ConvexError("Not authenticated");
+
+    // Check if current user is admin
+
+    const admin = await ctx.db.get(adminId);
+
+    if (admin?.role !== "admin") {
+      throw new ConvexError("Not authorized");
     }
-})
+
+    const { userId, ...updateData } = args;
+
+    // Get the employee being updated
+
+    const employee = await ctx.db.get(userId);
+
+    if (!employee) throw new ConvexError("Employee not found");
+
+    // Update the employee
+
+    await ctx.db.patch(userId, {
+      ...updateData,
+
+      modifiedBy: adminId,
+
+      modifiedAt: new Date().toISOString(),
+    });
+
+    // Create audit log entry
+
+    await ctx.db.insert("auditLogs", {
+      action: "Updated Employee",
+
+      entityType: "employee",
+
+      entityId: userId,
+
+      performedBy: adminId,
+
+      performedAt: new Date().toISOString(),
+
+      details: `Updated profile for ${employee.firstName} ${employee.lastName}`,
+    });
+
+    return true;
+  },
+});
 
 export const listEmployeesWithContributions = query({
-    args: {
-        schedule: v.union(v.literal("1st half"), v.literal("2nd half"))
-    },
-    handler: async (ctx, args) => {
-        const employees = await ctx.db
-            .query("users")
-            .filter(q =>
-                q.and(
-                    q.eq(q.field("role"), "employee"),
-                    q.eq(q.field("filledUpByAdmin"), true),
-                    q.eq(q.field("philHealthSchedule"), args.schedule)
-                )
-            )
-            .collect();
+  args: {
+    schedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+  },
 
-        // Debug log to check the data
-        console.log('Employees found:', employees.length);
-        console.log('Sample employee:', employees[0]);
+  handler: async (ctx, args) => {
+    const employees = await ctx.db
 
-        return employees;
-    }
+      .query("users")
+
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("role"), "employee"),
+
+          q.eq(q.field("filledUpByAdmin"), true),
+
+          q.eq(q.field("philHealthSchedule"), args.schedule)
+        )
+      )
+
+      .collect();
+
+    // Debug log to check the data
+
+    console.log("Employees found:", employees.length);
+
+    console.log("Sample employee:", employees[0]);
+
+    return employees;
+  },
 });
 
 export const declineRegistration = mutation({
-    args: {
-        userId: v.id("users"),
-        reason: v.string(),
-    },
-    handler: async (ctx, args) => {
-        const adminId = await getAuthUserId(ctx)
-        if (!adminId) throw new ConvexError("Unauthorized")
+  args: {
+    userId: v.id("users"),
 
-        const admin = await ctx.db.get(adminId)
-        if (!admin || admin.role !== "admin") {
-            throw new ConvexError("Unauthorized: Only admins can decline registrations")
-        }
+    reason: v.string(),
+  },
 
-        return await ctx.db.patch(args.userId, {
-            isDeclinedByAdmin: true,
-            declinedReason: args.reason,
-            declinedAt: new Date().toISOString(),
-            modifiedBy: adminId,
-            modifiedAt: new Date().toISOString(),
-        })
-    },
-})
+  handler: async (ctx, args) => {
+    const adminId = await getAuthUserId(ctx);
+
+    if (!adminId) throw new ConvexError("Unauthorized");
+
+    const admin = await ctx.db.get(adminId);
+
+    if (!admin || admin.role !== "admin") {
+      throw new ConvexError(
+        "Unauthorized: Only admins can decline registrations"
+      );
+    }
+
+    return await ctx.db.patch(args.userId, {
+      isDeclinedByAdmin: true,
+
+      declinedReason: args.reason,
+
+      declinedAt: new Date().toISOString(),
+
+      modifiedBy: adminId,
+
+      modifiedAt: new Date().toISOString(),
+    });
+  },
+});
 
 // export const reverseDeclineRegistration = mutation({
+
 //     args: {
+
 //         userId: v.id("users"),
+
 //     },
+
 //     handler: async (ctx, args) => {
+
 //         const adminId = await getAuthUserId(ctx)
+
 //         if (!adminId) throw new ConvexError("Unauthorized")
 
 //         const admin = await ctx.db.get(adminId)
+
 //         if (!admin || admin.role !== "admin") {
+
 //             throw new ConvexError("Unauthorized: Only admins can reverse declined registrations")
+
 //         }
 
 //         const user = await ctx.db.get(args.userId)
+
 //         if (!user) throw new ConvexError("User not found")
 
 //         return await ctx.db.patch(args.userId, {
+
 //             isDeclinedByAdmin: false,
+
 //             declinedReason: undefined,
+
 //             declinedAt: undefined,
+
 //             modifiedBy: adminId,
+
 //             modifiedAt: new Date().toISOString(),
+
 //         })
+
 //     },
+
 // })
 
 export const createEmployee = mutation({
@@ -344,145 +482,239 @@ export const createEmployee = mutation({
         employeeTypeId: v.string(),
     },
     handler: async (ctx, args) => {
-        const adminId = await getAuthUserId(ctx)
-        if (!adminId) throw new ConvexError("Not authenticated")
+        try {
+            // Authenticate admin
+            const adminId = await getAuthUserId(ctx)
+            if (!adminId) throw new ConvexError("Not authenticated")
 
-        // Check if current user is admin
-        const admin = await ctx.db.get(adminId)
-        if (admin?.role !== "admin") {
-            throw new ConvexError("Not authorized")
+            const admin = await ctx.db.get(adminId)
+            if (admin?.role !== "admin") {
+                throw new ConvexError("Not authorized")
+            }
+
+            // Check if email already exists
+            const existingUser = await ctx.db
+                .query("users")
+                .filter(q => q.eq(q.field("email"), args.email))
+                .first()
+
+            if (existingUser) {
+                throw new ConvexError("Email already exists")
+            }
+
+            // Check if employee ID already exists
+            const existingEmployee = await ctx.db
+                .query("users")
+                .filter(q => q.eq(q.field("employeeTypeId"), args.employeeTypeId))
+                .first()
+
+            if (existingEmployee) {
+                throw new ConvexError("Employee ID already exists")
+            }
+
+            const { email, password, ...userData } = args
+
+            // Create the account using createAccount
+            // @ts-expect-error convex does not support password provider types yet
+            const accountResponse = await createAccount(ctx, {
+                provider: "password",
+                account: {
+                    id: email,
+                    secret: password,
+                },
+                profile: {
+                    email,
+                    firstName: userData.firstName,
+                    middleName: userData.middleName,
+                    lastName: userData.lastName,
+                    dateOfBirth: userData.dateOfBirth,
+                    gender: userData.gender,
+                    maritalStatus: userData.maritalStatus,
+                    contactType: userData.contactType,
+                    contactNumber: userData.contactNumber,
+                    role: "employee",
+                },
+            });
+
+            if (!accountResponse?.user?._id) {
+                throw new ConvexError("Failed to create user account");
+            }
+
+            // Create the user record with all fields
+            await ctx.db.patch(accountResponse.user._id as Id<"users">, {
+                ...userData,
+                email,
+                role: "employee",
+                isArchived: false,
+                filledUpByAdmin: true,
+                modifiedBy: adminId,
+                modifiedAt: new Date().toISOString(),
+            });
+
+            // Get the updated user data
+            const newUser = await ctx.db.get(accountResponse.user._id as Id<"users">);
+            if (!newUser) {
+                throw new ConvexError("Failed to retrieve created user");
+            }
+
+            // Create audit log entry
+            await ctx.db.insert("auditLogs", {
+                action: "Created Employee",
+                entityType: "employee",
+                entityId: accountResponse.user._id as Id<"users">,
+                performedBy: adminId,
+                performedAt: new Date().toISOString(),
+                details: `Created employee account for ${args.firstName} ${args.lastName} with ID ${args.employeeTypeId}`,
+            });
+
+            return newUser;
+        } catch (error) {
+            console.error("Error in createEmployee:", error);
+            throw error;
         }
-
-        // Check if employee ID already exists
-        const existingEmployee = await ctx.db
-            .query("users")
-            .filter(q => q.eq(q.field("employeeTypeId"), args.employeeTypeId))
-            .first()
-
-        if (existingEmployee) {
-            throw new ConvexError("Employee ID already exists")
-        }
-
-        // Create the employee with the auto-generated ID
-        const userId = await ctx.db.insert("users", {
-            ...args,
-            role: "employee",
-            isDeclinedByAdmin: false,
-            filledUpByAdmin: true,
-            modifiedBy: adminId,
-            modifiedAt: new Date().toISOString(),
-            isArchived: false,
-        })
-
-        // Create audit log entry
-        await ctx.db.insert("auditLogs", {
-            action: "Created Employee",
-            entityType: "employee",
-            entityId: userId,
-            performedBy: adminId,
-            performedAt: new Date().toISOString(),
-            details: `Created new employee account for ${args.firstName} ${args.lastName} with ID ${args.employeeTypeId}`,
-        })
-
-        return { _id: userId }
     }
 })
 
 export const generateUploadUrl = mutation({
-    args: {},
-    handler: async (ctx) => {
-        return await ctx.storage.generateUploadUrl();
-    },
+  args: {},
+
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+  },
 });
 
 export const updateProfileImage = mutation({
-    args: {
-        userId: v.id("users"),
-        storageId: v.id("_storage"),
-    },
-    handler: async (ctx, args) => {
-        const { userId, storageId } = args;
+  args: {
+    userId: v.id("users"),
 
-        // Update the user's image field with the storage ID
-        await ctx.db.patch(userId, {
-            image: storageId,
-            modifiedAt: new Date().toISOString(),
-        });
+    storageId: v.id("_storage"),
+  },
 
-        // Create audit log
-        await ctx.db.insert("auditLogs", {
-            action: "Updated Profile Image",
-            entityType: "employee",
-            entityId: userId,
-            performedBy: userId,
-            performedAt: new Date().toISOString(),
-            details: "Updated employee profile image",
-        });
+  handler: async (ctx, args) => {
+    const { userId, storageId } = args;
 
-        // Return the updated user data
-        const updatedUser = await ctx.db.get(userId);
-        const imageUrl = updatedUser?.image ? await ctx.storage.getUrl(updatedUser.image) : null;
+    // Update the user's image field with the storage ID
 
-        return {
-            ...updatedUser,
-            imageUrl
-        };
-    },
+    await ctx.db.patch(userId, {
+      image: storageId,
+
+      modifiedAt: new Date().toISOString(),
+    });
+
+    // Create audit log
+
+    await ctx.db.insert("auditLogs", {
+      action: "Updated Profile Image",
+
+      entityType: "employee",
+
+      entityId: userId,
+
+      performedBy: userId,
+
+      performedAt: new Date().toISOString(),
+
+      details: "Updated employee profile image",
+    });
+
+    // Return the updated user data
+
+    const updatedUser = await ctx.db.get(userId);
+
+    const imageUrl = updatedUser?.image
+      ? await ctx.storage.getUrl(updatedUser.image)
+      : null;
+
+    return {
+      ...updatedUser,
+
+      imageUrl,
+    };
+  },
 });
 
 export const checkEmployeeIdExists = query({
-    args: { employeeTypeId: v.string() },
-    handler: async (ctx, args) => {
-        const employee = await ctx.db
-            .query("users")
-            .filter(q => q.eq(q.field("employeeTypeId"), args.employeeTypeId))
-            .first()
+  args: { employeeTypeId: v.string() },
 
-        return !!employee
-    }
-})
+  handler: async (ctx, args) => {
+    const employee = await ctx.db
+
+      .query("users")
+
+      .filter((q) => q.eq(q.field("employeeTypeId"), args.employeeTypeId))
+
+      .first();
+
+    return !!employee;
+  },
+});
 
 export const updatePersonalInfo = mutation({
-    args: {
-        userId: v.id("users"),
-        firstName: v.string(),
-        middleName: v.optional(v.string()),
-        lastName: v.string(),
-        maritalStatus: v.union(v.literal("single"), v.literal("married"), v.literal("widowed"), v.literal("divorced"), v.literal("separated")),
-    },
-    handler: async (ctx, args) => {
-        const adminId = await getAuthUserId(ctx)
-        if (!adminId) throw new ConvexError("Not authenticated")
+  args: {
+    userId: v.id("users"),
 
-        // Check if current user is admin
-        const admin = await ctx.db.get(adminId)
-        if (admin?.role !== "admin") {
-            throw new ConvexError("Not authorized")
-        }
+    firstName: v.string(),
 
-        const { userId, ...updateData } = args
+    middleName: v.optional(v.string()),
 
-        // Get the employee being updated
-        const employee = await ctx.db.get(userId)
-        if (!employee) throw new ConvexError("Employee not found")
+    lastName: v.string(),
 
-        // Update the employee's personal information
-        await ctx.db.patch(userId, {
-            ...updateData,
-            modifiedBy: adminId,
-            modifiedAt: new Date().toISOString(),
-        })
+    maritalStatus: v.union(
+      v.literal("single"),
+      v.literal("married"),
+      v.literal("widowed"),
+      v.literal("divorced"),
+      v.literal("separated")
+    ),
+  },
 
-        // Create audit log entry
-        await ctx.db.insert("auditLogs", {
-            action: "Updated Personal Information",
-            entityType: "employee",
-            entityId: userId,
-            performedBy: adminId,
-            performedAt: new Date().toISOString(),
-            details: `Updated personal information for ${employee.firstName} ${employee.lastName}`,
-        })
+  handler: async (ctx, args) => {
+    const adminId = await getAuthUserId(ctx);
 
-        return true
+    if (!adminId) throw new ConvexError("Not authenticated");
+
+    // Check if current user is admin
+
+    const admin = await ctx.db.get(adminId);
+
+    if (admin?.role !== "admin") {
+      throw new ConvexError("Not authorized");
     }
-})
+
+    const { userId, ...updateData } = args;
+
+    // Get the employee being updated
+
+    const employee = await ctx.db.get(userId);
+
+    if (!employee) throw new ConvexError("Employee not found");
+
+    // Update the employee's personal information
+
+    await ctx.db.patch(userId, {
+      ...updateData,
+
+      modifiedBy: adminId,
+
+      modifiedAt: new Date().toISOString(),
+    });
+
+    // Create audit log entry
+
+    await ctx.db.insert("auditLogs", {
+      action: "Updated Personal Information",
+
+      entityType: "employee",
+
+      entityId: userId,
+
+      performedBy: adminId,
+
+      performedAt: new Date().toISOString(),
+
+      details: `Updated personal information for ${employee.firstName} ${employee.lastName}`,
+    });
+
+    return true;
+  },
+});
