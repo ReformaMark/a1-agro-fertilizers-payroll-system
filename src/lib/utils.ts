@@ -66,8 +66,16 @@ export function getCurrentTimePeriod(date: Date = new Date()): { start: Date; en
   const start = new Date(year, month, startDay);
   const end = new Date(year, month, endDay);
 
-  const formattedStart = `${year}/${(month + 1).toString().padStart(2, '0')}/${startDay.toString().padStart(2, '0')}`;
-  const formattedEnd = `${year}/${(month + 1).toString().padStart(2, '0')}/${endDay.toString().padStart(2, '0')}`;
+  const formattedStart = new Date(year, month, startDay).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long', 
+    day: 'numeric'
+  });
+  const formattedEnd = new Date(year, month, endDay).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
   return { start, end, formattedStart, formattedEnd };
 }
@@ -152,6 +160,3 @@ export function formatDate(date: Date | string): string {
   return `${year}-${month}-${day}`;
 }
 
-export function getCurrentDate(): Date {
-  return new Date();
-}

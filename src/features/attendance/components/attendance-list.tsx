@@ -35,44 +35,17 @@ export default function AttendanceReport() {
             const recordDate = new Date(record.date)
             return recordDate >= start && recordDate <= end
         }) as AttendanceWithUser[]
-    }, [attendance, selectedDate])
+    }, [attendance, selectedDate]) 
    
-
-
     return (
         <div className="space-y-4 bg-white p-5">
-          
-
-                {TimePeriod(selectedDate, setSelectedDate)}
-                <DataTable
-
-                    columns={columns}
-                    data={filteredData}
-                    filter="date"
-                    filterLabel="date"
-                />
-            {/* )}
-
-            {reportType === "weekly" && (
-                <DataTable
-
-                    columns={weeklyColumns}
-                    data={data}
-                    filter="userId"
-                    filterLabel="Employee Id"
-                />
-            )}
-            {reportType === "monthly" && (
-                <DataTable
-
-                    columns={monthlyColumns}
-                    data={data}
-                    filter="userId"
-                    filterLabel="Employee Id"
-                />
-            )} */}
-
-
+            {TimePeriod(selectedDate, setSelectedDate)}
+            <DataTable
+                columns={columns}
+                data={filteredData}
+                filter="date"
+                filterLabel="date"
+            />
         </div>
     )
 }

@@ -65,7 +65,8 @@ export const columns: ColumnDef<AttendanceWithUser>[] = [
         ),
         cell: ({ row }) => {
           const timeIn = new Date(row.original.timeIn)
-          return <div className="text-center">{formatTime(timeIn)}</div>
+          const isLate = timeIn.getHours() > 8
+          return <div className={`${isLate ? 'text-red-500' : ''} text-center`}>{formatTime(timeIn)}</div>
         },
     },
     {
@@ -84,13 +85,14 @@ export const columns: ColumnDef<AttendanceWithUser>[] = [
         ),
         cell: ({ row }) => {
           const timeOut = row.original.timeOut ? new Date(row.original.timeOut) : null
-          return <div className="text-center">{timeOut ? formatTime(timeOut) : '-'}</div>
+          const isEarly = timeOut && timeOut.getHours() < 17
+          return <div className={`${isEarly ? 'text-red-500' : ''} text-center`}>{timeOut ? formatTime(timeOut) : '-'}</div>
         },
     },
     
     
     {
-        id: "hoursWorked",
+        id: "totalHours",
         accessorFn: row => calculateHours(new Date(row.timeIn), row.timeOut ? new Date(row.timeOut) : null),
         header: ({ column }) => (
           <div className="text-center">
@@ -98,7 +100,7 @@ export const columns: ColumnDef<AttendanceWithUser>[] = [
               variant="ghost"
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             >
-              Hours Worked
+              Total Hours
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -106,21 +108,70 @@ export const columns: ColumnDef<AttendanceWithUser>[] = [
         cell: ({ row }) => {
           const timeIn = new Date(row.original.timeIn)
           const timeOut = row.original.timeOut ? new Date(row.original.timeOut) : null
-          
+          // Adjust timeIn to 8 AM if employee arrived earlier
+          const adjustedTimeIn = new Date(timeIn)
+          if (timeIn.getHours() < 8) {
+            adjustedTimeIn.setHours(8, 0, 0, 0)
+          }
           let hours = 0
           if (timeOut) {
-            // Calculate total hours
-            hours = calculateHours(timeIn, timeOut)
+            // Calculate total hours, preserving minutes only before 5 PM
+            const cappedTimeOut = new Date(timeOut)
+            if (timeOut.getHours() >= 17) {
+              // Keep the hours but zero out minutes if after 5 PM
+              cappedTimeOut.setMinutes(0, 0, 0)
+            }
+            hours = calculateHours(adjustedTimeIn, cappedTimeOut)
             
             // Check if timeOut is after 1 PM to subtract break time
-            
+
+
             if (timeOut.getHours() >= 13) {
               hours = Math.max(0, hours - 1) // Subtract 1 hour break time
             }
           }
 
-          return <div className="text-center">{hours > 0 ? `${hours}h` : '-'}</div>
+          return <div className="text-center">{hours > 0 ? `${hours.toFixed(1)} hours` : '-'}</div>
         },
     },
+    {
+        id: "overtimeHours",
+        accessorFn: row => {
+            const timeOut = row.timeOut ? new Date(row.timeOut) : null
+            if (!timeOut || timeOut.getHours() <= 17) return 0
+            
+            // Calculate whole hours after 5 PM
+            const overtimeHours = timeOut.getHours() - 17
+            return overtimeHours
+        },
+        header: ({ column }) => (
+          <div className="text-center">
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Overtime Hours
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => {
+            const timeOut = row.original.timeOut ? new Date(row.original.timeOut) : null
+            if (!timeOut || timeOut.getHours() <= 17) {
+                return <div className="text-center">-</div>
+            }
+
+            // Calculate whole hours after 5 PM
+            const overtimeHours = timeOut.getHours() - 17
+            
+            return (
+                <div className="text-center">
+                    {overtimeHours > 0 ? `${overtimeHours} hours` : '-'}
+                </div>
+            )
+        }
+    },
+
+    
    
 ]

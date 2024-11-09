@@ -99,6 +99,7 @@ export default defineSchema({
     })
         .index("by_status", ["status"]) // For filtering by processing status
         .index("by_date_range", ["startDate", "endDate"]), // For period lookups
+        
     salaryComponents: defineTable({
         userId: v.id("users"),
         payrollPeriodId: v.id("payrollPeriods"),

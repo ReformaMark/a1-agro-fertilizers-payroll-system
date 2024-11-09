@@ -7,7 +7,7 @@ export const list = query({
   handler: async (ctx) => {
     const attendanceRecords = await ctx.db
       .query("attendance")
-      .order("desc")
+      .order('desc')
       .collect();
 
     // Join with user data
