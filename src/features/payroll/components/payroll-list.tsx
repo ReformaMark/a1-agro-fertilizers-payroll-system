@@ -6,15 +6,15 @@ import { getCurrentTimePeriod } from '@/lib/utils'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { user } from '@/lib/types'
 function PayrollList() {
-  const {data } = useCurrentUser()
+  const { data } = useCurrentUser()
   const getCurrentDate = () => {
-      const date = new Date()
-      return date.toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-      })
-  }  
+    const date = new Date()
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
   const [selectedDate, setSelectedDate] = useState<string>(getCurrentDate())
 
   return (

@@ -890,3 +890,31 @@ export const updateUserProfile = mutation({
     return true;
   },
 });
+
+export const getById = query({
+  args: {
+    userId: v.id("users")
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId)
+    if (!user) throw new ConvexError("User not found")
+
+    return {
+      _id: user._id,
+      _creationTime: user._creationTime,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      department: user.department,
+      filledUpByAdmin: user.filledUpByAdmin,
+      isDeclinedByAdmin: user.isDeclinedByAdmin,
+      declinedReason: user.declinedReason,
+      declinedAt: user.declinedAt,
+      image: user.image,
+      imageUrl: user.image ? await ctx.storage.getUrl(user.image) : null,
+      ratePerDay: user.ratePerDay,
+      annualLeaveBalance: user.annualLeaveBalance,
+    }
+  }
+})

@@ -1,9 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-
 import { Calendar } from "@/components/ui/calendar";
-
 import {
   Dialog,
   DialogContent,
@@ -11,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import {
   Form,
   FormControl,
@@ -20,13 +17,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
 import {
   Select,
   SelectContent,
@@ -34,102 +29,137 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Textarea } from "@/components/ui/textarea";
-
-import { cn } from "@/lib/utils";
-
+import { cn, getConvexErrorMessage } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { format } from "date-fns";
-
 import { CalendarIcon } from "lucide-react";
-
 import { useForm } from "react-hook-form";
-
 import { toast } from "sonner";
-
 import { z } from "zod";
-
 import { useCreateLeaveRequest } from "../api/leaves";
-
 import { api } from "../../../../convex/_generated/api";
-
 import { differenceInDays } from "date-fns";
-
 import { Card } from "@/components/ui/card";
-
 import { useQuery } from "convex/react";
-
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { Id } from "../../../../convex/_generated/dataModel";
 
 const formSchema = z.object({
   type: z.string().min(1, "Please select a leave type"),
-
   startDate: z.string().min(1, "Start date is required"),
-
   endDate: z.string().min(1, "End date is required"),
-
-  reason: z
-    .string()
-    .min(10, "Please provide a detailed reason (minimum 10 characters)"),
+  reason: z.string().min(10, "Please provide a detailed reason"),
+  employeeId: z.string().optional(), // Add this field
 });
 
 const LEAVE_TYPES = [
   "Annual Leave",
-
   "Sick Leave",
-
   "Maternity Leave",
-
   "Paternity Leave",
-
   "Emergency Leave",
-
   "Other",
 ];
 
 interface LeaveRequestFormProps {
   onClose: () => void;
+  employeeId?: string;
 }
 
-export function LeaveRequestForm({ onClose }: LeaveRequestFormProps) {
+export function LeaveRequestForm({ onClose, employeeId }: LeaveRequestFormProps) {
   const createLeaveRequest = useCreateLeaveRequest();
-
   const { data: currentUser } = useCurrentUser();
-
-  const leaveBalance = useQuery(api.leaves.getLeaveBalance, {
-    userId: currentUser?._id,
-  });
+  const isAdmin = currentUser?.role === "admin";
+  const employees = useQuery(api.users.list);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
 
     defaultValues: {
       startDate: new Date().toISOString(),
-
       endDate: new Date().toISOString(),
+      employeeId: employeeId || "",
     },
   });
 
+  const selectedEmployeeId = form.watch("employeeId");
+
+  const targetUserId = isAdmin ? (selectedEmployeeId || employeeId) : currentUser?._id
+
+  const leaveBalance = useQuery(
+    api.leaves.getLeaveBalance,
+    targetUserId ? { userId: targetUserId as Id<"users"> } : "skip"
+  );
+
+  const selectedEmployee = useQuery(
+    api.users.getById,
+    targetUserId ? { userId: targetUserId as Id<"users"> } : "skip"
+  );
+
+
+  const employeeField = isAdmin && !employeeId && (
+    <FormField
+      control={form.control}
+      name="employeeId"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Employee</FormLabel>
+          <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select employee" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {employees?.map((employee) => (
+                <SelectItem key={employee._id} value={employee._id}>
+                  {employee.firstName} {employee.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await createLeaveRequest(values);
+      // Prepare the request payload - only include fields expected by the schema
+      const payload = {
+        type: values.type,
+        startDate: values.startDate,
+        endDate: values.endDate,
+        reason: values.reason,
+        targetUserId: isAdmin ? values.employeeId : undefined, // Change employeeId to targetUserId
+      };
 
-      toast.success("Leave request submitted successfully");
+      // @ts-expect-error - TODO: fix this
+      await createLeaveRequest(payload);
+
+      toast.success(
+        isAdmin
+          ? "Leave has been issued successfully"
+          : "Leave request submitted successfully"
+      );
 
       onClose();
     } catch (error) {
-      toast.error("Failed to submit leave request");
-
+      // @ts-expect-error - TODO: fix this
+      const errorMessage = getConvexErrorMessage(error);
+      toast.error(
+        isAdmin
+          ? `Failed to issue leave: ${errorMessage}`
+          : `Failed to submit leave request: ${errorMessage}`
+      );
       console.error(error);
     }
   }
 
   const startDate = form.watch("startDate");
-
   const endDate = form.watch("endDate");
-
   const leaveType = form.watch("type");
 
   const leaveDuration =
@@ -157,6 +187,7 @@ export function LeaveRequestForm({ onClose }: LeaveRequestFormProps) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {employeeField}
             <FormField
               control={form.control}
               name="type"
@@ -301,10 +332,21 @@ export function LeaveRequestForm({ onClose }: LeaveRequestFormProps) {
 
                 {isAnnualLeave && (
                   <p className="text-sm text-muted-foreground mt-1">
-                    Leave Balance:{" "}
-                    <span className="font-medium">
-                      {leaveBalance ?? "..."} days
-                    </span>
+                    {isAdmin ? (
+                      <>
+                        {selectedEmployee?.firstName ?? "Loading..."}&apos;s Leave Balance:{" "}
+                        <span className="font-medium">
+                          {leaveBalance ?? "..."} days
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        Leave Balance:{" "}
+                        <span className="font-medium">
+                          {leaveBalance ?? "..."} days
+                        </span>
+                      </>
+                    )}
                     {hasInsufficientBalance && (
                       <span className="text-destructive ml-2">
                         Insufficient balance

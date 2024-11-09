@@ -51,6 +51,7 @@ export function EmployeeList() {
     const columns = useMemo<ColumnDef<Employee>[]>(() => [
         {
             accessorKey: "name",
+            accessorFn: (row) => `${row.firstName} ${row.lastName}`, // Combine first and last name
             header: "Name",
             cell: ({ row }) => {
                 const employee = row.original

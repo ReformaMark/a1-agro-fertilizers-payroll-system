@@ -87,10 +87,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Loans",
             url: "/admin/requests/loans",
           },
-          {
-            title: "VALE",
-            url: "/admin/requests/cash-advance",
-          }
+          // {
+          //   title: "VALE",
+          //   url: "/admin/requests/cash-advance",
+          // }
         ],
       },
       {
@@ -101,6 +101,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Payroll Sheet",
             url: "/admin/payroll/process",
+          },
+          {
+            title: "Salary Components",
+            url: "/admin/payroll/salary-components",
+          },
+          {
+            title: "Voucher Types",
+            url: "/admin/payroll",
           }
           // ,
           // {

@@ -8,7 +8,6 @@ import {
     BanknoteIcon,
     CalendarDays,
     Clock,
-    Coins,
     Gift,
     Home,
     LogOut,
@@ -57,12 +56,12 @@ const routes = [
         href: "/employee/requests/loans",
         color: "text-green-500",
     },
-    {
-        label: "VALE",
-        icon: Coins,
-        href: "/employee/requests/cash-advance",
-        color: "text-violet-500",
-    },
+    // {
+    //     label: "VALE",
+    //     icon: Coins,
+    //     href: "/employee/requests/cash-advance",
+    //     color: "text-violet-500",
+    // },
     {
         label: "Compensation",
         icon: Wallet,

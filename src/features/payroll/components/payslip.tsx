@@ -9,7 +9,7 @@ import { api } from '../../../../convex/_generated/api'
 import { Id } from '../../../../convex/_generated/dataModel'
 
 import { formatDate, formatMoney } from '@/lib/utils'
-import { user } from '@/lib/types'
+import { User } from '@/lib/types'
 
 function Payslip({ name, startDate, endDate, userId, user }: { name: string, startDate: string; endDate: string, userId: Id<"users">, user: user }) {
     const loans = useQuery(api.loans.getGovernmentLoans, {

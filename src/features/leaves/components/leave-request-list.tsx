@@ -173,9 +173,7 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
         try {
             await updateStatus({
                 requestId,
-
                 status,
-
                 rejectionReason: reason,
             });
 
@@ -195,22 +193,18 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
 
     const columns: ColumnDef<LeaveRequestWithUser>[] = [
         {
-            accessorKey: "user",
-
+            accessorKey: "employeeName",
+            accessorFn: (row) => row.user ? `${row.user.firstName} ${row.user.lastName}` : "N/A",
             header: "Employee",
-
             cell: ({ row }) => {
                 const user = row.original.user;
 
                 return user ? `${user.firstName} ${user.lastName}` : "N/A";
             },
         },
-
         {
             accessorKey: "type",
-
             header: "Leave Type",
-
             cell: ({ row }) => (
                 <Badge variant="outline">{row.getValue("type")}</Badge>
             ),
@@ -429,8 +423,8 @@ export function LeaveRequestList({ filterStatus }: LeaveRequestListProps) {
                 <DataTable
                     columns={columns}
                     data={leaveRequests}
-                    filter={isAdmin ? "user.firstName" : "type"}
-                    filterLabel={isAdmin ? "Employee Name" : "Leave Type"}
+                    filter="employeeName"
+                    filterLabel="requests by employee name"
                 />
 
                 {showForm && <LeaveRequestForm onClose={() => setShowForm(false)} />}
