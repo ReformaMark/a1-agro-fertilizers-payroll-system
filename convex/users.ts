@@ -232,6 +232,44 @@ export const makeAdmin = mutation({
   },
 });
 
+export const demoteAdmin = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const adminId = await getAuthUserId(ctx);
+    if (!adminId) throw new ConvexError("Not authenticated");
+
+    // Check if current user is admin
+    const admin = await ctx.db.get(adminId);
+    if (admin?.role !== "admin") {
+      throw new ConvexError("Not authorized");
+    }
+
+    // Prevent self-demotion
+    if (args.userId === adminId) {
+      throw new ConvexError("Cannot demote yourself");
+    }
+
+    // Update admin to employee
+    await ctx.db.patch(args.userId, {
+      role: "employee",
+      modifiedBy: adminId,
+      modifiedAt: new Date().toISOString(),
+    });
+
+    // Create audit log entry
+    await ctx.db.insert("auditLogs", {
+      action: "Demoted Admin",
+      entityType: "employee",
+      entityId: args.userId,
+      performedBy: adminId,
+      performedAt: new Date().toISOString(),
+      details: `Removed admin privileges from user`,
+    });
+
+    return true;
+  },
+});
+
 export const updateEmployee = mutation({
   args: {
     userId: v.id("users"),
