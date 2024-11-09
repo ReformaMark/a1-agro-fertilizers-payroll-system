@@ -36,8 +36,50 @@ export default function AdminLeavesPage() {
                     </CardContent>
                 </Card>
 
-                {/* Similar cards for Pending, Approved, Rejected */}
-                {/* ... */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Pending
+                        </CardTitle>
+                        <Badge variant="secondary">{stats?.pending || 0}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats?.pending || 0}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Awaiting review
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Approved
+                        </CardTitle>
+                        <Badge variant="default">{stats?.approved || 0}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats?.approved || 0}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Accepted requests
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Rejected
+                        </CardTitle>
+                        <Badge variant="destructive">{stats?.rejected || 0}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats?.rejected || 0}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Declined requests
+                        </p>
+                    </CardContent>
+                </Card>
             </div>
 
             <Tabs defaultValue="all" className="space-y-6">

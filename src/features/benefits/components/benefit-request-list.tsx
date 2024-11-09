@@ -23,6 +23,7 @@ import {
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface BenefitRequestWithUser extends Doc<"benefitRequests"> {
     user: Doc<"users"> | null
@@ -45,6 +46,13 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
         filterStatus
     )
     const updateStatus = useUpdateBenefitRequestStatus()
+
+    const stats = {
+        total: benefitRequests?.length || 0,
+        pending: benefitRequests?.filter(r => r.status === "Pending").length || 0,
+        approved: benefitRequests?.filter(r => r.status === "Approved").length || 0,
+        rejected: benefitRequests?.filter(r => r.status === "Rejected").length || 0
+    }
 
     async function handleUpdateStatus(requestId: Id<"benefitRequests">, status: string, reason?: string) {
         try {
@@ -185,76 +193,141 @@ export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
     }
 
     return (
-        <Card>
-            <CardHeader className="border-b">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <CardTitle>Voucher Requests</CardTitle>
-                        <CardDescription>
-                            {isAdmin ? "Manage employee voucher requests" : "Submit and track your voucher requests"}
-                        </CardDescription>
+        <div className="space-y-6">
+            {/* Stats Overview */}
+            <div className="grid gap-4 md:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Total Requests
+                        </CardTitle>
+                        <Badge>{stats.total}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.total}</div>
+                        <p className="text-xs text-muted-foreground">
+                            All time requests
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Pending
+                        </CardTitle>
+                        <Badge variant="secondary">{stats.pending}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.pending}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Awaiting review
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Approved
+                        </CardTitle>
+                        <Badge variant="default">{stats.approved}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.approved}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Accepted requests
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Rejected
+                        </CardTitle>
+                        <Badge variant="destructive">{stats.rejected}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.rejected}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Declined requests
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card>
+                <CardHeader className="border-b">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Voucher Requests</CardTitle>
+                            <CardDescription>
+                                {isAdmin ? "Manage employee voucher requests" : "Submit and track your voucher requests"}
+                            </CardDescription>
+                        </div>
+                        {!isAdmin && (
+                            <Button onClick={() => setShowForm(true)}>
+                                <Plus className="h-4 w-4 mr-1" />
+                                Request Voucher
+                            </Button>
+                        )}
                     </div>
-                    {!isAdmin && (
-                        <Button onClick={() => setShowForm(true)}>
-                            <Plus className="h-4 w-4 mr-1" />
-                            Request Voucher
-                        </Button>
+                </CardHeader>
+
+                <CardContent className="pt-6">
+                    <DataTable
+                        columns={columns}
+                        data={benefitRequests}
+                        filter={isAdmin ? "user.firstName" : "type"}
+                        filterLabel={isAdmin ? "Employee Name" : "Voucher Type"}
+                    />
+
+                    {showForm && (
+                        <BenefitRequestForm onClose={() => setShowForm(false)} />
                     )}
-                </div>
-            </CardHeader>
 
-            <CardContent className="pt-6">
-                <DataTable
-                    columns={columns}
-                    data={benefitRequests}
-                    filter={isAdmin ? "user.firstName" : "type"}
-                    filterLabel={isAdmin ? "Employee Name" : "Voucher Type"}
-                />
-
-                {showForm && (
-                    <BenefitRequestForm onClose={() => setShowForm(false)} />
-                )}
-
-                <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Reject Voucher Request</DialogTitle>
-                            <DialogDescription>
-                                Please provide a reason for rejecting this voucher request.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <Textarea
-                            value={rejectionReason}
-                            onChange={(e) => setRejectionReason(e.target.value)}
-                            placeholder="Enter rejection reason"
-                            className="min-h-[100px]"
-                        />
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setShowRejectDialog(false)
-                                    setRejectionReason("")
-                                    setSelectedRequest(null)
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                onClick={() => {
-                                    if (selectedRequest) {
-                                        handleUpdateStatus(selectedRequest._id, "Rejected", rejectionReason)
-                                    }
-                                }}
-                                disabled={!rejectionReason}
-                            >
-                                Reject Request
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </CardContent>
-        </Card>
+                    <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Reject Voucher Request</DialogTitle>
+                                <DialogDescription>
+                                    Please provide a reason for rejecting this voucher request.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Textarea
+                                value={rejectionReason}
+                                onChange={(e) => setRejectionReason(e.target.value)}
+                                placeholder="Enter rejection reason"
+                                className="min-h-[100px]"
+                            />
+                            <DialogFooter>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowRejectDialog(false)
+                                        setRejectionReason("")
+                                        setSelectedRequest(null)
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => {
+                                        if (selectedRequest) {
+                                            handleUpdateStatus(selectedRequest._id, "Rejected", rejectionReason)
+                                        }
+                                    }}
+                                    disabled={!rejectionReason}
+                                >
+                                    Reject Request
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </CardContent>
+            </Card>
+        </div>
     )
-} 
+}
