@@ -59,7 +59,7 @@ const AdminPage = () => {
                         </div>
                         <div className="mt-4 space-y-2">
                             {stats?.birthdaysToday.map(employee => {
-                                const [, month, day] = employee.dateOfBirth.split('-');
+                                const [] = employee.dateOfBirth.split('-');
                                 return (
                                     <div
                                         key={employee.id}

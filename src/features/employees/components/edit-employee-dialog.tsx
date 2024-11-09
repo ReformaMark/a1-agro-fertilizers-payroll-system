@@ -6,27 +6,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form } from "@/components/ui/form";
-import { useMutation, useQuery } from "convex/react";
-import { toast } from "sonner";
-import { api } from "../../../../convex/_generated/api";
-import { Doc, Id } from "../../../../convex/_generated/dataModel";
-import { editEmployeeSchema, EditEmployeeValues } from "../lib/schema";
-import { EmploymentStep } from "./employment-step";
-import { AddressStep } from "./address-step";
-import { PayrollStep } from "./payroll-step";
-import { ImageUpload } from "./image-upload";
 import {
-    FormControl,
+    Form, FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormMessage,
+    FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Select,
     SelectContent,
@@ -34,7 +22,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "convex/react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { api } from "../../../../convex/_generated/api";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
+import { editEmployeeSchema, EditEmployeeValues } from "../lib/schema";
+import { AddressStep } from "./address-step";
+import { EmploymentStep } from "./employment-step";
+import { ImageUpload } from "./image-upload";
+import { PayrollStep } from "./payroll-step";
 
 interface EditEmployeeDialogProps {
     employee: Doc<"users"> & { imageUrl?: string | null };
@@ -66,9 +65,9 @@ export function EditEmployeeDialog({
         userId: employee._id,
     }) || { data: null };
 
-    const [imageStorageId, setImageStorageId] = useState<Id<"_storage"> | undefined>(
-        employee.image as Id<"_storage"> | undefined
-    );
+    // const [imageStorageId, setImageStorageId] = useState<Id<"_storage"> | undefined>(
+    //     employee.image as Id<"_storage"> | undefined
+    // );
 
     const currentEmployee = employeeData || employee;
 
@@ -197,9 +196,16 @@ export function EditEmployeeDialog({
 
             // Update other employee data
             const {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 firstName,
+
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 middleName,
+
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 lastName,
+
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 maritalStatus,
                 ...employeeData
             } = data;
@@ -222,6 +228,7 @@ export function EditEmployeeDialog({
     const nextStep = (e: React.MouseEvent) => {
         e.preventDefault();
         const fields = getFieldsForStep(step);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         form.trigger(fields as any[]).then((isValid) => {
             if (isValid) {
                 setStep(step + 1);
@@ -390,10 +397,14 @@ export function EditEmployeeDialog({
                                                 </FormItem>
                                             )}
                                         />
+                                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                         <EmploymentStep form={form as any} />
                                     </div>
                                 )}
+
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {step === 2 && <AddressStep form={form as any} />}
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {step === 3 && <PayrollStep form={form as any} />}
                                 <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 border-t">
                                     {step > 1 && (

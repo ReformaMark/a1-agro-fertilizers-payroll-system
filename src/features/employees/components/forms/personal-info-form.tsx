@@ -1,18 +1,14 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { UseFormReturn } from "react-hook-form"
-import { EmployeeFormValues, MIN_AGE } from "../../lib/schema"
-import { Button } from "@/components/ui/button"
+import { format } from "date-fns"
 import { Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { UseFormReturn } from "react-hook-form"
+import { EmployeeFormValues, MIN_AGE } from "../../lib/schema"
 
 
 interface PersonalInfoFormProps {
