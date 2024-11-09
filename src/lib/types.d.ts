@@ -79,3 +79,20 @@ export interface User {
   export interface Employee extends Doc<"users"> {
     imageUrl: string | null
   }
+
+  export interface User {
+    _id: Id<"users">
+    _creationTime: number
+    firstName: string
+    lastName: string
+    email: string
+    role: string
+    department: string
+    filledUpByAdmin: boolean
+    isDeclinedByAdmin: boolean
+    declinedReason: string | null
+    declinedAt: string | null
+    image: string | null
+    imageUrl: string | null
+    ratePerDay: number
+  }

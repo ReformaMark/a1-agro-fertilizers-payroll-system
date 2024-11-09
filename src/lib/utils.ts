@@ -46,8 +46,8 @@ export function getCurrentTimePeriod(date: Date = new Date()): { start: Date; en
   const month = date.getMonth();
   const day = date.getDate();
 
-  // Get last day of current month
-  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  // Get last day of current month, accounting for varying month lengths
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate(); // Will be 28/29 for Feb, 30 or 31 for others
 
   let startDay: number;
   let endDay: number;
@@ -57,25 +57,25 @@ export function getCurrentTimePeriod(date: Date = new Date()): { start: Date; en
     startDay = 1;
     endDay = 15;
   } 
-  // Second half of month
+  // Second half of month - use actual last day
   else {
     startDay = 16;
-    endDay = lastDayOfMonth;
+    endDay = lastDayOfMonth; // Will correctly use 29/30/31 as needed
   }
 
+  // Create dates using the calculated days
   const start = new Date(year, month, startDay);
   const end = new Date(year, month, endDay);
 
-  const formattedStart = new Date(year, month, startDay).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long', 
-    day: 'numeric'
-  });
-  const formattedEnd = new Date(year, month, endDay).toLocaleDateString('en-US', {
+  // Format dates consistently
+  const dateFormatOptions = {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
-  });
+  } as const;
+
+  const formattedStart = start.toLocaleDateString('en-US', dateFormatOptions);
+  const formattedEnd = end.toLocaleDateString('en-US', dateFormatOptions);
 
   return { start, end, formattedStart, formattedEnd };
 }
@@ -170,3 +170,11 @@ export function generateEmployeeId(): string {
   return `${year}${month}${seconds}${milliseconds}`
 }
 
+export function formatMoney(amount: number): string {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
