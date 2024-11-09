@@ -111,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/admin/payroll/contributions",
           },
           {
-            title: "Compensation",
+            title: "Voucher Types",
             url: "/admin/payroll",
           }
         ],

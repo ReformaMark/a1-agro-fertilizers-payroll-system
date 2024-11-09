@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { useCompensationTypes } from "../api/compensation";
 import { DataTable } from "@/components/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
+import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { Doc } from "../../../../convex/_generated/dataModel";
+import { useCompensationTypes } from "../api/compensation";
 import { CompensationTypeForm } from "./compensation-type-form";
-import { Badge } from "@/components/ui/badge";
-import { PlusCircle } from "lucide-react";
 
 type CompensationType = Doc<"compensationTypes">;
 
@@ -78,8 +78,8 @@ const columns: ColumnDef<CompensationType>[] = [
         accessorKey: "taxable",
         header: "Taxable",
         cell: ({ row }) => (
-            <Badge className={row.getValue("taxable") ? 
-                "bg-red-100 text-red-800 border-none" : 
+            <Badge className={row.getValue("taxable") ?
+                "bg-red-100 text-red-800 border-none" :
                 "bg-emerald-100 text-emerald-800 border-none"
             }>
                 {row.getValue("taxable") ? "Yes" : "No"}
@@ -106,9 +106,9 @@ export function CompensationTypes() {
     );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold tracking-tight">Compensation Types</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">Voucher Types</h2>
 
                 <Button
                     onClick={() => {
