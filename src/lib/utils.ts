@@ -225,3 +225,77 @@ export function timeStringToComponents(timeString: string): TimeComponents {
   return { hours, minutes };
 }
 
+
+interface Loan {
+  applicationType: string;
+  amortization: number;
+  monthlySchedule: string;
+}
+
+interface Employee {
+  pagIbigSchedule: string;
+  sssSchedule: string;
+  philHealthSchedule: string;
+  pagIbigContribution: number;
+  sssContribution: number;
+  philHealthContribution: number;
+}
+
+interface PayrollData {
+  employee: Employee;
+  governmentContributions: {
+    sss: number;
+    philHealth: number;
+  };
+  deductions: { amount: number }[];
+}
+
+function isCurrentPeriod(loan: Loan): boolean {
+  const currentDate = new Date();
+  const isFirstHalf = currentDate.getDate() <= 15;
+  const cutOffSchedule = isFirstHalf ? '1st half' : '2nd half';
+  return loan.monthlySchedule === cutOffSchedule;
+}
+
+export function calculateTotalDeductions(payrollData: PayrollData | undefined, loans: Loan[]): number {
+  if (!payrollData) {
+    return 0;
+  }
+
+  const currentDate = new Date();
+  const isFirstHalf = currentDate.getDate() <= 15;
+  const cutOffSchedule = isFirstHalf ? '1st half' : '2nd half';
+
+  const isScheduled = payrollData.employee.pagIbigSchedule === cutOffSchedule;
+  const isSSSScheduled = payrollData.employee.sssSchedule === cutOffSchedule;
+  const isPhilHealthScheduled = payrollData.employee.philHealthSchedule === cutOffSchedule;
+
+  const pagibigContribution = isScheduled ? payrollData.employee.pagIbigContribution ?? 0 : 0;
+  const sssContribution = isSSSScheduled ? payrollData.governmentContributions.sss ?? 0 : 0;
+  const philHealthContribution = isPhilHealthScheduled ? payrollData.governmentContributions.philHealth ?? 0 : 0;
+
+  const pagibigLoan = loans.find(loan => loan.applicationType === 'Pagibig Multi-purpose');
+  const pagibigCalamityLoan = loans.find(loan => loan.applicationType === 'Pagibig Calamity');
+  const sssSalaryLoan = loans.find(loan => loan.applicationType === 'SSS Salary');
+  const sssCalamityLoan = loans.find(loan => loan.applicationType === 'SSS Calamity');
+
+  const applicablePagibigLoan = pagibigLoan && isCurrentPeriod(pagibigLoan) ? pagibigLoan : null;
+  const applicablePagibigCalamityLoan = pagibigCalamityLoan && isCurrentPeriod(pagibigCalamityLoan) ? pagibigCalamityLoan : null;
+  const applicableSssSalaryLoan = sssSalaryLoan && isCurrentPeriod(sssSalaryLoan) ? sssSalaryLoan : null;
+  const applicableSssCalamityLoan = sssCalamityLoan && isCurrentPeriod(sssCalamityLoan) ? sssCalamityLoan : null;
+
+  const deductions = payrollData.deductions.reduce((total, deduction) => total + deduction.amount, 0) ?? 0;
+
+  const totalDeductions = 
+    pagibigContribution +
+    sssContribution +
+    philHealthContribution +
+    (applicablePagibigLoan?.amortization ?? 0) +
+    (applicablePagibigCalamityLoan?.amortization ?? 0) +
+    (applicableSssSalaryLoan?.amortization ?? 0) +
+    (applicableSssCalamityLoan?.amortization ?? 0) +
+    deductions;
+
+  return totalDeductions;
+}
+

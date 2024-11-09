@@ -4,8 +4,7 @@ import React, { useState } from 'react'
 import Payslip from './payslip'
 import { getCurrentTimePeriod } from '@/lib/utils'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { User } from '@/lib/types'
-
+import { user } from '@/lib/types'
 function PayrollList() {
   const {data } = useCurrentUser()
   const getCurrentDate = () => {
@@ -24,11 +23,11 @@ function PayrollList() {
         {TimePeriod(selectedDate, setSelectedDate)}
         <div className="w-full">
           {data && <Payslip 
-           
+            name={`${data.lastName}, ${data.firstName}`}
             startDate={getCurrentTimePeriod(new Date(selectedDate)).start.toISOString()} 
             endDate={getCurrentTimePeriod(new Date(selectedDate)).end.toISOString()} 
             userId={data._id} 
-            user={data as User}
+            user={data as user}
           />}
         </div>
       </div>

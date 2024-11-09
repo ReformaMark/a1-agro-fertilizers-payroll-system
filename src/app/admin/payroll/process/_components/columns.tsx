@@ -1,208 +1,197 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { ColumnDef } from "@tanstack/react-table"
 import { SalaryComponent } from "@/lib/types"
-import { formatMoney } from "@/lib/utils"
+import { calculateTotalDeductions, formatMoney } from "@/lib/utils"
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Payslip from "@/features/payroll/components/payslip";
-import { MessageSquare, Printer } from "lucide-react";
-import client from "@/features/payroll/api/twilio-sms";
+import SmsBtn from "@/features/payroll/components/sms-btn";
+import { Printer } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "../../../../../../convex/_generated/api";
+
+
+function isCurrentPeriod(loan: any) {
+    const currentDate = new Date();
+    const isFirstHalf = currentDate.getDate() <= 15;
+    const cutOffSchedule = isFirstHalf ? '1st half' : '2nd half';
+    return loan.monthlySchedule === cutOffSchedule;
+}
 
 export const columns: ColumnDef<SalaryComponent>[] = [
     {
         id: "employeeId",
-        header: "Employee Id",
+        header: () => <span className="text-center">Employee Id</span>,
         accessorKey: "employee.employeeTypeId",
-        cell: ({ row }) => {
-            const employeeId = row.original.employee.employeeTypeId;
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{employeeId}</span>
-                </div>
-            );
-        }
+        cell: ({ row }) => <span className="text-xs">{row.original.employee.employeeTypeId}</span>
     },
     {
-        id: "Name",
-        accessorKey: "firstName",
-        header: "Name",
+        id: "name",
+        accessorKey: "employee.lastName", 
+        header: () => <span className="text-center">Name</span>,
         cell: ({ row }) => {
             const firstName = row.original.employee.firstName
             const lastName = row.original.employee.lastName
             const middleNameInitial = row.original.employee.middleName ? row.original.employee.middleName.charAt(0) : '';
-     
-            return (
-                <div className="flex items-start gap-x-2">
-                    <div>
-                        <h1 className="text-xs">{lastName}, {firstName} {middleNameInitial}.</h1>
-                    </div>
-                </div>
-            )
+            return <span className="text-xs">{lastName}, {firstName} {middleNameInitial}.</span>
         },
     },
     {
-        id: "daysWorked",
-        header: "Days Worked",
-        cell: ({ row }) => {
-            const hoursWorked = row.original.hoursWorked ?? 0;
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{(hoursWorked / 24).toFixed(1)}</span>
-                </div>
-            );
-        }
+        id: "hoursWorked",
+        header: () => <span className="text-center">Hours Worked</span>,
+        cell: ({ row }) => <span className="text-xs">{(row.original.hoursWorked ?? 0).toFixed(1)}</span>
     },
     {
         id: "ratePerDay",
-        header: "Rate/Day", 
-        cell: ({ row }) => {
-            const ratePerDay = row.original.employee?.ratePerDay ?? 0;
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{formatMoney(ratePerDay)}</span>
-                </div>
-            )
-        }
+        header: () => <span className="text-center">Rate/Day</span>,
+        cell: ({ row }) => <span className="text-xs">{formatMoney(row.original.employee?.ratePerDay ?? 0)}</span>
     },
     {
         id: "total",
-        header: "Total",
+        header: () => <span className="text-center">Total</span>,
         cell: ({ row }) => {
-            const ratePerDay = row.original.employee?.ratePerDay ?? 0;
-            const hoursWorked = row.original.hoursWorked ?? 0;
-            const total = formatMoney(ratePerDay * (hoursWorked / 24));
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{total}</span>
-                </div>
-            );
+            const overtimeAmount = row.original.overtime?.amount ?? 0;
+            const overtimeHours = row.original.overtime?.hours ?? 0;
+            const regularHours = (row.original.hoursWorked ?? 0) - overtimeHours;
+            const regularPay = regularHours * ((row.original.employee?.ratePerDay ?? 0) / 8);
+            const total = regularPay + overtimeAmount;
+            return <span className="text-xs">{formatMoney(total)}</span>
         }
     },
     {
         id: "sss",
-        header: "SSS",
+        header: () => <span className="text-center">SSS</span>,
         cell: ({ row }) => {
-            const sss = formatMoney(row.original.governmentContributions.sss)
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{sss}</span>
-                </div>
-            )
+            const currentDate = new Date();
+            const isFirstHalf = currentDate.getDate() <= 15;
+            const cutOffSchedule = isFirstHalf ? '1st half' : '2nd half';
+            const isSSSScheduled = row.original.employee?.sssSchedule === cutOffSchedule;
+            const sssContribution = isSSSScheduled ? row.original.governmentContributions.sss : 0;
+            return <span className="text-xs">{formatMoney(sssContribution)}</span>
         }
     },
     {
         id: "philHealth",
-        header: "PhilHealth",
+        header: () => <span className="text-center">PhilHealth</span>,
         cell: ({ row }) => {
-            const philHealth = formatMoney(row.original.governmentContributions.philHealth)
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{philHealth}</span>
-                </div>
-            )
+            const currentDate = new Date();
+            const isFirstHalf = currentDate.getDate() <= 15;
+            const cutOffSchedule = isFirstHalf ? '1st half' : '2nd half';
+            const isPhilHealthScheduled = row.original.employee?.philHealthSchedule === cutOffSchedule;
+            const philHealthContribution = isPhilHealthScheduled ? row.original.governmentContributions.philHealth : 0;
+            return <span className="text-xs">{formatMoney(philHealthContribution)}</span>
         }
     },
     {
-        id: "pagIbig", 
-        header: "PagIBIG",
+        id: "pagIbig",
+        header: () => <span className="text-center">PagIBIG</span>,
         cell: ({ row }) => {
-            const pagIbig = formatMoney(row.original.governmentContributions.pagIbig)
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{pagIbig}</span>
-                </div>
-            )
+            const currentDate = new Date();
+            const isFirstHalf = currentDate.getDate() <= 15;
+            const cutOffSchedule = isFirstHalf ? '1st half' : '2nd half';
+            const isPagIbigScheduled = row.original.employee?.pagIbigSchedule === cutOffSchedule;
+            const pagIbigContribution = isPagIbigScheduled ? row.original.employee?.pagIbigContribution ?? 0 : 0;
+            return <span className="text-xs">{formatMoney(pagIbigContribution)}</span>
+        }
+    },
+    {
+        id: "sssCalamityLoan",
+        header: () => <span className="text-center">SSS Calamity Loan</span>,
+        cell: ({ row }) => {
+            const loans = useQuery(api.loans.getGovernmentLoans, {
+                userId: row.original.userId,
+                status: 'Approved'
+            });
+            const sssCalamityLoan = loans?.find(loan => loan.applicationType === 'SSS Calamity');
+            const applicableLoan = sssCalamityLoan && isCurrentPeriod(sssCalamityLoan) ? sssCalamityLoan : null;
+            return <span className="text-xs">{formatMoney(applicableLoan?.amortization || 0)}</span>
+        }
+    },
+    {
+        id: "sssSalaryLoan",
+        header: () => <span className="text-center">SSS Salary Loan</span>,
+        cell: ({ row }) => {
+            const loans = useQuery(api.loans.getGovernmentLoans, {
+                userId: row.original.userId,
+                status: 'Approved'
+            });
+            const sssSalaryLoan = loans?.find(loan => loan.applicationType === 'SSS Salary');
+            const applicableLoan = sssSalaryLoan && isCurrentPeriod(sssSalaryLoan) ? sssSalaryLoan : null;
+            return <span className="text-xs">{formatMoney(applicableLoan?.amortization || 0)}</span>
+        }
+    },
+    {
+        id: "pagibigLoan",
+        header: () => <span className="text-center">Pag-IBIG Loan</span>,
+        cell: ({ row }) => {
+            const loans = useQuery(api.loans.getGovernmentLoans, {
+                userId: row.original.userId,
+                status: 'Approved'
+            });
+            const pagibigLoan = loans?.find(loan => loan.applicationType === 'Pagibig Multi-purpose');
+            const applicableLoan = pagibigLoan && isCurrentPeriod(pagibigLoan) ? pagibigLoan : null;
+            return <span className="text-xs">{formatMoney(applicableLoan?.amortization || 0)}</span>
+        }
+    },
+    {
+        id: "pagibigCalamityLoan",
+        header: () => <span className="text-center">Pag-IBIG Calamity Loan</span>,
+        cell: ({ row }) => {
+            const loans = useQuery(api.loans.getGovernmentLoans, {
+                userId: row.original.userId,
+                status: 'Approved'
+            });
+            const pagibigCalamityLoan = loans?.find(loan => loan.applicationType === 'Pagibig Calamity');
+            const applicableLoan = pagibigCalamityLoan && isCurrentPeriod(pagibigCalamityLoan) ? pagibigCalamityLoan : null;
+            return <span className="text-xs">{formatMoney(applicableLoan?.amortization || 0)}</span>
         }
     },
     {
         id: "deductions",
-        header: "Deductions",
-        cell: ({ row }) => {
-            const deductions = row.original.deductions
-                .reduce((total, deduction) => total + deduction.amount, 0)
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{formatMoney(deductions)}</span>
-                </div>
-            )
-        }
+        header: () => <span className="text-center">Deductions</span>,
+        cell: ({ row }) => <span className="text-xs">{formatMoney(row.original.deductions.reduce((total, d) => total + d.amount, 0))}</span>
     },
     {
         id: "netPay",
-        header: "Net Pay",
+        header: () => <span className="text-center">Net Pay</span>,
         cell: ({ row }) => {
-            return (
-                <div className="flex items-center justify-center">
-                    <span className="text-xs">{formatMoney(row.original.netPay)}</span>
-                </div>
-            )
+            // Reuse the totalDeductions calculation from above
+            const payrollData = useQuery(api.salaryComponents.getSalaryComponentsByPayrollPeriod, {
+                startDate: row.original.payrollPeriod?.startDate,
+                endDate: row.original.payrollPeriod?.endDate,
+                userId: row.original.userId
+            });
+            const loans = useQuery(api.loans.getGovernmentLoans, {
+                userId: row.original.userId,
+                status: 'Approved'
+            });
+            const totalDeductions = calculateTotalDeductions(payrollData as any, loans ?? []);
+            console.log(totalDeductions)
+           
+            return <span className="text-xs">{formatMoney(row.original.netPay - totalDeductions)}</span>
         }
     },
     {
         id: "actions",
-        header: "Actions",
+        header: () => <span className="text-center">Actions</span>,
         cell: ({ row }) => {
-            const [open, setOpen] = useState(false)
-           
+            const [open, setOpen] = useState(false);
+            const name = `${row.original.employee.lastName}, ${row.original.employee.firstName} ${row.original.employee.middleName ? row.original.employee.middleName.charAt(0) + '.' : ''}`
             return (
-                <>
-                    <Dialog open={open} onOpenChange={setOpen}>
-                        <div className="flex items-center justify-center">
-                            <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => setOpen(true)}
-                            >
-                                Payslip
-                            </Button>
-                        </div>
-                        <DialogContent className="max-w-4xl">
-                            
-                            <div className="space-y-4">
-                                <Payslip
-                                    startDate={row.original.payrollPeriod?.startDate}
-                                    endDate={row.original.payrollPeriod?.endDate}
-                                    userId={row.original.userId}
-                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                    // @ts-ignore
-                                    user={row.original.employee}
-                                />
-                                <div className="flex justify-end gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => window.print()}
-                                        className="flex items-center gap-x-2"
-                                    >
-                                        <Printer className="mr-2 h-4 w-4" />
-                                        Print
-                                    </Button>
-                                    <Button
-                                        variant="outline" 
-                                        size="sm"
-                                        onClick={async () => {
-                                            try {
-                                                await client.messages.create({
-                                                    body: `Your payslip for period ${row.original.payrollPeriod?.startDate} to ${row.original.payrollPeriod?.endDate} is ready. Net pay: ${formatMoney(row.original.netPay)}`,
-                                                    from: '+13099486328', // Replace with your Twilio number
-                                                    to: row.original.employee.contactNumber || ''
-                                                });
-                                            } catch (error) {
-                                                console.error('Error sending SMS:', error);
-                                                alert('Failed to send SMS. Please try again later.');
-                                            }
-                                        }}
-                                        className="flex items-center gap-x-2"
-                                    >
-                                        <MessageSquare className="mr-2 h-4 w-4" />
-                                        Send SMS
-                                    </Button>
-                                </div>
+                <Dialog open={open} onOpenChange={setOpen} >
+                    <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>Payslip</Button>
+                    <DialogContent className="max-w-[70%] max-h-[80vh] overflow-y-auto">
+                        <div className="space-y-4">
+                            <Payslip name={name} startDate={row.original.payrollPeriod?.startDate} endDate={row.original.payrollPeriod?.endDate} userId={row.original.userId} user={row.original.employee as any} />
+                            <div className="flex justify-end gap-2">
+                                <Button variant="outline" size="sm" onClick={() => window.print()} className="flex items-center gap-x-2 bg-blue-500 text-white hover:bg-blue-600"><Printer className="mr-2 h-4 w-4" />Print</Button>
+                                <SmsBtn row={row as any} setOpen={setOpen}/>
                             </div>
-                        </DialogContent>
-                    </Dialog>
-                </>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             )
         }
     }

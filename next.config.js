@@ -17,6 +17,7 @@ const nextConfig = {
       path: false,
       util: false,
     };
+   
 
     // Add this to handle the critical dependency warning
     config.externals.push({
@@ -26,6 +27,7 @@ const nextConfig = {
 
     return config;
   },
+ 
 }
 
 module.exports = nextConfig 

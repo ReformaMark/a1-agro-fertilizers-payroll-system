@@ -235,7 +235,7 @@ export const timeOut = mutation({
       
       if (existingSalaryComponent) {
        const contributions = calculateContributions(existingSalaryComponent.basicPay)
-       const netpay = (existingSalaryComponent.basicPay + (overtimePay?.amount || 0)  + (existingSalaryComponent.allowances.reduce((acc, curr) => acc + curr.amount, 0) || 0) + (existingSalaryComponent.additionalCompensation.reduce((acc, curr) => acc + curr.amount, 0) || 0)) - ((existingSalaryComponent.deductions.reduce((acc, curr) => acc + curr.amount, 0) || 0) + contributions.totalDeductions)
+       const netpay = (existingSalaryComponent.basicPay + (overtimePay?.amount || 0)) - ((existingSalaryComponent.deductions.reduce((acc, curr) => acc + curr.amount, 0) || 0))
         await ctx.db.patch(existingSalaryComponent._id, {
           basicPay: existingSalaryComponent.basicPay + grossPay,
           hoursWorked: (existingSalaryComponent.hoursWorked || 0) + totalHours,
@@ -260,7 +260,7 @@ export const timeOut = mutation({
           netPay: netpay
         });
       } else {
-        const contributions = calculateContributions(grossPay)
+
         await ctx.db.insert("salaryComponents", {
           userId: args.userId,
           payrollPeriodId: payrollPeriod._id,
@@ -272,13 +272,13 @@ export const timeOut = mutation({
             amount: lateDeduction
           }] : [],
           governmentContributions: {
-            sss: contributions.sss.total,
-            philHealth: contributions.philHealth.total,
-            pagIbig: contributions.pagIbig.total,
-            tax: contributions.tax
+            sss:0,
+            philHealth: 0,
+            pagIbig: 0,
+            tax: 0
           },
           overtime: overtimePay,
-          netPay: grossPay - (lateDeduction || 0) + (overtimePay?.amount || 0) - contributions.totalDeductions, 
+          netPay: grossPay + (overtimePay?.amount || 0) , 
           additionalCompensation: []
         });
       }

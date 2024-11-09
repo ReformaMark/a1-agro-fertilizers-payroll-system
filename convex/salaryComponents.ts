@@ -81,7 +81,16 @@ export const getSalaryComponentsByPayrollPeriod = query({
             .filter((q) => q.eq(q.field("userId"), args.userId))
             .first();
 
-        return salaryComponent;
-      
+        if (!salaryComponent) {
+            return null;
+        }
+
+        // Include the employee details
+        const employee = await ctx.db.get(salaryComponent.userId);
+
+        return {
+            ...salaryComponent,
+            employee
+        };
     }
 })

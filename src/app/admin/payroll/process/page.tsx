@@ -7,7 +7,7 @@ import PayrollReport from "./_components/PayrollReport"
 
 export default function PayrollPage() {
     return (
-        <div className=" px-10 container mx-auto ">
+        <div className=" px-10">
             <Suspense fallback={<div>Loading...</div>}>
                 <PayrollReport />
             </Suspense>

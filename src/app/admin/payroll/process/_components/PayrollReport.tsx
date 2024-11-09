@@ -43,6 +43,32 @@ export default function PayrollReport() {
         if (!salaryComponents) return [];
         return salaryComponents
     }, [salaryComponents]);
+
+    const dataForExport = filteredData.map((item) => {
+        if (!item.employee) return null;
+        const firstName = item.employee.firstName;
+        const lastName = item.employee.lastName;
+        const middleInitial = item.employee.middleName ? item.employee.middleName.charAt(0) + '.' : '';
+        const fullName = `${lastName}, ${firstName} ${middleInitial}`;
+        const ratePerDay = item.employee.ratePerDay ?? 0;
+        const hoursWorked = item.hoursWorked ?? 0;
+        const total = (ratePerDay / 8) * hoursWorked;
+        const deductions = item.deductions.reduce((sum, d) => sum + d.amount, 0);
+
+        return {
+            employeeId: item.employee.employeeTypeId,
+            name: fullName,
+            daysWorked: hoursWorked.toFixed(1),
+            ratePerDay: ratePerDay.toFixed(2),
+            total: total.toFixed(2),
+            sss: item.governmentContributions.sss.toFixed(2),
+            philHealth: item.governmentContributions.philHealth.toFixed(2),
+            pagIbig: item.governmentContributions.pagIbig.toFixed(2), 
+            deductions: deductions.toFixed(2),
+            netPay: item.netPay.toFixed(2)
+        };
+    }).filter(Boolean);
+    
     return (
         <Card>
             <CardHeader className="border-b">
@@ -60,7 +86,7 @@ export default function PayrollReport() {
                             onClick={() => {        
                                 if (!filteredData.length) return;
                                 downloadCSV(
-                                    filteredData,
+                                    dataForExport,
                                     `payroll-${formatDate(start)}-${formatDate(end)}`
                                 );
                             }}
@@ -77,12 +103,14 @@ export default function PayrollReport() {
             </CardHeader>
 
             <CardContent className="pt-6">
-                <DataTable
-                    columns={columns} // TODO: Define payroll columns
-                    data={filteredData as SalaryComponent[]}
-                    filter="employee.firstName"
-                    filterLabel="Employee Name"
-                />
+                <div className="overflow-x-auto">
+                    <DataTable
+                        columns={columns} // TODO: Define payroll columns
+                        data={filteredData as SalaryComponent[]}
+                        filter="name"
+                        filterLabel="Employee Name"
+                    />
+                </div>
             </CardContent>
         </Card>
     );
