@@ -3,18 +3,18 @@ import { useMutation } from "convex/react";
 import FaceDetection from "./_components/FaceDetection";
 import { api } from "../../../convex/_generated/api";
 import { useEffect } from "react";
-import { getCurrentTimePeriod } from "@/lib/utils";
+import { formatDate, getCurrentTimePeriod } from "@/lib/utils";
 
 
 export default function TimeInOut() {
   const createPayrollPeriod = useMutation(api.payrollPeriods.create)
-  const { start, end, } = getCurrentTimePeriod()
+  const { start, end } = getCurrentTimePeriod(new Date()) // Explicitly pass current date
+  
   useEffect(() => {
-    const formattedStart = start.toISOString().split('T')[0];
-    const formattedEnd = end.toISOString().split('T')[0];
+    
     createPayrollPeriod({
-      startDate: formattedStart,
-      endDate: formattedEnd,
+      startDate:  formatDate(start),
+      endDate: formatDate(end),
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
