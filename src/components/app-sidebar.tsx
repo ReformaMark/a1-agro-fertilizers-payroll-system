@@ -132,7 +132,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/admin/settings/system",
           },
           {
-            title: "User Management",
+            title: "User Profile",
             url: "/admin/settings/users",
           },
           {

@@ -87,10 +87,10 @@ export const getEmployee = query({
 
       foundEmployee: employee
         ? {
-            id: employee._id,
+          id: employee._id,
 
-            name: `${employee.firstName} ${employee.lastName}`,
-          }
+          name: `${employee.firstName} ${employee.lastName}`,
+        }
         : null,
     });
 
@@ -658,13 +658,9 @@ export const checkEmployeeIdExists = query({
 export const updatePersonalInfo = mutation({
   args: {
     userId: v.id("users"),
-
     firstName: v.string(),
-
     middleName: v.optional(v.string()),
-
     lastName: v.string(),
-
     maritalStatus: v.union(
       v.literal("single"),
       v.literal("married"),
@@ -672,52 +668,33 @@ export const updatePersonalInfo = mutation({
       v.literal("divorced"),
       v.literal("separated")
     ),
+    image: v.optional(v.id("_storage")),
   },
-
   handler: async (ctx, args) => {
     const adminId = await getAuthUserId(ctx);
-
     if (!adminId) throw new ConvexError("Not authenticated");
 
-    // Check if current user is admin
-
     const admin = await ctx.db.get(adminId);
-
     if (admin?.role !== "admin") {
       throw new ConvexError("Not authorized");
     }
 
     const { userId, ...updateData } = args;
-
-    // Get the employee being updated
-
     const employee = await ctx.db.get(userId);
-
     if (!employee) throw new ConvexError("Employee not found");
-
-    // Update the employee's personal information
 
     await ctx.db.patch(userId, {
       ...updateData,
-
       modifiedBy: adminId,
-
       modifiedAt: new Date().toISOString(),
     });
 
-    // Create audit log entry
-
     await ctx.db.insert("auditLogs", {
       action: "Updated Personal Information",
-
       entityType: "employee",
-
       entityId: userId,
-
       performedBy: adminId,
-
       performedAt: new Date().toISOString(),
-
       details: `Updated personal information for ${employee.firstName} ${employee.lastName}`,
     });
 

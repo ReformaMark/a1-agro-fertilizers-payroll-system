@@ -57,7 +57,7 @@ export function CashAdvanceRequestForm({ onClose }: CashAdvanceRequestFormProps)
             toast.success("Cash advance request submitted successfully")
             onClose()
         } catch (error) {
-            toast.error("Failed to submit cash advance request")
+            toast.error("Failed to submit VALE request")
             console.error(error)
         }
     }
@@ -66,9 +66,9 @@ export function CashAdvanceRequestForm({ onClose }: CashAdvanceRequestFormProps)
         <Dialog open onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Submit Cash Advance Request</DialogTitle>
+                    <DialogTitle>Submit VALE Request</DialogTitle>
                     <DialogDescription>
-                        Submit a new cash advance request for approval.
+                        Submit a new VALE request for approval.
                     </DialogDescription>
                 </DialogHeader>
 
