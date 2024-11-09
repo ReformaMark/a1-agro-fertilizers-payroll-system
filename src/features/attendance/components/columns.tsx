@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { AttendanceWithUser } from "@/lib/types"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { timeStringToComponents } from "@/lib/utils"
 
 // Utility functions
 function formatDate(date: Date): string {
@@ -11,14 +12,6 @@ function formatDate(date: Date): string {
     month: '2-digit',
     day: '2-digit',
     year: 'numeric'
-  })
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
   })
 }
 
@@ -64,9 +57,11 @@ export const columns: ColumnDef<AttendanceWithUser>[] = [
           </div>
         ),
         cell: ({ row }) => {
-          const timeIn = new Date(row.original.timeIn)
-          const isLate = timeIn.getHours() > 8
-          return <div className={`${isLate ? 'text-red-500' : ''} text-center`}>{formatTime(timeIn)}</div>
+   
+          const timeIn = row.original.timeIn
+          const {hours} = timeStringToComponents(timeIn)
+          const isLate = hours > 8
+          return <div className={`${isLate ? 'text-red-500' : ''} text-center`}>{timeIn}</div>
         },
     },
     {
@@ -84,56 +79,53 @@ export const columns: ColumnDef<AttendanceWithUser>[] = [
           </div>
         ),
         cell: ({ row }) => {
-          const timeOut = row.original.timeOut ? new Date(row.original.timeOut) : null
-          const isEarly = timeOut && timeOut.getHours() < 17
-          return <div className={`${isEarly ? 'text-red-500' : ''} text-center`}>{timeOut ? formatTime(timeOut) : '-'}</div>
+          const timeOut = row.original.timeOut ? row.original.timeOut : null
+          if (!timeOut) return <div className="text-center">-</div>
+          const {hours} = timeStringToComponents(timeOut)
+        
+          const isUnderTime = hours && hours < 17
+          return <div className={`${isUnderTime ? 'text-red-500' : ''} text-center`}>{timeOut}</div>
         },
     },
-    
-    
     {
-        id: "totalHours",
-        accessorFn: row => calculateHours(new Date(row.timeIn), row.timeOut ? new Date(row.timeOut) : null),
-        header: ({ column }) => (
-          <div className="text-center">
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Total Hours
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => {
-          const timeIn = new Date(row.original.timeIn)
-          const timeOut = row.original.timeOut ? new Date(row.original.timeOut) : null
-          // Adjust timeIn to 8 AM if employee arrived earlier
-          const adjustedTimeIn = new Date(timeIn)
-          if (timeIn.getHours() < 8) {
-            adjustedTimeIn.setHours(8, 0, 0, 0)
+      id: "totalHours",
+      accessorFn: row => calculateHours(new Date(row.timeIn), row.timeOut ? new Date(row.timeOut) : null),
+      header: ({ column }) => (
+        <div className="text-center">
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Total Hours
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      ),
+      cell: ({ row }) => {
+        const timeIn = timeStringToComponents(row.original.timeIn)
+        const timeOut = row.original.timeOut ? timeStringToComponents(row.original.timeOut) : null
+        // Adjust timeIn to 8 AM if employee arrived earlier
+        const adjustedTimeIn = timeIn.hours < 8 ? 8 : timeIn.hours
+        let hours = 0
+        if (timeOut) {
+          // Calculate total hours, preserving minutes only before 5 PM
+          let cappedTimeOut = timeOut.hours
+          if (timeOut.hours >= 17) {
+            // Keep the hours but zero out minutes if after 5 PM
+            cappedTimeOut = 0
           }
-          let hours = 0
-          if (timeOut) {
-            // Calculate total hours, preserving minutes only before 5 PM
-            const cappedTimeOut = new Date(timeOut)
-            if (timeOut.getHours() >= 17) {
-              // Keep the hours but zero out minutes if after 5 PM
-              cappedTimeOut.setMinutes(0, 0, 0)
-            }
-            hours = calculateHours(adjustedTimeIn, cappedTimeOut)
-            
-            // Check if timeOut is after 1 PM to subtract break time
+          hours = adjustedTimeIn + (cappedTimeOut / 60)
+          
+          // Subtract 1 hour break time if timeOut is after 1 PM
 
-
-            if (timeOut.getHours() >= 13) {
-              hours = Math.max(0, hours - 1) // Subtract 1 hour break time
-            }
+          if (timeOut.hours > 13) {
+            hours = Math.max(0, hours - 1)
           }
+        }
 
-          return <div className="text-center">{hours > 0 ? `${hours.toFixed(1)} hours` : '-'}</div>
-        },
-    },
+        return <div className="text-center">{hours > 0 ? `${hours.toFixed(1)} hours` : '-'}</div>
+      },
+  },
     {
         id: "overtimeHours",
         accessorFn: row => {

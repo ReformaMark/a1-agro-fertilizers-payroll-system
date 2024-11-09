@@ -178,3 +178,50 @@ export function formatMoney(amount: number): string {
     maximumFractionDigits: 2
   }).format(amount);
 }
+
+export function formatConvexDate({
+  convexDate
+}: {
+  convexDate: number
+}) {
+  const roundedTimestamp = Math.floor(convexDate);
+
+  const readableDate = new Date(roundedTimestamp);
+  const formattedDate = readableDate.toLocaleString();
+
+  return formattedDate
+}
+
+function formatTime(number: number): string {
+  const date = new Date(number)
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Manila'
+  })
+}
+
+interface TimeComponents {
+  hours: number;
+  minutes: number;
+}
+
+export function timeStringToComponents(timeString: string): TimeComponents {
+  // Parse the time string (e.g. "10:33:33 AM" or "2:33:33 PM")
+  const [time, period] = timeString.split(' ');
+  let hours = Number(time.split(':')[0]);
+  const minutes = Number(time.split(':')[1]);
+
+  // Convert to 24 hour format if PM
+  if (period.toLowerCase() === 'pm' && hours !== 12) {
+    hours += 12;
+  }
+  // Convert 12 AM to 0 hours
+  if (period.toLowerCase() === 'am' && hours === 12) {
+    hours = 0;
+  }
+
+  return { hours, minutes };
+}
+

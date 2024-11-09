@@ -69,8 +69,8 @@ export default defineSchema({
         .index("by_employee_type_id", ["employeeTypeId"]),
     attendance: defineTable({
         userId: v.id("users"),
-        timeIn: v.number(),
-        timeOut: v.optional(v.number()),
+        timeIn: v.string(),
+        timeOut: v.optional(v.string()),
         type: v.string(), // Regular, Overtime, etc.
         status: v.string(), // Present, Late, Absent
         remarks: v.optional(v.string()),
@@ -134,6 +134,7 @@ export default defineSchema({
             amount: v.number(),
             remarks: v.optional(v.string()),
         })),
+        hoursWorked: v.optional(v.number()),
     })
         .index("by_user", ["userId"]) // For user's salary history
         .index("by_payroll_period", ["payrollPeriodId"]), // For payroll processing

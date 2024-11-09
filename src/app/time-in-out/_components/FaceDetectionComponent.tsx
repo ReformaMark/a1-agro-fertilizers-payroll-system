@@ -151,7 +151,7 @@ export default function FaceDetectionComponent() {
                 if (isTimeOut) {
                   
                   createAttendance({
-                    timeIn: now.getTime(),
+                    timeIn: now.toLocaleTimeString(),
                     userId: matchedEmployee._id,
                     date: formatDate(now),
                     type: "Regular",
@@ -164,7 +164,7 @@ export default function FaceDetectionComponent() {
                   })
                 } else {
                   timeOut({
-                    timeOut: now.getTime(),
+                    timeOut: now.toLocaleTimeString(),
                     userId: matchedEmployee._id,
                     date: now.toISOString().split('T')[0],
                   }).then((res) => {
