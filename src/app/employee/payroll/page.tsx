@@ -6,6 +6,8 @@ export default function PayrollPage() {
         <div className="w-full container  ">
          
             <div className="w-full p-4">    
+                  
+                   
                 <PayrollList />
             </div>
         </div>
