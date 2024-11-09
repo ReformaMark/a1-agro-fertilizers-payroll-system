@@ -36,3 +36,39 @@ export const listByPayrollPeriod = query({
         return salaryComponentsWithUser;
     }
 });
+
+
+export const getSalaryComponentsByPayrollPeriod = query({
+    args: {
+        startDate: v.string(),
+        endDate: v.string(),
+        userId: v.id("users")
+    },
+    handler: async (ctx, args) => {
+
+        // First, find the payroll period that matches the date range
+        const payrollPeriod = await ctx.db
+            .query("payrollPeriods")
+            .withIndex("by_date_range", (q) => 
+                q.eq("startDate", args.startDate)
+                .eq("endDate", args.endDate)
+            )
+            .first();
+
+        if (!payrollPeriod) {
+            return null;
+        }
+
+        // Then find the salary component for this user and payroll period
+        const salaryComponent = await ctx.db
+            .query("salaryComponents")
+            .withIndex("by_payroll_period", (q) =>
+                q.eq("payrollPeriodId", payrollPeriod._id)
+            )
+            .filter((q) => q.eq(q.field("userId"), args.userId))
+            .first();
+
+        return salaryComponent;
+      
+    }
+})

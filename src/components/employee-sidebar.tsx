@@ -34,6 +34,12 @@ const routes = [
         color: "text-pink-700",
     },
     {
+        label: "Payslip",
+        icon: BanknoteIcon,
+        href: "/employee/payroll",
+        color: "text-emerald-500",
+    },
+    {
         label: "Leave Requests",
         icon: CalendarDays,
         href: "/employee/requests/leaves",
