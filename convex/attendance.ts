@@ -29,6 +29,29 @@ export const list = query({
   },
 });
 
+export const listByUser = query({
+    args: {
+      userId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+      const attendanceRecords = await ctx.db.query("attendance").filter((q) => q.eq(q.field("userId"), args.userId)).collect()
+      const attendanceWithUsers = await Promise.all(
+        attendanceRecords.map(async (record) => {
+          const user = await ctx.db
+            .query("users")
+            .filter((q) => q.eq(q.field("_id"), record.userId))
+            .unique();
+  
+          return {
+            ...record,
+              employee: {...user}
+          };
+        })
+      );
+      return attendanceWithUsers
+    },
+})
+
 export const listByUserAndDateRange = query({
     args: {
       userId: v.string(),

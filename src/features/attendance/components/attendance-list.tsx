@@ -12,9 +12,11 @@ import { api } from "../../../../convex/_generated/api"
 import TimePeriod from "./time-period"
 import { useMemo, useState } from "react"
 import { getCurrentTimePeriod } from "@/lib/utils"
+import { Id } from "../../../../convex/_generated/dataModel"
 
-export default function AttendanceReport() {
-    const attendance = useQuery(api.attendance.list)
+export default function AttendanceReport({userId}: {userId: Id<"users">}) {
+  
+    const attendance = useQuery(api.attendance.listByUser, {userId: userId})
     const getCurrentDate = () => {
         const date = new Date()
         return date.toLocaleDateString('en-US', {

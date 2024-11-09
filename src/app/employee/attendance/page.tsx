@@ -1,7 +1,9 @@
-
+'use client'
 import AttendanceList from "@/features/attendance/components/attendance-list"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 export default function Attendance() {
+    const {data} = useCurrentUser()
     return(
         <div className="w-full container  ">
               <div className="mb-6 w-full p-4 bg-white shadow-lg rounded-lg">
@@ -11,7 +13,8 @@ export default function Attendance() {
                 </p>
             </div>
             <div className="w-full p-4">
-                <AttendanceList />
+                {data && <AttendanceList userId={data?._id} />}
+               
             </div>
         </div>
     ) 
