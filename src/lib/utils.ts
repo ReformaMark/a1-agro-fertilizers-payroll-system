@@ -30,7 +30,7 @@ export function getConvexErrorMessage(error: Error): string {
       }
 
       // Clean up any remaining artifacts
-      return errorMessage.replace(/\s+/g, ' ').trim();
+      return errorMessage.replace(/\s+/g, ' ').trim();  
     }
 
     // If no ConvexError found, return the original message or default
@@ -158,6 +158,16 @@ export function formatDate(date: Date | string): string {
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+export function generateEmployeeId(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(3, '0')
+  const seconds = String(now.getSeconds()).padStart(2, '0')
+  const milliseconds = String(now.getMilliseconds()).padStart(2, '0').slice(0, 2)
+  
+  return `${year}${month}${seconds}${milliseconds}`
 }
 
 export function formatMoney(amount: number): string {

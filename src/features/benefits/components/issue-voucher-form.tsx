@@ -9,29 +9,27 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { useBenefitRequests } from "@/features/benefits/api/benefits"
+import { useIssueVoucher } from "../api/benefits"
 import { useCompensationTypes } from "@/features/compensation/api/compensation"
 import { toast } from "sonner"
 import { useEffect } from "react"
+import { useUsers } from "@/features/users/api/users"
 
 const formSchema = z.object({
+    userId: z.string().min(1, "Please select an employee"),
     type: z.string().min(1, "Please select a voucher type"),
-    description: z.string().min(10, "Please provide a detailed description"),
+    description: z.string().optional(),
     amount: z.number().optional(),
 })
 
-interface BenefitRequestFormProps {
+interface IssueVoucherFormProps {
     onClose: () => void
 }
 
-export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
-    // const createRequest = useCreateBenefitRequest()
+export function IssueVoucherForm({ onClose }: IssueVoucherFormProps) {
+    const issueVoucher = useIssueVoucher()
     const compensationTypes = useCompensationTypes()
-
-    // Filter compensation types to only show benefits and allowances
-    const availableBenefits = compensationTypes?.filter(type =>
-        type.category === "Allowance" || type.category === "Benefit"
-    )
+    const users = useUsers()
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -43,21 +41,21 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
     // Update amount when type changes
     useEffect(() => {
         if (selectedType) {
-            const type = availableBenefits?.find(t => t.name === selectedType)
+            const type = compensationTypes?.find(t => t.name === selectedType)
             if (type?.defaultAmount) {
                 form.setValue("amount", type.defaultAmount)
             }
         }
-    }, [selectedType, availableBenefits, form])
+    }, [selectedType, compensationTypes, form])
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
-            // await createRequest(values)
-            toast.success("Voucher request submitted successfully")
+            await issueVoucher(values)
+            toast.success("Voucher issued successfully")
             onClose()
         } catch (error) {
             console.error(error)
-            toast.error("Failed to submit voucher request")
+            toast.error("Failed to issue voucher")
         }
     }
 
@@ -65,14 +63,39 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
         <Dialog open onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Request Voucher</DialogTitle>
+                    <DialogTitle>Issue Voucher</DialogTitle>
                     <DialogDescription>
-                        Submit a new voucher or allowance request
+                        Issue a new voucher to an employee
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="userId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Employee</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select employee" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {users?.map((user: { _id: string, firstName: string, lastName: string }) => (
+                                                <SelectItem key={user._id} value={user._id}>
+                                                    {user.firstName} {user.lastName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                         <FormField
                             control={form.control}
                             name="type"
@@ -86,7 +109,9 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {availableBenefits?.map((type) => (
+                                            {compensationTypes?.filter(type =>
+                                                type.category === "Allowance" || type.category === "Benefit"
+                                            ).map((type) => (
                                                 <SelectItem key={type._id} value={type.name}>
                                                     {type.name}
                                                     {type.defaultAmount && (
@@ -118,11 +143,6 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
                                         />
                                     </FormControl>
                                     <FormMessage />
-                                    {selectedType && (
-                                        <p className="text-sm text-muted-foreground">
-                                            {availableBenefits?.find(t => t.name === selectedType)?.description}
-                                        </p>
-                                    )}
                                 </FormItem>
                             )}
                         />
@@ -132,10 +152,10 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Description</FormLabel>
+                                    <FormLabel>Description (Optional)</FormLabel>
                                     <FormControl>
                                         <Textarea
-                                            placeholder="Please provide details about your voucher request"
+                                            placeholder="Add any additional details about this voucher"
                                             className="resize-none"
                                             {...field}
                                         />
@@ -153,7 +173,7 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
                                 type="submit"
                                 disabled={!form.formState.isValid || form.formState.isSubmitting}
                             >
-                                Submit Request
+                                Issue Voucher
                             </Button>
                         </div>
                     </form>

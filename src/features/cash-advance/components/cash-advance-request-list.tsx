@@ -49,12 +49,12 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
                 status,
                 rejectionReason: reason,
             })
-            toast.success(`Cash advance request ${status.toLowerCase()} successfully`)
+            toast.success(`VALE request ${status.toLowerCase()} successfully`)
             setShowRejectDialog(false)
             setRejectionReason("")
             setSelectedRequest(null)
         } catch (error) {
-            toast.error(`Failed to ${status.toLowerCase()} cash advance request`)
+            toast.error(`Failed to ${status.toLowerCase()} VALE request`)
             console.error(error)
         }
     }
@@ -94,8 +94,8 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
                 return (
                     <Badge variant={
                         status === "Approved" ? "default" :
-                        status === "Rejected" ? "destructive" :
-                        "secondary"
+                            status === "Rejected" ? "destructive" :
+                                "secondary"
                     }>
                         {status}
                     </Badge>
@@ -173,9 +173,9 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
             <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Reject Cash Advance Request</DialogTitle>
+                        <DialogTitle>Reject VALE Request</DialogTitle>
                         <DialogDescription>
-                            Please provide a reason for rejecting this cash advance request.
+                            Please provide a reason for rejecting this VALE request.
                         </DialogDescription>
                     </DialogHeader>
                     <Textarea
@@ -255,9 +255,9 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
                 <CardHeader className="border-b">
                     <div className="flex justify-between items-center">
                         <div>
-                            <CardTitle>Cash Advance Requests</CardTitle>
+                            <CardTitle>VALE Requests</CardTitle>
                             <CardDescription>
-                                {isAdmin ? "Manage employee cash advance requests" : "Submit and track your cash advance requests"}
+                                {isAdmin ? "Manage employee VALE requests" : "Submit and track your VALE requests"}
                             </CardDescription>
                         </div>
                         {isAdmin ? (
@@ -265,7 +265,7 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
                         ) : (
                             <Button onClick={() => setShowForm(true)}>
                                 <Plus className="h-4 w-4 mr-1" />
-                                Request Cash Advance
+                                Request VALE
                             </Button>
                         )}
                     </div>
@@ -284,7 +284,7 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
             {showForm && (
                 <CashAdvanceRequestForm onClose={() => setShowForm(false)} />
             )}
-            
+
             {dialogContent}
         </>
     )

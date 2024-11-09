@@ -26,6 +26,8 @@ import { EmploymentInfoForm } from "./forms/employment-info-form"
 import { PayrollInfoForm } from "./forms/payroll-info-form"
 import { PersonalInfoForm } from "./forms/personal-info-form"
 import { ImageUpload } from "./image-upload"
+import { generateEmployeeId } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function EmployeeFormDialog() {
     const [open, setOpen] = useState(false)
@@ -43,6 +45,7 @@ export function EmployeeFormDialog() {
         defaultValues: {
             _id: undefined,
             image: undefined,
+            employeeTypeId: generateEmployeeId(),
             philHealthSchedule: "1st half",
             pagIbigSchedule: "1st half",
             sssSchedule: "1st half",
@@ -56,23 +59,15 @@ export function EmployeeFormDialog() {
     })
 
     async function onSubmit(data: EmployeeFormValues) {
-        if (isSubmitting) {
-            console.log("Preventing double submission")
-            return;
-        }
-        
-        console.log("Starting submission process...")
-        
+        if (isSubmitting) return;
+
         try {
             setIsSubmitting(true)
             const { _id, image, ...submitData } = data
-            console.log("Submitting employee data:", submitData)
-            
+
             const result = await createEmployee(submitData)
-            console.log("Create employee result:", result)
 
             if (!result) {
-                console.error("Employee creation failed - no result returned")
                 toast.error("Failed to create employee", {
                     description: "The server did not return a valid response"
                 })
@@ -80,36 +75,29 @@ export function EmployeeFormDialog() {
             }
 
             const newUserId = result._id
-            console.log("New user ID:", newUserId)
-            
+
             if (selectedFile) {
-                console.log("Starting file upload process...")
                 setIsUploading(true)
                 try {
                     const postUrl = await generateUploadUrl()
-                    console.log("Generated upload URL")
-                    
+
                     const uploadResult = await fetch(postUrl, {
                         method: "POST",
                         headers: { "Content-Type": selectedFile.type },
                         body: selectedFile,
                     })
-                    console.log("Upload response:", uploadResult)
-                    
+
                     if (!uploadResult.ok) {
                         throw new Error(`Upload failed with status: ${uploadResult.status}`)
                     }
-                    
-                    const { storageId } = await uploadResult.json()
-                    console.log("Storage ID:", storageId)
 
-                    const profileUpdateResult = await updateProfileImage({
+                    const { storageId } = await uploadResult.json()
+
+                    await updateProfileImage({
                         userId: newUserId,
                         storageId,
                     })
-                    console.log("Profile image update result:", profileUpdateResult)
                 } catch (uploadError) {
-                    console.error("Upload error details:", uploadError)
                     toast.error("Profile image upload failed", {
                         description: getConvexErrorMessage(uploadError as Error)
                     })
@@ -118,19 +106,17 @@ export function EmployeeFormDialog() {
                 }
             }
 
-            console.log("Showing success toast and cleaning up...")
             toast.success("Employee added successfully", {
                 description: "New employee account has been created"
             })
-            
+
             setOpen(false)
             form.reset()
             setStep(1)
             setSelectedFile(null)
             setCreatedUserId(null)
-            
+
         } catch (error) {
-            console.error("Submission error details:", error)
             toast.error("Failed to add employee", {
                 description: getConvexErrorMessage(error as Error)
             })
@@ -191,13 +177,13 @@ export function EmployeeFormDialog() {
     }
 
     return (
-        <Dialog 
-            open={open} 
+        <Dialog
+            open={open}
             onOpenChange={handleOpenChange}
         >
             <DialogTrigger asChild>
-                <Button 
-                    className="gap-2" 
+                <Button
+                    className="gap-2"
                     onClick={() => setOpen(true)}
                     disabled={isSubmitting || isUploading}
                 >
@@ -205,76 +191,80 @@ export function EmployeeFormDialog() {
                     Add Employee
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-4xl max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>Add New Employee</DialogTitle>
                 </DialogHeader>
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="mb-6 flex justify-between">
-                            {[1, 2, 3, 4].map((stepNumber) => (
-                                <div
-                                    key={stepNumber}
-                                    className={`flex h-8 w-8 items-center justify-center rounded-full ${step >= stepNumber ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'}`}
-                                >
-                                    {stepNumber}
+                <ScrollArea className="h-[calc(90vh-120px)]">
+                    <div className="pr-4">
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                <div className="mb-6 flex justify-between">
+                                    {[1, 2, 3, 4].map((stepNumber) => (
+                                        <div
+                                            key={stepNumber}
+                                            className={`flex h-8 w-8 items-center justify-center rounded-full ${step >= stepNumber ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'}`}
+                                        >
+                                            {stepNumber}
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
 
-                        {step === 1 && (
-                            <div className="space-y-6">
-                                <div className="flex justify-center">
-                                    <ImageUpload
-                                        previewMode={true}
-                                        onFileSelect={setSelectedFile}
-                                    />
-                                </div>
-                                <PersonalInfoForm form={form} />
-                            </div>
-                        )}
-                        {step === 2 && <EmploymentInfoForm form={form} />}
-                        {step === 3 && <AddressInfoForm form={form} />}
-                        {step === 4 && <PayrollInfoForm form={form} />}
+                                {step === 1 && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-center">
+                                            <ImageUpload
+                                                previewMode={true}
+                                                onFileSelect={setSelectedFile}
+                                            />
+                                        </div>
+                                        <PersonalInfoForm form={form} />
+                                    </div>
+                                )}
+                                {step === 2 && <EmploymentInfoForm form={form} />}
+                                {step === 3 && <AddressInfoForm form={form} />}
+                                {step === 4 && <PayrollInfoForm form={form} />}
 
-                        <div className="flex justify-end gap-2">
-                            {step > 1 && (
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    onClick={previousStep}
-                                    disabled={isSubmitting}
-                                >
-                                    Previous
-                                </Button>
-                            )}
-                            {step < 4 ? (
-                                <Button 
-                                    type="button" 
-                                    onClick={nextStep}
-                                    disabled={isSubmitting}
-                                >
-                                    Next
-                                </Button>
-                            ) : (
-                                <Button 
-                                    type="submit"
-                                    disabled={isSubmitting || isUploading}
-                                >
-                                    {isSubmitting || isUploading ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            {isUploading ? 'Uploading...' : 'Creating...'}
-                                        </>
-                                    ) : (
-                                        'Create Employee Account'
+                                <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 border-t">
+                                    {step > 1 && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={previousStep}
+                                            disabled={isSubmitting}
+                                        >
+                                            Previous
+                                        </Button>
                                     )}
-                                </Button>
-                            )}
-                        </div>
-                    </form>
-                </Form>
+                                    {step < 4 ? (
+                                        <Button
+                                            type="button"
+                                            onClick={nextStep}
+                                            disabled={isSubmitting}
+                                        >
+                                            Next
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="submit"
+                                            disabled={isSubmitting || isUploading}
+                                        >
+                                            {isSubmitting || isUploading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    {isUploading ? 'Uploading...' : 'Creating...'}
+                                                </>
+                                            ) : (
+                                                'Create Employee Account'
+                                            )}
+                                        </Button>
+                                    )}
+                                </div>
+                            </form>
+                        </Form>
+                    </div>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     )

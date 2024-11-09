@@ -13,9 +13,9 @@ export default function AdminCashAdvancePage() {
     return (
         <div className="container py-6">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold">Cash Advance Requests</h1>
+                <h1 className="text-3xl font-bold">VALE Requests</h1>
                 <p className="text-muted-foreground">
-                    Manage and process employee cash advance requests
+                    Manage and process employee VALE requests
                 </p>
             </div>
 

@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 const routes = [
     {
@@ -46,7 +46,7 @@ const routes = [
         color: "text-violet-500",
     },
     {
-        label: "Benefits",
+        label: "Vouchers",
         icon: Gift,
         href: "/employee/benefits",
         color: "text-rose-500",
@@ -58,7 +58,7 @@ const routes = [
         color: "text-green-500",
     },
     {
-        label: "Cash Advances",
+        label: "VALE",
         icon: Coins,
         href: "/employee/requests/cash-advance",
         color: "text-violet-500",
@@ -87,6 +87,7 @@ interface SidebarContentProps {
 const SidebarContent = ({ className }: SidebarContentProps) => {
     const pathname = usePathname()
     const { signOut } = useAuthActions()
+    const router = useRouter()
 
     return (
         <div className={cn("space-y-4 py-4 flex flex-col h-full bg-white border-r", className)}>
@@ -110,7 +111,7 @@ const SidebarContent = ({ className }: SidebarContentProps) => {
                             )}
                         >
                             <div className="flex items-center flex-1">
-                                <route.icon className={cn("h-5 w-5 mr-3", 
+                                <route.icon className={cn("h-5 w-5 mr-3",
                                     pathname === route.href ? "text-[#8BC34A]" : "text-gray-500"
                                 )} />
                                 {route.label}
@@ -138,9 +139,9 @@ const SidebarContent = ({ className }: SidebarContentProps) => {
                     </Link>
                 ))}
                 <button
-                    onClick={() => {
-                        signOut()
-                        window.location.href = "/auth"
+                    onClick={async () => {
+                        await signOut()
+                        router.replace("/auth")
                     }}
                     className="text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-gray-100 rounded-lg transition text-gray-600"
                 >
