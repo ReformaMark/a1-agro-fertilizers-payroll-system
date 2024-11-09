@@ -182,17 +182,14 @@ export const updateEmployee = mutation({
         street: v.string(),
         houseNumber: v.string(),
         ratePerDay: v.number(),
-        // Government IDs
         philHealthNumber: v.string(),
         pagIbigNumber: v.string(),
         sssNumber: v.string(),
         birTin: v.string(),
-        // Contributions
         philHealthContribution: v.number(),
         pagIbigContribution: v.number(),
         sssContribution: v.number(),
         incomeTax: v.number(),
-        // Schedules
         philHealthSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
         pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
         sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
@@ -217,7 +214,6 @@ export const updateEmployee = mutation({
         // Update the employee
         await ctx.db.patch(userId, {
             ...updateData,
-            filledUpByAdmin: true,
             modifiedBy: adminId,
             modifiedAt: new Date().toISOString(),
         })
@@ -443,5 +439,50 @@ export const checkEmployeeIdExists = query({
             .first()
 
         return !!employee
+    }
+})
+
+export const updatePersonalInfo = mutation({
+    args: {
+        userId: v.id("users"),
+        firstName: v.string(),
+        middleName: v.optional(v.string()),
+        lastName: v.string(),
+        maritalStatus: v.union(v.literal("single"), v.literal("married"), v.literal("widowed"), v.literal("divorced"), v.literal("separated")),
+    },
+    handler: async (ctx, args) => {
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) throw new ConvexError("Not authenticated")
+
+        // Check if current user is admin
+        const admin = await ctx.db.get(adminId)
+        if (admin?.role !== "admin") {
+            throw new ConvexError("Not authorized")
+        }
+
+        const { userId, ...updateData } = args
+
+        // Get the employee being updated
+        const employee = await ctx.db.get(userId)
+        if (!employee) throw new ConvexError("Employee not found")
+
+        // Update the employee's personal information
+        await ctx.db.patch(userId, {
+            ...updateData,
+            modifiedBy: adminId,
+            modifiedAt: new Date().toISOString(),
+        })
+
+        // Create audit log entry
+        await ctx.db.insert("auditLogs", {
+            action: "Updated Personal Information",
+            entityType: "employee",
+            entityId: userId,
+            performedBy: adminId,
+            performedAt: new Date().toISOString(),
+            details: `Updated personal information for ${employee.firstName} ${employee.lastName}`,
+        })
+
+        return true
     }
 })
