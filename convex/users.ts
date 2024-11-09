@@ -25,6 +25,8 @@ export const get = query({
             isDeclinedByAdmin: user.isDeclinedByAdmin,
             declinedReason: user.declinedReason,
             declinedAt: user.declinedAt,
+            image: user.image,
+            imageUrl: user.image ? await ctx.storage.getUrl(user.image) : null,
             // employeeTypeId: user.employeeTypeId,
         }
     }
@@ -43,7 +45,7 @@ export const getEmployee = query({
         // find the employee by role and ID
         const employee = await ctx.db
             .query("users")
-            .filter(q => 
+            .filter(q =>
                 q.and(
                     q.eq(q.field("_id"), args.userId),
                     q.eq(q.field("role"), "employee")

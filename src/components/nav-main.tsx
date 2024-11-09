@@ -2,7 +2,7 @@
 
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
-
+import { cn } from "@/lib/utils"
 
 import {
   SidebarGroup,
@@ -46,10 +46,24 @@ export function NavMain({
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
+                <SidebarMenuButton 
+                  tooltip={item.title}
+                  className={cn(
+                    "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-gray-100 rounded-lg transition",
+                    pathname === item.url ? "text-[#8BC34A] bg-gray-100" : "text-gray-600"
+                  )}
+                >
+                  {item.icon && (
+                    <item.icon className={cn("h-5 w-5 mr-3",
+                      pathname === item.url ? "text-[#8BC34A]" : "text-gray-500"
+                    )} />
+                  )}
                   <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  <ChevronRight className={cn(
+                    "ml-auto transition-transform duration-200 h-5 w-5",
+                    "group-data-[state=open]/collapsible:rotate-90",
+                    pathname === item.url ? "text-[#8BC34A]" : "text-gray-500"
+                  )} />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>
@@ -58,7 +72,10 @@ export function NavMain({
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton
                         asChild
-                        className={pathname === subItem.url ? "bg-primary text-white hover:bg-primary/80 hover:text-white" : ""}
+                        className={cn(
+                          "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-gray-100 rounded-lg transition",
+                          pathname === subItem.url ? "text-[#8BC34A] bg-gray-100" : "text-gray-600"
+                        )}
                       >
                         <Link href={subItem.url}>
                           <span>{subItem.title}</span>

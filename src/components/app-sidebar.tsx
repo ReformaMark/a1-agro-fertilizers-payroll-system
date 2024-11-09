@@ -2,7 +2,6 @@
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
-import { SectionSwitcher } from "@/components/section-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +19,8 @@ import {
   Settings2,
   Users
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const data = {
@@ -153,11 +154,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   if (!user) return null;
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="none" {...props} className="bg-white">
       <SidebarHeader>
-        <div className="px-2 py-4">
-          <SectionSwitcher />
-        </div>
+        <Link href="/admin" className="flex flex-col items-center mb-8">
+          <div className="bg-[#8BC34A] w-full py-4 rounded-md flex flex-col items-center">
+            <Image src="/logo.svg" alt="A1 Agro" width={50} height={50} className="size-16" />
+            <h1 className="text-sm font-semibold text-center text-white mt-2 px-2">
+              A1 Agro Fertilizer and Chemical Supply
+            </h1>
+          </div>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>

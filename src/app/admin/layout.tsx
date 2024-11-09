@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar"
+import { AdminHeader } from "@/components/admin-header"
 import { ConvexClientProvider } from "@/components/convex-client-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "sonner"
@@ -12,14 +13,19 @@ export default function AdminLayout({
     return (
         <ConvexClientProvider>
             <AdminGuard>
-                <SidebarProvider>
-                    <AppSidebar />
-                    <div className="flex flex-col min-h-screen bg-white container mx-auto">
-                        {children}
-                        <Toaster />
-                    </div>
-                </SidebarProvider>
+                <div className="flex min-h-screen">
+                    <SidebarProvider>
+                        <AppSidebar />
+                        <div className="flex-1 flex flex-col">
+                            <AdminHeader />
+                            <main className="flex-1 overflow-y-auto p-6">
+                                {children}
+                            </main>
+                            <Toaster />
+                        </div>
+                    </SidebarProvider>
+                </div>
             </AdminGuard>
         </ConvexClientProvider>
     )
-} 
+}
