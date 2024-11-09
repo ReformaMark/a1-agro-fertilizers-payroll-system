@@ -34,6 +34,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
     }) || { data: null }
 
     // Use the updated data if available, otherwise fall back to the prop data
+    // @ts-expect-error - TODO: fix this
     const currentEmployee = employeeData?.data || employee
 
     // Reset form when employee changes

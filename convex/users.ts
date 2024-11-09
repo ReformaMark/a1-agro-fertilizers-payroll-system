@@ -71,11 +71,6 @@ export const getEmployee = query({
             }
         };
 
-        console.log('Returning employee data:', {
-            id: response.data._id,
-            name: `${response.data.firstName} ${response.data.lastName}`
-        });
-
         return response;
     }
 })
@@ -399,7 +394,7 @@ export const createEmployee = mutation({
             }
 
             // Create the user record with all fields
-            const newUser = await ctx.db.patch(accountResponse.user._id as Id<"users">, {
+            await ctx.db.patch(accountResponse.user._id as Id<"users">, {
                 ...userData,
                 email,
                 role: "employee",
@@ -408,6 +403,12 @@ export const createEmployee = mutation({
                 modifiedBy: adminId,
                 modifiedAt: new Date().toISOString(),
             });
+
+            // Get the updated user data
+            const newUser = await ctx.db.get(accountResponse.user._id as Id<"users">);
+            if (!newUser) {
+                throw new ConvexError("Failed to retrieve created user");
+            }
 
             // Create audit log entry
             await ctx.db.insert("auditLogs", {

@@ -11,29 +11,32 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
+import { getConvexErrorMessage } from "@/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
-import { UserPlus } from "lucide-react"
+import { Loader2, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { api } from "../../../../convex/_generated/api"
+import { Id } from "../../../../convex/_generated/dataModel"
 import { employeeFormSchema, EmployeeFormValues } from "../lib/schema"
 import { AddressInfoForm } from "./forms/address-info-form"
 import { EmploymentInfoForm } from "./forms/employment-info-form"
 import { PayrollInfoForm } from "./forms/payroll-info-form"
 import { PersonalInfoForm } from "./forms/personal-info-form"
 import { ImageUpload } from "./image-upload"
-import { Id } from "../../../../convex/_generated/dataModel"
 
 export function EmployeeFormDialog() {
     const [open, setOpen] = useState(false)
     const [step, setStep] = useState(1)
-    const [createdUserId, setCreatedUserId] = useState<Id<"users"> | null>(null)
+    const [, setCreatedUserId] = useState<Id<"users"> | null>(null)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const createEmployee = useMutation(api.users.createEmployee)
     const generateUploadUrl = useMutation(api.users.generateUploadUrl)
     const updateProfileImage = useMutation(api.users.updateProfileImage)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
 
     const form = useForm<EmployeeFormValues>({
         resolver: zodResolver(employeeFormSchema),
@@ -53,40 +56,87 @@ export function EmployeeFormDialog() {
     })
 
     async function onSubmit(data: EmployeeFormValues) {
+        if (isSubmitting) {
+            console.log("Preventing double submission")
+            return;
+        }
+        
+        console.log("Starting submission process...")
+        
         try {
+            setIsSubmitting(true)
             const { _id, image, ...submitData } = data
-            const result = await createEmployee(submitData)
+            console.log("Submitting employee data:", submitData)
             
-            if (result) {
-                const newUserId = result._id
-                setCreatedUserId(newUserId)
-                form.setValue("_id", newUserId as string)
-                
-                if (selectedFile) {
+            const result = await createEmployee(submitData)
+            console.log("Create employee result:", result)
+
+            if (!result) {
+                console.error("Employee creation failed - no result returned")
+                toast.error("Failed to create employee", {
+                    description: "The server did not return a valid response"
+                })
+                return;
+            }
+
+            const newUserId = result._id
+            console.log("New user ID:", newUserId)
+            
+            if (selectedFile) {
+                console.log("Starting file upload process...")
+                setIsUploading(true)
+                try {
                     const postUrl = await generateUploadUrl()
+                    console.log("Generated upload URL")
+                    
                     const uploadResult = await fetch(postUrl, {
                         method: "POST",
                         headers: { "Content-Type": selectedFile.type },
                         body: selectedFile,
                     })
-                    const { storageId } = await uploadResult.json()
+                    console.log("Upload response:", uploadResult)
                     
-                    await updateProfileImage({
+                    if (!uploadResult.ok) {
+                        throw new Error(`Upload failed with status: ${uploadResult.status}`)
+                    }
+                    
+                    const { storageId } = await uploadResult.json()
+                    console.log("Storage ID:", storageId)
+
+                    const profileUpdateResult = await updateProfileImage({
                         userId: newUserId,
                         storageId,
                     })
+                    console.log("Profile image update result:", profileUpdateResult)
+                } catch (uploadError) {
+                    console.error("Upload error details:", uploadError)
+                    toast.error("Profile image upload failed", {
+                        description: getConvexErrorMessage(uploadError as Error)
+                    })
+                } finally {
+                    setIsUploading(false)
                 }
-                
-                toast.success("Employee added successfully")
-                setOpen(false)
-                form.reset()
-                setStep(1)
-                setSelectedFile(null)
-                setCreatedUserId(null)
             }
+
+            console.log("Showing success toast and cleaning up...")
+            toast.success("Employee added successfully", {
+                description: "New employee account has been created"
+            })
+            
+            setOpen(false)
+            form.reset()
+            setStep(1)
+            setSelectedFile(null)
+            setCreatedUserId(null)
+            
         } catch (error) {
-            console.error("Detailed error:", error)
-            toast.error(error instanceof Error ? error.message : "Failed to add employee")
+            console.error("Submission error details:", error)
+            toast.error("Failed to add employee", {
+                description: getConvexErrorMessage(error as Error)
+            })
+        } finally {
+            setIsSubmitting(false)
+            setIsUploading(false)
         }
     }
 
@@ -121,14 +171,36 @@ export function EmployeeFormDialog() {
         }
     }
 
+    const handleClose = () => {
+        if (isSubmitting || isUploading) return;
+        setOpen(false)
+        form.reset()
+        setStep(1)
+        setSelectedFile(null)
+        setCreatedUserId(null)
+        setIsSubmitting(false)
+        setIsUploading(false)
+    }
+
     const handleOpenChange = (newOpen: boolean) => {
-        setOpen(newOpen)
+        if (!newOpen) {
+            handleClose()
+        } else {
+            setOpen(true)
+        }
     }
 
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
+        <Dialog 
+            open={open} 
+            onOpenChange={handleOpenChange}
+        >
             <DialogTrigger asChild>
-                <Button className="gap-2" onClick={() => setOpen(true)}>
+                <Button 
+                    className="gap-2" 
+                    onClick={() => setOpen(true)}
+                    disabled={isSubmitting || isUploading}
+                >
                     <UserPlus className="h-4 w-4" />
                     Add Employee
                 </Button>
@@ -154,7 +226,7 @@ export function EmployeeFormDialog() {
                         {step === 1 && (
                             <div className="space-y-6">
                                 <div className="flex justify-center">
-                                    <ImageUpload 
+                                    <ImageUpload
                                         previewMode={true}
                                         onFileSelect={setSelectedFile}
                                     />
@@ -168,17 +240,36 @@ export function EmployeeFormDialog() {
 
                         <div className="flex justify-end gap-2">
                             {step > 1 && (
-                                <Button type="button" variant="outline" onClick={previousStep}>
+                                <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    onClick={previousStep}
+                                    disabled={isSubmitting}
+                                >
                                     Previous
                                 </Button>
                             )}
                             {step < 4 ? (
-                                <Button type="button" onClick={nextStep}>
+                                <Button 
+                                    type="button" 
+                                    onClick={nextStep}
+                                    disabled={isSubmitting}
+                                >
                                     Next
                                 </Button>
                             ) : (
-                                <Button type="submit">
-                                    Create Employee Account
+                                <Button 
+                                    type="submit"
+                                    disabled={isSubmitting || isUploading}
+                                >
+                                    {isSubmitting || isUploading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            {isUploading ? 'Uploading...' : 'Creating...'}
+                                        </>
+                                    ) : (
+                                        'Create Employee Account'
+                                    )}
                                 </Button>
                             )}
                         </div>

@@ -1,16 +1,15 @@
 "use client"
 
 import { DataTable } from "@/components/data-table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DeclineRegistrationDialog } from "@/features/auth/components/decline-registration-dialog"
 import { ColumnDef } from "@tanstack/react-table"
 import { PencilIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Doc } from "../../../../convex/_generated/dataModel"
 import { useEmployees } from "../api/employees"
 import { AuditLogDialog } from "./audit-log-dialog"
-import { CompleteProfileDialog } from "./complete-profile-dialog"
 import { ConfirmMakeAdminDialog } from "./confirm-make-admin-dialog"
 import { EditEmployeeDialog } from "./edit-employee-dialog"
 import { EmployeeFormDialog } from "./employee-form-dialog"
@@ -51,17 +50,19 @@ export function EmployeeList() {
             header: "Name",
             cell: ({ row }) => {
                 const employee = row.original
+                const initials = `${employee.firstName[0]}${employee.lastName[0]}`
+
                 return (
                     <div className="flex items-center gap-3">
-                        {employee.imageUrl && (
-                            <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                                <img
-                                    src={employee.imageUrl}
-                                    alt={`${employee.firstName} ${employee.lastName}`}
-                                    className="object-cover h-full w-full"
-                                />
-                            </div>
-                        )}
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage
+                                src={employee.imageUrl ?? undefined}
+                                alt={`${employee.firstName} ${employee.lastName}`}
+                            />
+                            <AvatarFallback className="bg-green-600 text-white font-semibold">
+                                {initials}
+                            </AvatarFallback>
+                        </Avatar>
                         <div>
                             <div className="font-medium">
                                 {employee.firstName} {employee.lastName}
@@ -132,7 +133,7 @@ export function EmployeeList() {
     if (!employees) {
         return (
             <div className="flex items-center justify-center h-48 text-muted-foreground">
-                Loading...
+                <div className="animate-pulse">Loading...</div>
             </div>
         )
     }
@@ -145,7 +146,7 @@ export function EmployeeList() {
                 <h2 className="text-2xl font-semibold tracking-tight">Registered Employees</h2>
                 <div className="flex gap-2">
                     <AuditLogDialog />
-                    <EmployeeFormDialog />
+                    <EmployeeFormDialog key="employee-form" />
                 </div>
             </div>
 
