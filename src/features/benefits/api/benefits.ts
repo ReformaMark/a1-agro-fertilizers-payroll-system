@@ -22,7 +22,10 @@ export function useIssueVoucher() {
         amount?: number
         description?: string
     }) => {
-        return await issue(values)
+        return await issue({
+            ...values,
+            userId: values.userId as Id<"users">,
+        })
     }, [issue])
 }
 

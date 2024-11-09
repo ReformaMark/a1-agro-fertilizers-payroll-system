@@ -727,10 +727,7 @@ export const updatePersonalInfo = mutation({
 
 export const list = query({
   handler: async (ctx) => {
-    return await ctx.db
-      .query("users")
-      .filter((q) => q.neq(q.field("role"), "admin")) // Optionally filter out admins
-      .order("desc")
-      .collect();
-  },
-});
+    return await ctx.db.query("users")
+      .collect()
+  }
+})

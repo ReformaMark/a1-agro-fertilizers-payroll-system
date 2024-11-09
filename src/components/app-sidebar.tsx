@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
-  Building2,
   Calculator,
   ClipboardList,
   FileText,

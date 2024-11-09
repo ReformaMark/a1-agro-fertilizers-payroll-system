@@ -10,10 +10,6 @@ import {
 
 import { Input } from "@/components/ui/input";
 
-import { UseFormReturn } from "react-hook-form";
-
-import { CompleteProfileValues } from "../lib/complete-profile-schema";
-
 import { CalendarIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

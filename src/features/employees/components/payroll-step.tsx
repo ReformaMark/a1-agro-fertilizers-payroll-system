@@ -86,8 +86,10 @@ export function PayrollStep({ form }: FormStepProps) {
   // Log form values on change
 
   const handleFieldChange = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     field: any,
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
 
     formatter?: (value: string) => string

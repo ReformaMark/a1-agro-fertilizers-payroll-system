@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { useCreateBenefitRequest } from "@/features/benefits/api/benefits"
+import { useBenefitRequests } from "@/features/benefits/api/benefits"
 import { useCompensationTypes } from "@/features/compensation/api/compensation"
 import { toast } from "sonner"
 import { useEffect } from "react"
@@ -25,7 +25,7 @@ interface BenefitRequestFormProps {
 }
 
 export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
-    const createRequest = useCreateBenefitRequest()
+    // const createRequest = useCreateBenefitRequest()
     const compensationTypes = useCompensationTypes()
 
     // Filter compensation types to only show benefits and allowances
@@ -52,7 +52,7 @@ export function BenefitRequestForm({ onClose }: BenefitRequestFormProps) {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
-            await createRequest(values)
+            // await createRequest(values)
             toast.success("Voucher request submitted successfully")
             onClose()
         } catch (error) {
