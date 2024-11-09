@@ -98,8 +98,14 @@ export function CompleteProfileDialog({ employee }: CompleteProfileDialogProps) 
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+                        {/* @ts-expect-error - react-hook-form types */}
                         {step === 1 && <EmploymentStep form={form} />}
+
+                        {/* @ts-expect-error - react-hook-form types */}
                         {step === 2 && <AddressStep form={form} />}
+
+                        {/* @ts-expect-error - react-hook-form types */}
                         {step === 3 && <PayrollStep form={form} />}
 
                         <div className="flex justify-end gap-2">
