@@ -7,6 +7,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useAuthActions } from "@convex-dev/auth/react"
+import { useRouter } from "next/navigation"
 
 interface User {
   firstName: string;
@@ -18,14 +19,15 @@ interface User {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function NavUser({ user }: { user: User }) {
   const { signOut } = useAuthActions()
+  const router = useRouter()
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
-          onClick={() => {
-            signOut();
-            window.location.href = "/auth";
+          onClick={async () => {
+            await signOut();
+            router.replace("/auth");
           }}
         >
           <LogOut className="h-5 w-5 mr-2" />
