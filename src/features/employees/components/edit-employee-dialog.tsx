@@ -1,69 +1,107 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
-import { useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form } from "@/components/ui/form"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { toast } from "sonner"
 import { api } from "../../../../convex/_generated/api"
-import { Doc } from "../../../../convex/_generated/dataModel"
+import { Doc, Id } from "../../../../convex/_generated/dataModel"
 import { completeProfileSchema, CompleteProfileValues } from "../lib/complete-profile-schema"
 import { Progress } from "@/components/ui/progress"
 import { EmploymentStep } from "./employment-step"
 import { AddressStep } from "./address-step"
 import { PayrollStep } from "./payroll-step"
+import { ImageUpload } from "./image-upload"
 
 interface EditEmployeeDialogProps {
-    employee: Doc<"users">
+    employee: Doc<"users"> & { imageUrl?: string | null }
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
 export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmployeeDialogProps) {
+
     const [step, setStep] = useState(1)
     const updateEmployee = useMutation(api.users.updateEmployee)
 
+    // Get the latest employee data
+    const { data: employeeData } = useQuery(api.users.getEmployee, {
+        userId: employee._id
+    }) || { data: null }
+
+    // Use the updated data if available, otherwise fall back to the prop data
+    // @ts-expect-error - TODO: fix this
+    const currentEmployee = employeeData?.data || employee
+
+    // Reset form when employee changes
     const form = useForm<CompleteProfileValues>({
         resolver: zodResolver(completeProfileSchema),
         defaultValues: {
-            department: employee.department || "",
-            position: employee.position || "",
-            hiredDate: employee.hiredDate || "",
-            region: employee.region || "",
-            province: employee.province || "",
-            city: employee.city || "",
-            barangay: employee.barangay || "",
-            postalCode: employee.postalCode || "",
-            street: employee.street || "",
-            houseNumber: employee.houseNumber || "",
-            ratePerDay: employee.ratePerDay || 0,
-            philHealthNumber: employee.philHealthNumber,
-            pagIbigNumber: employee.pagIbigNumber,
-            sssNumber: employee.sssNumber,
-            birTin: employee.birTin,
-            philHealthSchedule: employee.philHealthSchedule || "1st half",
-            pagIbigSchedule: employee.pagIbigSchedule || "1st half",
-            sssSchedule: employee.sssSchedule || "1st half",
-            incomeTaxSchedule: employee.incomeTaxSchedule || "1st half",
-            incomeTax: employee.incomeTax || 0,
-            philHealthContribution: employee.philHealthContribution || 0,
-            pagIbigContribution: employee.pagIbigContribution || 0,
-            sssContribution: employee.sssContribution || 0,
+            department: currentEmployee.department || "",
+            position: currentEmployee.position || "",
+            hiredDate: currentEmployee.hiredDate || "",
+            region: currentEmployee.region || "",
+            province: currentEmployee.province || "",
+            city: currentEmployee.city || "",
+            barangay: currentEmployee.barangay || "",
+            postalCode: currentEmployee.postalCode || "",
+            street: currentEmployee.street || "",
+            houseNumber: currentEmployee.houseNumber || "",
+            ratePerDay: currentEmployee.ratePerDay || 0,
+            philHealthNumber: currentEmployee.philHealthNumber,
+            pagIbigNumber: currentEmployee.pagIbigNumber,
+            sssNumber: currentEmployee.sssNumber,
+            birTin: currentEmployee.birTin,
+            philHealthSchedule: currentEmployee.philHealthSchedule || "1st half",
+            pagIbigSchedule: currentEmployee.pagIbigSchedule || "1st half",
+            sssSchedule: currentEmployee.sssSchedule || "1st half",
+            incomeTaxSchedule: currentEmployee.incomeTaxSchedule || "1st half",
+            incomeTax: currentEmployee.incomeTax || 0,
+            philHealthContribution: currentEmployee.philHealthContribution || 0,
+            pagIbigContribution: currentEmployee.pagIbigContribution || 0,
+            sssContribution: currentEmployee.sssContribution || 0,
         }
     })
+
+    // Reset form values when employee changes
+    useEffect(() => {
+        if (currentEmployee) {
+            form.reset({
+                department: currentEmployee.department || "",
+                position: currentEmployee.position || "",
+                hiredDate: currentEmployee.hiredDate || "",
+                region: currentEmployee.region || "",
+                province: currentEmployee.province || "",
+                city: currentEmployee.city || "",
+                barangay: currentEmployee.barangay || "",
+                postalCode: currentEmployee.postalCode || "",
+                street: currentEmployee.street || "",
+                houseNumber: currentEmployee.houseNumber || "",
+                ratePerDay: currentEmployee.ratePerDay || 0,
+                philHealthNumber: currentEmployee.philHealthNumber,
+                pagIbigNumber: currentEmployee.pagIbigNumber,
+                sssNumber: currentEmployee.sssNumber,
+                birTin: currentEmployee.birTin,
+                philHealthSchedule: currentEmployee.philHealthSchedule || "1st half",
+                pagIbigSchedule: currentEmployee.pagIbigSchedule || "1st half",
+                sssSchedule: currentEmployee.sssSchedule || "1st half",
+                incomeTaxSchedule: currentEmployee.incomeTaxSchedule || "1st half",
+                incomeTax: currentEmployee.incomeTax || 0,
+                philHealthContribution: currentEmployee.philHealthContribution || 0,
+                pagIbigContribution: currentEmployee.pagIbigContribution || 0,
+                sssContribution: currentEmployee.sssContribution || 0,
+            })
+        }
+    }, [currentEmployee._id, form, currentEmployee])
 
     async function onSubmit(data: CompleteProfileValues) {
         try {
             await updateEmployee({
-                userId: employee._id,
+                userId: currentEmployee._id, // Use currentEmployee instead of employee
                 ...data,
                 ratePerDay: Number(data.ratePerDay)
             })
@@ -77,7 +115,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
     }
 
     const nextStep = (e: React.MouseEvent) => {
-        e.preventDefault() // Prevent form submission
+        e.preventDefault()
         const fields = getFieldsForStep(step)
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -109,17 +147,41 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
     }
 
     const progress = ((step - 1) / 2) * 100
+    // const dialogKey = `employee-dialog-${currentEmployee._id}`
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog
+            key={`dialog-${employee._id}`}
+            open={open}
+            onOpenChange={(newOpen) => {
+                onOpenChange(newOpen);
+            }}
+        >
             <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle>Edit Employee Profile</DialogTitle>
-                </DialogHeader>
 
-                <Progress value={progress} className="w-full" />
+
+
 
                 <Form {...form}>
+
+                    <DialogHeader>
+                        <DialogTitle>
+                            Edit Employee Profile: {currentEmployee.firstName} {currentEmployee.lastName}
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="flex justify-center mb-6">
+                        <ImageUpload
+                            key={`image-upload-${currentEmployee._id}`}
+                            userId={currentEmployee._id}
+                            imageStorageId={currentEmployee.image as Id<"_storage"> | undefined}
+                            imageUrl={currentEmployee.imageUrl}
+                            onUploadComplete={() => {
+                                // The real-time query will automatically update the UI
+                            }}
+                        />
+                    </div>
+
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         <div className="min-h-[400px]">
                             {step === 1 && <EmploymentStep form={form} />}
@@ -127,10 +189,12 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                             {step === 3 && <PayrollStep form={form} />}
                         </div>
 
+                        <Progress value={progress} className="w-full" />
+
                         <div className="flex justify-between pt-4 border-t">
                             {step > 1 && (
                                 <Button
-                                    type="button" // Important: type="button"
+                                    type="button"
                                     variant="outline"
                                     onClick={previousStep}
                                 >
@@ -140,7 +204,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
 
                             <div className="flex gap-2 ml-auto">
                                 <Button
-                                    type="button" // Important: type="button"
+                                    type="button"
                                     variant="outline"
                                     onClick={() => onOpenChange(false)}
                                 >
@@ -149,7 +213,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
 
                                 {step < 3 ? (
                                     <Button
-                                        type="button" // Important: type="button"
+                                        type="button"
                                         onClick={nextStep}
                                     >
                                         Next
@@ -162,6 +226,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                             </div>
                         </div>
                     </form>
+
                 </Form>
             </DialogContent>
         </Dialog>

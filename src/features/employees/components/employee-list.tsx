@@ -1,21 +1,20 @@
 "use client"
 
 import { DataTable } from "@/components/data-table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DeclineRegistrationDialog } from "@/features/auth/components/decline-registration-dialog"
 import { ColumnDef } from "@tanstack/react-table"
 import { PencilIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Doc } from "../../../../convex/_generated/dataModel"
 import { useEmployees } from "../api/employees"
 import { AuditLogDialog } from "./audit-log-dialog"
-import { CompleteProfileDialog } from "./complete-profile-dialog"
 import { ConfirmMakeAdminDialog } from "./confirm-make-admin-dialog"
 import { EditEmployeeDialog } from "./edit-employee-dialog"
 import { EmployeeFormDialog } from "./employee-form-dialog"
 
-type Employee = Doc<"users">
+type Employee = Doc<"users"> & { imageUrl?: string | null }
 
 const registrationStatus = (employee: Employee) => {
     if (!employee.department || !employee.position || !employee.hiredDate) {
@@ -33,21 +32,48 @@ const statusColors = {
 export function EmployeeList() {
     const employees = useEmployees()
     const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+
+    const handleEditClick = (employee: Employee) => {
+        setEditingEmployee(employee)
+        setIsEditDialogOpen(true)
+    }
+
+    const handleEditDialogClose = () => {
+        setIsEditDialogOpen(false)
+        setEditingEmployee(null)
+    }
 
     const columns = useMemo<ColumnDef<Employee>[]>(() => [
         {
             accessorKey: "name",
             header: "Name",
-            cell: ({ row }) => (
-                <div>
-                    <div className="font-medium">
-                        {row.original.firstName} {row.original.lastName}
+            cell: ({ row }) => {
+                const employee = row.original
+                const initials = `${employee.firstName[0]}${employee.lastName[0]}`
+
+                return (
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage
+                                src={employee.imageUrl ?? undefined}
+                                alt={`${employee.firstName} ${employee.lastName}`}
+                            />
+                            <AvatarFallback className="bg-green-600 text-white font-semibold">
+                                {initials}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <div className="font-medium">
+                                {employee.firstName} {employee.lastName}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                                {employee.email}
+                            </div>
+                        </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                        {row.original.email}
-                    </div>
-                </div>
-            )
+                )
+            }
         },
         {
             accessorKey: "department",
@@ -76,29 +102,24 @@ export function EmployeeList() {
             id: "actions",
             cell: ({ row }) => {
                 const isComplete = registrationStatus(row.original) === "complete"
-                const isDeclined = row.original.isDeclinedByAdmin
-
-                if (isDeclined) {
-                    return null
-                }
 
                 return (
                     <div className="flex gap-2">
-                        {isComplete ? (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setEditingEmployee(row.original)}
-                                title="Edit Employee"
-                            >
-                                <PencilIcon className="h-4 w-4" />
-                            </Button>
-                        ) : (
-                            <>
-                                <CompleteProfileDialog employee={row.original} />
-                                <DeclineRegistrationDialog employee={row.original} />
-                            </>
-                        )}
+                        {isComplete
+                            && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleEditClick(row.original)
+                                    }}
+                                    title="Edit Employee"
+                                >
+                                    <PencilIcon className="h-4 w-4" />
+                                </Button>
+                            )
+                        }
                         <ConfirmMakeAdminDialog
                             userId={row.original._id}
                             userName={`${row.original.firstName} ${row.original.lastName}`}
@@ -112,13 +133,12 @@ export function EmployeeList() {
     if (!employees) {
         return (
             <div className="flex items-center justify-center h-48 text-muted-foreground">
-                Loading...
+                <div className="animate-pulse">Loading...</div>
             </div>
         )
     }
 
     const activeEmployees = employees.filter(emp => !emp.isDeclinedByAdmin)
-    // const declinedEmployees = employees.filter(emp => emp.isDeclinedByAdmin)
 
     return (
         <div className="space-y-6">
@@ -126,41 +146,10 @@ export function EmployeeList() {
                 <h2 className="text-2xl font-semibold tracking-tight">Registered Employees</h2>
                 <div className="flex gap-2">
                     <AuditLogDialog />
-                    <EmployeeFormDialog />
+                    <EmployeeFormDialog key="employee-form" />
                 </div>
             </div>
 
-            {/* <Tabs defaultValue="active" className="space-y-6">
-                <TabsList>
-                    <TabsTrigger value="active">
-                        Active Employees
-                        <Badge variant="secondary" className="ml-2">
-                            {activeEmployees.length}
-                        </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="declined">
-                        Declined Registrations
-                        <Badge variant="secondary" className="ml-2">
-                            {declinedEmployees.length}
-                        </Badge>
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="active" className="space-y-4">
-
-                </TabsContent>
-
-                <TabsContent value="declined" className="space-y-4">
-                    <div className="rounded-lg border bg-card">
-                        <DataTable
-                            columns={columns}
-                            data={declinedEmployees}
-                            filter="name"
-                            filterLabel="Search declined registrations"
-                        />
-                    </div>
-                </TabsContent>
-            </Tabs> */}
             <div className="rounded-lg border p-5 bg-card">
                 <DataTable
                     columns={columns}
@@ -172,9 +161,12 @@ export function EmployeeList() {
 
             {editingEmployee && (
                 <EditEmployeeDialog
+                    key={`edit-dialog-${editingEmployee._id}`}
                     employee={editingEmployee}
-                    open={!!editingEmployee}
-                    onOpenChange={(open) => !open && setEditingEmployee(null)}
+                    open={isEditDialogOpen}
+                    onOpenChange={() => {
+                        handleEditDialogClose();
+                    }}
                 />
             )}
         </div>

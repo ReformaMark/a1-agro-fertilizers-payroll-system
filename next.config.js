@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'tough-chihuahua-706.convex.cloud',
+        port: '',
+        pathname: '/api/storage/**',
+      },
+    ],
+  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,

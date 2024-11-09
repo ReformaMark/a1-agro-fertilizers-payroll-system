@@ -16,7 +16,7 @@ export const AuthScreen = () => {
     return (
         <div className="h-screen w-full lg:flex lg:flex-row">
             <div className="hidden lg:block lg:w-1/2 bg-gradient-to-br from-primary to-primary/80">
-                <div className="h-full flex flex-col justify-center items-center px-24 space-y-16">
+                <div className="h-full flex flex-col justify-center items-center px-24 space-y-8">
                     <div className="relative w-full max-w-[420px] h-[120px]">
                         <Image
                             src="/logo.svg"
@@ -26,9 +26,10 @@ export const AuthScreen = () => {
                             priority
                         />
                     </div>
-                    <div className="text-center space-y-6">
+                    <div className="text-center space-y-3">
                         <h1 className="text-5xl font-bold text-white">Welcome</h1>
-                        <p className="text-xl text-white/80">Sign in to continue to your account</p>
+                        <p className="text-xl text-white/80">A1 Agro Fertilizer
+                            and Chemical Supply</p>
                     </div>
                 </div>
             </div>
