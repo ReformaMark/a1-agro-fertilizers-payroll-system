@@ -41,6 +41,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       },
       {
+        title: "Reports",
+        url: "/admin/reports",
+        icon: FileText,
+        items: [
+          {
+            title: "Overview",
+            url: "/admin",
+          },
+          {
+            title: "Reports",
+            url: "/admin/reports",
+          }
+        ],
+      },
+      {
         title: "Employee Management",
         url: "/admin/employees",
         icon: Users,
@@ -48,10 +63,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Employee List",
             url: "/admin/employees",
-          },
-          {
-            title: "Government IDs",
-            url: "/admin/employees/government-ids",
           },
         ],
       },
@@ -63,10 +74,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Daily Records",
             url: "/admin/attendance",
-          },
-          {
-            title: "Biometric Management",
-            url: "/admin/attendance/biometric",
           },
         ],
       },
@@ -154,7 +161,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   if (!user) return null;
 
   return (
-    <Sidebar collapsible="none" {...props} className="bg-white">
+    <Sidebar collapsible="none" {...props} className="bg-white h-screen sticky top-0 left-0">
       <SidebarHeader>
         <Link href="/admin" className="flex flex-col items-center mb-8">
           <div className="bg-[#8BC34A] w-full py-4 rounded-md flex flex-col items-center">
@@ -166,7 +173,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="flex-1 overflow-y-auto">
         <NavMain items={data.navMain} />
       </SidebarContent>
 
