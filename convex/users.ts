@@ -793,3 +793,62 @@ export const getDashboardStats = query({
     };
   },
 });
+
+export const getUserProfile = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Not authenticated");
+
+    const user = await ctx.db.get(userId);
+    if (!user) throw new ConvexError("User not found");
+
+    return {
+      ...user,
+      imageUrl: user.image ? await ctx.storage.getUrl(user.image) : null,
+    };
+  },
+});
+
+export const updateUserProfile = mutation({
+  args: {
+    firstName: v.string(),
+    lastName: v.string(),
+    middleName: v.optional(v.string()),
+    email: v.string(),
+    contactNumber: v.optional(v.string()),
+    dateOfBirth: v.string(),
+    gender: v.union(v.literal("male"), v.literal("female")),
+    maritalStatus: v.union(
+      v.literal("single"),
+      v.literal("married"),
+      v.literal("widowed"),
+      v.literal("divorced"),
+      v.literal("separated")
+    ),
+    contactType: v.union(v.literal("mobile"), v.literal("landline")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Not authenticated");
+
+    const user = await ctx.db.get(userId);
+    if (!user) throw new ConvexError("User not found");
+
+    await ctx.db.patch(userId, {
+      ...args,
+      modifiedAt: new Date().toISOString(),
+    });
+
+    // await ctx.db.insert("auditLogs", {
+    //   action: "Updated Profile",
+    //   entityType: "user",
+    //   entityId: userId,
+    //   performedBy: userId,
+    //   performedAt: new Date().toISOString(),
+    //   details: "Updated user profile information",
+    // });
+
+    return true;
+  },
+});

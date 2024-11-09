@@ -124,3 +124,17 @@ export const editEmployeeSchema = z.object({
 })
 
 export type EditEmployeeValues = z.infer<typeof editEmployeeSchema>
+
+export const userProfileSchema = z.object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    middleName: z.string().optional(),
+    email: z.string().email("Invalid email address"),
+    contactNumber: z.string().optional(),
+    dateOfBirth: z.string(),
+    gender: z.enum(["male", "female"]),
+    maritalStatus: z.enum(["single", "married", "widowed", "divorced", "separated"]),
+    contactType: z.enum(["mobile", "landline"]),
+});
+
+export type UserProfileFormValues = z.infer<typeof userProfileSchema>;

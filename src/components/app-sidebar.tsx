@@ -55,15 +55,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       },
       {
-        title: "Employee Management",
+        title: "Employee List",
         url: "/admin/employees",
         icon: Users,
-        items: [
-          {
-            title: "Employee List",
-            url: "/admin/employees",
-          },
-        ],
       },
       {
         title: "Attendance",
@@ -133,7 +127,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           },
           {
             title: "User Profile",
-            url: "/admin/settings/users",
+            url: "/admin/settings/user-profile",
           },
           {
             title: "Holidays",
