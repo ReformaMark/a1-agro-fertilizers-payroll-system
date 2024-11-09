@@ -11,7 +11,7 @@ import { Id } from '../../../../convex/_generated/dataModel'
 import { formatDate, formatMoney } from '@/lib/utils'
 import { User } from '@/lib/types'
 
-function Payslip({ name, startDate, endDate, userId, user }: { name: string, startDate: string; endDate: string, userId: Id<"users">, user: user }) {
+function Payslip({ name, startDate, endDate, userId, user }: { name: string, startDate: string; endDate: string, userId: Id<"users">, user: User }) {
     const loans = useQuery(api.loans.getGovernmentLoans, {
         userId: userId,
         status: 'Approved'
