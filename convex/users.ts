@@ -341,26 +341,15 @@ export const listEmployeesWithContributions = query({
 
   handler: async (ctx, args) => {
     const employees = await ctx.db
-
       .query("users")
-
       .filter((q) =>
         q.and(
           q.eq(q.field("role"), "employee"),
-
           q.eq(q.field("filledUpByAdmin"), true),
-
           q.eq(q.field("philHealthSchedule"), args.schedule)
         )
       )
-
       .collect();
-
-    // Debug log to check the data
-
-    console.log("Employees found:", employees.length);
-
-    console.log("Sample employee:", employees[0]);
 
     return employees;
   },
@@ -704,7 +693,6 @@ export const updatePersonalInfo = mutation({
 
 export const list = query({
   handler: async (ctx) => {
-    return await ctx.db.query("users")
-      .collect()
-  }
-})
+    return await ctx.db.query("users").collect();
+  },
+});
