@@ -22,10 +22,10 @@ export function TimeDisplay() {
 
   return (
     <div className="flex flex-col items-center font-mono mt-2">
-      <div className="text-4xl">
+      <div className="text-2xl">
         {dayOfWeek}, {currentTime.toLocaleTimeString()}
       </div>
-      <div className="text-xl mt-1">
+      <div className="text-lg mt-1">
         {date}
       </div>
     </div>

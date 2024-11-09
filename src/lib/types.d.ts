@@ -7,7 +7,8 @@ export type Attendance = Doc<"attendance"> & {
 }
 
 export interface AttendanceWithUser extends Doc<"attendance"> {
-    employee: Doc<"users">
+   
+    employee: Doc<"users"> 
 }
 
 

@@ -16,6 +16,7 @@ import {
     Settings,
     Wallet
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -82,11 +83,12 @@ const SidebarContent = ({ className }: SidebarContentProps) => {
     const { signOut } = useAuthActions()
 
     return (
-        <div className={cn("space-y-4 py-4 flex flex-col h-full bg-gray-900 text-white", className)}>
+        <div className={cn("space-y-4 py-4 flex w-1/6 flex-col h-full bg-gray-900 text-white", className)}>
             <div className="px-3 py-2 flex-1">
-                <Link href="/employee" className="flex items-center pl-3 mb-14">
-                    <h1 className="text-2xl font-bold">
-                        Employee Portal
+                <Link href="/employee" className="flex flex-col gap-2 items-center pl-3 mb-14">
+                    <Image src="/logo.svg" alt="A1 Agro" width={50} height={50} className="size-20" />
+                    <h1 className="text-xl font-bold text-center">
+                        A1 Agro Fertilizer and Chemical Supply
                     </h1>
                 </Link>
                 <div className="space-y-1">

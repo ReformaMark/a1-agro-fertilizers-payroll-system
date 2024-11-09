@@ -16,7 +16,7 @@ export default function EmployeeLayout({
                     <div className="flex min-h-screen">
                         <SidebarProvider>
                             <EmployeeSidebar />
-                            <div className="flex-1 flex flex-col md:ml-32">
+                            <div className="flex-1 flex flex-col">
                                 <main className="flex-1 overflow-y-auto container">
                                     {children}
                                 </main>
