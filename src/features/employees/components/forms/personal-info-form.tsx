@@ -1,13 +1,15 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { UseFormReturn } from "react-hook-form"
-import { EmployeeFormValues } from "../../lib/schema"
-import { Button } from "@/components/ui/button"
+import { format } from "date-fns"
 import { Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
+import { UseFormReturn } from "react-hook-form"
+import { EmployeeFormValues, MIN_AGE } from "../../lib/schema"
+
 
 interface PersonalInfoFormProps {
   form: UseFormReturn<EmployeeFormValues>
@@ -113,9 +115,9 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
               <FormLabel>Password</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input 
-                    type={showPassword ? "text" : "password"} 
-                    {...field} 
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    {...field}
                   />
                   <Button
                     type="button"
@@ -146,7 +148,17 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
             <FormItem>
               <FormLabel>Date of Birth</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input
+                  type="date"
+                  {...field}
+                  value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                  onChange={e => {
+                    const date = new Date(e.target.value);
+                    field.onChange(date);
+                  }}
+                  min={format(new Date(new Date().setFullYear(new Date().getFullYear() - 100)), 'yyyy-MM-dd')}
+                  max={format(new Date(new Date().setFullYear(new Date().getFullYear() - MIN_AGE)), 'yyyy-MM-dd')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -239,10 +251,10 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
               <FormItem>
                 <FormLabel>Contact Number</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     placeholder={PHONE_PLACEHOLDERS[watchContactType as keyof typeof PHONE_PLACEHOLDERS] || "Enter contact number"}
                     pattern={PHONE_PATTERNS[watchContactType as keyof typeof PHONE_PATTERNS]?.source}
-                    {...field} 
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />

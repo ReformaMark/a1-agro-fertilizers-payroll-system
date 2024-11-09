@@ -17,6 +17,7 @@ interface ImageUploadProps {
     onUploadComplete?: (storageId: Id<"_storage">) => void
     onFileSelect?: (file: File) => void
     previewMode?: boolean
+    isUploading?: boolean
 }
 
 export function ImageUpload({
@@ -25,7 +26,8 @@ export function ImageUpload({
     imageUrl,
     onUploadComplete,
     onFileSelect,
-    previewMode = false
+    previewMode = false,
+    isUploading = false
 }: ImageUploadProps) {
     const [uploading, setUploading] = useState(false)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -96,19 +98,19 @@ export function ImageUpload({
 
             <Button
                 variant="outline"
-                disabled={uploading}
+                disabled={uploading || isUploading}
                 className="cursor-pointer"
                 asChild
             >
                 <label className="flex items-center gap-2">
                     <Upload className="h-4 w-4" />
-                    {uploading ? "Uploading..." : "Upload Image"}
+                    {uploading || isUploading ? "Uploading..." : "Upload Image"}
                     <input
                         type="file"
                         accept="image/*"
                         className="hidden"
                         onChange={handleUpload}
-                        disabled={uploading}
+                        disabled={uploading || isUploading}
                     />
                 </label>
             </Button>

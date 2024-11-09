@@ -87,10 +87,10 @@ export const getEmployee = query({
 
       foundEmployee: employee
         ? {
-            id: employee._id,
+          id: employee._id,
 
-            name: `${employee.firstName} ${employee.lastName}`,
-          }
+          name: `${employee.firstName} ${employee.lastName}`,
+        }
         : null,
     });
 
@@ -232,6 +232,44 @@ export const makeAdmin = mutation({
   },
 });
 
+export const demoteAdmin = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const adminId = await getAuthUserId(ctx);
+    if (!adminId) throw new ConvexError("Not authenticated");
+
+    // Check if current user is admin
+    const admin = await ctx.db.get(adminId);
+    if (admin?.role !== "admin") {
+      throw new ConvexError("Not authorized");
+    }
+
+    // Prevent self-demotion
+    if (args.userId === adminId) {
+      throw new ConvexError("Cannot demote yourself");
+    }
+
+    // Update admin to employee
+    await ctx.db.patch(args.userId, {
+      role: "employee",
+      modifiedBy: adminId,
+      modifiedAt: new Date().toISOString(),
+    });
+
+    // Create audit log entry
+    await ctx.db.insert("auditLogs", {
+      action: "Demoted Admin",
+      entityType: "employee",
+      entityId: args.userId,
+      performedBy: adminId,
+      performedAt: new Date().toISOString(),
+      details: `Removed admin privileges from user`,
+    });
+
+    return true;
+  },
+});
+
 export const updateEmployee = mutation({
   args: {
     userId: v.id("users"),
@@ -341,26 +379,15 @@ export const listEmployeesWithContributions = query({
 
   handler: async (ctx, args) => {
     const employees = await ctx.db
-
       .query("users")
-
       .filter((q) =>
         q.and(
           q.eq(q.field("role"), "employee"),
-
           q.eq(q.field("filledUpByAdmin"), true),
-
           q.eq(q.field("philHealthSchedule"), args.schedule)
         )
       )
-
       .collect();
-
-    // Debug log to check the data
-
-    console.log("Employees found:", employees.length);
-
-    console.log("Sample employee:", employees[0]);
 
     return employees;
   },
@@ -658,13 +685,9 @@ export const checkEmployeeIdExists = query({
 export const updatePersonalInfo = mutation({
   args: {
     userId: v.id("users"),
-
     firstName: v.string(),
-
     middleName: v.optional(v.string()),
-
     lastName: v.string(),
-
     maritalStatus: v.union(
       v.literal("single"),
       v.literal("married"),
@@ -672,52 +695,33 @@ export const updatePersonalInfo = mutation({
       v.literal("divorced"),
       v.literal("separated")
     ),
+    image: v.optional(v.id("_storage")),
   },
-
   handler: async (ctx, args) => {
     const adminId = await getAuthUserId(ctx);
-
     if (!adminId) throw new ConvexError("Not authenticated");
 
-    // Check if current user is admin
-
     const admin = await ctx.db.get(adminId);
-
     if (admin?.role !== "admin") {
       throw new ConvexError("Not authorized");
     }
 
     const { userId, ...updateData } = args;
-
-    // Get the employee being updated
-
     const employee = await ctx.db.get(userId);
-
     if (!employee) throw new ConvexError("Employee not found");
-
-    // Update the employee's personal information
 
     await ctx.db.patch(userId, {
       ...updateData,
-
       modifiedBy: adminId,
-
       modifiedAt: new Date().toISOString(),
     });
 
-    // Create audit log entry
-
     await ctx.db.insert("auditLogs", {
       action: "Updated Personal Information",
-
       entityType: "employee",
-
       entityId: userId,
-
       performedBy: adminId,
-
       performedAt: new Date().toISOString(),
-
       details: `Updated personal information for ${employee.firstName} ${employee.lastName}`,
     });
 
@@ -727,7 +731,162 @@ export const updatePersonalInfo = mutation({
 
 export const list = query({
   handler: async (ctx) => {
-    return await ctx.db.query("users")
-      .collect()
-  }
-})
+    return await ctx.db.query("users").collect();
+  },
+});
+
+export const getDashboardStats = query({
+  handler: async (ctx) => {
+    // Get total employees
+    const employees = await ctx.db
+      .query("users")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("role"), "employee"),
+          q.eq(q.field("isArchived"), false)
+        )
+      )
+      .collect();
+
+    // Get employees present today
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const todayMonth = today.getMonth() + 1; // Adding 1 because months are 0-based
+    const todayDay = today.getDate();
+
+    const presentToday = await ctx.db
+      .query("attendance")
+      .filter((q) =>
+        q.eq(
+          q.field("date"),
+          todayStr
+        )
+      )
+      .collect();
+
+    const birthdaysToday = employees
+      .filter(employee => {
+        if (!employee.dateOfBirth) return false;
+        const [, birthMonth, birthDay] = employee.dateOfBirth.split('-').map(Number);
+        return birthMonth === todayMonth && birthDay === todayDay;
+      })
+      .map(emp => ({
+        id: emp._id,
+        name: `${emp.firstName} ${emp.lastName}`,
+        dateOfBirth: emp.dateOfBirth
+      }));
+
+    const upcomingBirthdays = employees
+      .filter(employee => {
+        if (!employee.dateOfBirth) return false;
+
+        const [, birthMonth, birthDay] = employee.dateOfBirth.split('-').map(Number);
+        const thisYearBirthday = new Date(
+          today.getFullYear(),
+          birthMonth - 1,
+          birthDay
+        );
+
+        // If birthday has passed this year, check next year's birthday
+        if (thisYearBirthday < today) {
+          thisYearBirthday.setFullYear(today.getFullYear() + 1);
+        }
+
+        // Calculate days until birthday
+        const diffTime = thisYearBirthday.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // Only include future birthdays within next 30 days
+        return diffDays > 0 && diffDays <= 30;
+      })
+      .map(emp => {
+        const [, birthMonth, birthDay] = emp.dateOfBirth.split('-').map(Number);
+        const thisYearBirthday = new Date(
+          today.getFullYear(),
+          birthMonth - 1,
+          birthDay
+        );
+
+        if (thisYearBirthday < today) {
+          thisYearBirthday.setFullYear(today.getFullYear() + 1);
+        }
+
+        const diffTime = thisYearBirthday.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        return {
+          id: emp._id,
+          name: `${emp.firstName} ${emp.lastName}`,
+          dateOfBirth: emp.dateOfBirth,
+          daysUntil: diffDays
+        };
+      })
+      .sort((a, b) => a.daysUntil - b.daysUntil);
+
+    return {
+      totalEmployees: employees.length,
+      presentToday: presentToday.length,
+      birthdaysToday,
+      upcomingBirthdays,
+    };
+  },
+});
+
+export const getUserProfile = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Not authenticated");
+
+    const user = await ctx.db.get(userId);
+    if (!user) throw new ConvexError("User not found");
+
+    return {
+      ...user,
+      imageUrl: user.image ? await ctx.storage.getUrl(user.image) : null,
+    };
+  },
+});
+
+export const updateUserProfile = mutation({
+  args: {
+    firstName: v.string(),
+    lastName: v.string(),
+    middleName: v.optional(v.string()),
+    email: v.string(),
+    contactNumber: v.optional(v.string()),
+    dateOfBirth: v.string(),
+    gender: v.union(v.literal("male"), v.literal("female")),
+    maritalStatus: v.union(
+      v.literal("single"),
+      v.literal("married"),
+      v.literal("widowed"),
+      v.literal("divorced"),
+      v.literal("separated")
+    ),
+    contactType: v.union(v.literal("mobile"), v.literal("landline")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new ConvexError("Not authenticated");
+
+    const user = await ctx.db.get(userId);
+    if (!user) throw new ConvexError("User not found");
+
+    await ctx.db.patch(userId, {
+      ...args,
+      modifiedAt: new Date().toISOString(),
+    });
+
+    // await ctx.db.insert("auditLogs", {
+    //   action: "Updated Profile",
+    //   entityType: "user",
+    //   entityId: userId,
+    //   performedBy: userId,
+    //   performedAt: new Date().toISOString(),
+    //   details: "Updated user profile information",
+    // });
+
+    return true;
+  },
+});

@@ -39,7 +39,7 @@ export function NavMain({
       <SidebarMenu>
         {items.map((item) => {
           // Handle Dashboard and Reports as standalone items
-          if (item.title === "Dashboard" || item.title === "Reports") {
+          if (item.title === "Dashboard" || item.title === "Reports" || item.title === "Employee List") {
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
@@ -73,7 +73,7 @@ export function NavMain({
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     tooltip={item.title}
                     className={cn(
                       "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-gray-100 rounded-lg transition",

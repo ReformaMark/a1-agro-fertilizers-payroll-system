@@ -23,7 +23,6 @@ export function SSSReport() {
     const employees = useQuery(api.users.listEmployeesWithContributions, {
         schedule
     });
-    // const sssTable = useQuery(api.contributionTables.getCurrentSSS); 
 
     const findEmployerShares = (employeeShare: number) => {
         // Direct calculation without table lookup
@@ -43,8 +42,8 @@ export function SSSReport() {
             name: `${employee.lastName}, ${employee.firstName}`,
             sssNo: employee.sssNumber || "N/A",
             employeeShare: Number(employeeShare),  // Ensure it's a number
-            employerShare: Number(er),            // Ensure it's a number
-            ecEmployerShare: Number(ec)           // Ensure it's a number
+            employerShare: Number(er),             // Ensure it's a number
+            ecEmployerShare: Number(ec)            // Ensure it's a number
         };
     }) || [];
 

@@ -67,6 +67,7 @@ export default defineSchema({
         .index("by_department", ["department"]) // For department-based queries
         .index("by_archived", ["isArchived"]) // For filtering active/inactive users
         .index("by_employee_type_id", ["employeeTypeId"]),
+
     attendance: defineTable({
         userId: v.id("users"),
         timeIn: v.string(),
@@ -80,6 +81,7 @@ export default defineSchema({
         .index("by_user", ["userId"]) // For user's attendance history
         .index("by_date", ["date"]) // For daily reports
         .index("by_user_and_date", ["userId", "date"]), // For specific user's attendance on a date
+
     leaves: defineTable({
         userId: v.id("users"),
         type: v.string(), // Vacation, Sick, Maternity, etc.
@@ -92,6 +94,7 @@ export default defineSchema({
         .index("by_user", ["userId"]) // For user's leave history
         .index("by_status", ["status"]) // For pending approvals
         .index("by_date_range", ["startDate", "endDate"]), // For date range queries
+
     payrollPeriods: defineTable({
         startDate: v.string(), // YYYY-MM-DD format
         endDate: v.string(), // YYYY-MM-DD format

@@ -14,6 +14,8 @@ import { AuditLogDialog } from "./audit-log-dialog"
 import { ConfirmMakeAdminDialog } from "./confirm-make-admin-dialog"
 import { EditEmployeeDialog } from "./edit-employee-dialog"
 import { EmployeeFormDialog } from "./employee-form-dialog"
+import { ConfirmDemoteAdminDialog } from "./confirm-demote-admin-dialog"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 type Employee = Doc<"users"> & { imageUrl?: string | null }
 
@@ -32,6 +34,7 @@ const statusColors = {
 
 export function EmployeeList() {
     const employees = useEmployees()
+    const { data: currentUser } = useCurrentUser()
     const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
@@ -141,9 +144,24 @@ export function EmployeeList() {
         }
     ], [])
 
-    const adminColumns = useMemo<ColumnDef<Employee>[]>(() => columns.filter(col => col.id !== "actions"), [columns])
+    const adminColumns = useMemo<ColumnDef<Employee>[]>(() => [
+        ...columns.filter(col => col.id !== "actions"),
+        {
+            id: "actions",
+            cell: ({ row }) => {
+                return (
+                    <div className="flex gap-2">
+                        <ConfirmDemoteAdminDialog
+                            userId={row.original._id}
+                            userName={`${row.original.firstName} ${row.original.lastName}`}
+                        />
+                    </div>
+                )
+            }
+        }
+    ], [columns])
 
-    if (!employees) {
+    if (!employees || !currentUser) {
         return (
             <div className="flex items-center justify-center h-48 text-muted-foreground">
                 <div className="animate-pulse">Loading...</div>
@@ -151,11 +169,17 @@ export function EmployeeList() {
         )
     }
 
+    // Filter out current user from both lists
     const activeEmployees = employees.filter(emp =>
         !emp.isDeclinedByAdmin &&
-        emp.role === "employee"
+        emp.role === "employee" &&
+        emp._id !== currentUser._id // Filter out current user
     )
-    const admins = employees.filter(emp => emp.role === "admin")
+
+    const admins = employees.filter(emp =>
+        emp.role === "admin" &&
+        emp._id !== currentUser._id // Filter out current user
+    )
 
     return (
         <div className="space-y-6">

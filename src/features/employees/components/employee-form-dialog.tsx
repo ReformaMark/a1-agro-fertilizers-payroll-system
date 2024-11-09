@@ -63,9 +63,14 @@ export function EmployeeFormDialog() {
 
         try {
             setIsSubmitting(true)
-            const { _id, image, ...submitData } = data
+            const { _id, image, dateOfBirth, ...submitData } = data
 
-            const result = await createEmployee(submitData)
+            const formattedDate = {
+                ...submitData,
+                dateOfBirth: dateOfBirth.toISOString().split('T')[0],
+            }
+
+            const result = await createEmployee(formattedDate)
 
             if (!result) {
                 toast.error("Failed to create employee", {
@@ -213,18 +218,32 @@ export function EmployeeFormDialog() {
 
                                 {step === 1 && (
                                     <div className="space-y-6">
-                                        <div className="flex justify-center">
+                                        <div className="flex justify-center mb-6">
                                             <ImageUpload
                                                 previewMode={true}
                                                 onFileSelect={setSelectedFile}
                                             />
                                         </div>
-                                        <PersonalInfoForm form={form} />
+                                        <div className="max-w-3xl mx-auto">
+                                            <PersonalInfoForm form={form} />
+                                        </div>
                                     </div>
                                 )}
-                                {step === 2 && <EmploymentInfoForm form={form} />}
-                                {step === 3 && <AddressInfoForm form={form} />}
-                                {step === 4 && <PayrollInfoForm form={form} />}
+                                {step === 2 && (
+                                    <div className="max-w-3xl mx-auto">
+                                        <EmploymentInfoForm form={form} />
+                                    </div>
+                                )}
+                                {step === 3 && (
+                                    <div className="max-w-3xl mx-auto">
+                                        <AddressInfoForm form={form} />
+                                    </div>
+                                )}
+                                {step === 4 && (
+                                    <div className="max-w-3xl mx-auto">
+                                        <PayrollInfoForm form={form} />
+                                    </div>
+                                )}
 
                                 <div className="flex justify-end gap-2 sticky bottom-0 bg-background py-4 border-t">
                                     {step > 1 && (
