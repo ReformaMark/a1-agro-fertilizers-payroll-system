@@ -23,7 +23,7 @@ export default defineSchema({
         contactType: v.union(v.literal("mobile"), v.literal("landline")),
         contactNumber: v.string(),
         // Employment Information
-        employeeTypeId: v.optional(v.string()),
+        employeeTypeId: v.string(),
         department: v.optional(v.string()),
         position: v.optional(v.string()),
         hiredDate: v.optional(v.string()),
@@ -65,7 +65,8 @@ export default defineSchema({
         .index("by_email", ["email"]) // For user lookups
         .index("by_role", ["role"]) // For filtering admins/employees
         .index("by_department", ["department"]) // For department-based queries
-        .index("by_archived", ["isArchived"]), // For filtering active/inactive users
+        .index("by_archived", ["isArchived"]) // For filtering active/inactive users
+        .index("by_employee_type_id", ["employeeTypeId"]),
     attendance: defineTable({
         userId: v.id("users"),
         timeIn: v.number(),
@@ -99,7 +100,7 @@ export default defineSchema({
     })
         .index("by_status", ["status"]) // For filtering by processing status
         .index("by_date_range", ["startDate", "endDate"]), // For period lookups
-        
+
     salaryComponents: defineTable({
         userId: v.id("users"),
         payrollPeriodId: v.id("payrollPeriods"),
@@ -107,7 +108,7 @@ export default defineSchema({
         allowances: v.array(v.object({
             type: v.string(),
             amount: v.number(),
-        })), 
+        })),
         deductions: v.array(v.object({
             type: v.string(),
             amount: v.number(),

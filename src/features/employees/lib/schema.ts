@@ -35,9 +35,18 @@ export const employeeFormSchema = z.object({
     street: z.string(),
     houseNumber: z.string(),
     ratePerDay: z.number(),
-    philHealthNumber: z.string(),
-    pagIbigNumber: z.string(),
-    sssNumber: z.string(),
+    philHealthNumber: z.string()
+        .regex(/^\d{2}-\d{9}-\d{1}$/, {
+            message: "Invalid PhilHealth number format. Should be XX-XXXXXXXXX-X"
+        }),
+    pagIbigNumber: z.string()
+        .regex(/^\d{4}-\d{4}-\d{4}$/, {
+            message: "Invalid Pag-IBIG number format. Should be XXXX-XXXX-XXXX"
+        }),
+    sssNumber: z.string()
+        .regex(/^\d{2}-\d{7}-\d{1}$/, {
+            message: "Invalid SSS number format. Should be XX-XXXXXXX-X"
+        }),
     birTin: z.string(),
     philHealthContribution: z.number(),
     pagIbigContribution: z.number(),
@@ -47,7 +56,10 @@ export const employeeFormSchema = z.object({
     pagIbigSchedule: z.enum(["1st half", "2nd half"]),
     sssSchedule: z.enum(["1st half", "2nd half"]),
     incomeTaxSchedule: z.enum(["1st half", "2nd half"]),
-    employeeTypeId: z.string(),
+    employeeTypeId: z.string()
+        .regex(/^\d{4}\d{3}\d{4}$/, {
+            message: "Invalid employee ID format. Should be YYYY-MMM-SSMS format"
+        }),
 })
 
 export type EmployeeFormValues = z.infer<typeof employeeFormSchema>

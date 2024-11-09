@@ -12,20 +12,6 @@ interface EmploymentInfoFormProps {
 export function EmploymentInfoForm({ form }: EmploymentInfoFormProps) {
   return (
     <div className="grid gap-4 py-4">
-      <FormField
-        control={form.control}
-        name="employeeTypeId"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Employee ID</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter employee ID" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}

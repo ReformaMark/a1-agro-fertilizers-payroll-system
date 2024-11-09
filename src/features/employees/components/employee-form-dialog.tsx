@@ -26,6 +26,7 @@ import { EmploymentInfoForm } from "./forms/employment-info-form"
 import { PayrollInfoForm } from "./forms/payroll-info-form"
 import { PersonalInfoForm } from "./forms/personal-info-form"
 import { ImageUpload } from "./image-upload"
+import { generateEmployeeId } from "@/lib/utils"
 
 export function EmployeeFormDialog() {
     const [open, setOpen] = useState(false)
@@ -43,6 +44,7 @@ export function EmployeeFormDialog() {
         defaultValues: {
             _id: undefined,
             image: undefined,
+            employeeTypeId: generateEmployeeId(),
             philHealthSchedule: "1st half",
             pagIbigSchedule: "1st half",
             sssSchedule: "1st half",

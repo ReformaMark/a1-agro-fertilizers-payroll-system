@@ -99,6 +99,18 @@ export function EmployeeList() {
             }
         },
         {
+            accessorKey: "employeeTypeId",
+            header: "Employee ID",
+            cell: ({ row }) => {
+                const id = row.original.employeeTypeId
+                return id ? (
+                    <span className="font-mono">
+                        {`${id.slice(0, 4)} ${id.slice(4, 7)} ${id.slice(7)}`}
+                    </span>
+                ) : "N/A"
+            }
+        },
+        {
             id: "actions",
             cell: ({ row }) => {
                 const isComplete = registrationStatus(row.original) === "complete"

@@ -16,6 +16,51 @@ const SCHEDULE_OPTIONS = [
 ]
 
 export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
+  // Function to format PhilHealth number as user types
+  const formatPhilHealthNumber = (value: string = "") => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+
+    // Format as XX-XXXXXXXXX-X
+    if (digits.length <= 2) {
+      return digits;
+    } else if (digits.length <= 11) {
+      return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    } else {
+      return `${digits.slice(0, 2)}-${digits.slice(2, 11)}-${digits.slice(11, 12)}`;
+    }
+  };
+
+  // Function to format Pag-IBIG number as user types
+  const formatPagIbigNumber = (value: string = "") => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Format as XXXX-XXXX-XXXX
+    if (digits.length <= 4) {
+      return digits;
+    } else if (digits.length <= 8) {
+      return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    } else {
+      return `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8, 12)}`;
+    }
+  };
+
+  // Function to format SSS number as user types
+  const formatSSSNumber = (value: string = "") => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Format as XX-XXXXXXX-X
+    if (digits.length <= 2) {
+      return digits;
+    } else if (digits.length <= 9) {
+      return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    } else {
+      return `${digits.slice(0, 2)}-${digits.slice(2, 9)}-${digits.slice(9, 10)}`;
+    }
+  };
+
   return (
     <div className="grid gap-4 py-4">
       <FormField
@@ -45,7 +90,16 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>PhilHealth Number</FormLabel>
               <FormControl>
-                <Input placeholder="PhilHealth Number" {...field} />
+                <Input
+                  placeholder="XX-XXXXXXXXX-X"
+                  {...field}
+                  value={formatPhilHealthNumber(field.value || "")}
+                  onChange={(e) => {
+                    const formatted = formatPhilHealthNumber(e.target.value);
+                    field.onChange(formatted);
+                  }}
+                  maxLength={14} // 12 digits + 2 hyphens
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,7 +140,16 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>Pag-IBIG Number</FormLabel>
               <FormControl>
-                <Input placeholder="Pag-IBIG Number" {...field} />
+                <Input 
+                  placeholder="XXXX-XXXX-XXXX"
+                  {...field}
+                  value={formatPagIbigNumber(field.value || "")}
+                  onChange={(e) => {
+                    const formatted = formatPagIbigNumber(e.target.value);
+                    field.onChange(formatted);
+                  }}
+                  maxLength={14} // 12 digits + 2 hyphens
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -127,7 +190,16 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>SSS Number</FormLabel>
               <FormControl>
-                <Input placeholder="SSS Number" {...field} />
+                <Input 
+                  placeholder="XX-XXXXXXX-X"
+                  {...field}
+                  value={formatSSSNumber(field.value || "")}
+                  onChange={(e) => {
+                    const formatted = formatSSSNumber(e.target.value);
+                    field.onChange(formatted);
+                  }}
+                  maxLength={12} // 10 digits + 2 hyphens
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

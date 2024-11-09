@@ -348,86 +348,47 @@ export const createEmployee = mutation({
         employeeTypeId: v.string(),
     },
     handler: async (ctx, args) => {
-        try {
-            const adminId = await getAuthUserId(ctx)
-            if (!adminId) throw new ConvexError("Not authenticated")
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) throw new ConvexError("Not authenticated")
 
-            // Check if current user is admin
-            const admin = await ctx.db.get(adminId)
-            if (admin?.role !== "admin") {
-                throw new ConvexError("Not authorized")
-            }
-
-            // Check if email already exists
-            const existingUser = await ctx.db
-                .query("users")
-                .filter(q => q.eq(q.field("email"), args.email))
-                .first()
-
-            if (existingUser) {
-                throw new ConvexError("Email already exists")
-            }
-
-            const { email, password, ...userData } = args
-
-            // Create the account using createAccount
-            // @ts-expect-error convex does not support password provider types yet
-            const accountResponse = await createAccount(ctx, {
-                provider: "password",
-                account: {
-                    id: email,
-                    secret: password,
-                },
-                profile: {
-                    email,
-                    firstName: userData.firstName,
-                    middleName: userData.middleName,
-                    lastName: userData.lastName,
-                    dateOfBirth: userData.dateOfBirth,
-                    gender: userData.gender,
-                    maritalStatus: userData.maritalStatus,
-                    contactType: userData.contactType,
-                    contactNumber: userData.contactNumber,
-                    role: "employee",
-                },
-            });
-
-            if (!accountResponse?.user?._id) {
-                throw new ConvexError("Failed to create user account");
-            }
-
-            // Create the user record with all fields
-            await ctx.db.patch(accountResponse.user._id as Id<"users">, {
-                ...userData,
-                email,
-                role: "employee",
-                isArchived: false,
-                filledUpByAdmin: true,
-                modifiedBy: adminId,
-                modifiedAt: new Date().toISOString(),
-            });
-
-            // Get the updated user data
-            const newUser = await ctx.db.get(accountResponse.user._id as Id<"users">);
-            if (!newUser) {
-                throw new ConvexError("Failed to retrieve created user");
-            }
-
-            // Create audit log entry
-            await ctx.db.insert("auditLogs", {
-                action: "Created Employee",
-                entityType: "employee",
-                entityId: accountResponse.user._id as Id<"users">,
-                performedBy: adminId,
-                performedAt: new Date().toISOString(),
-                details: `Created employee account for ${args.firstName} ${args.lastName}`,
-            });
-
-            return newUser;
-        } catch (error) {
-            console.error("Error in createEmployee:", error);
-            throw error;
+        // Check if current user is admin
+        const admin = await ctx.db.get(adminId)
+        if (admin?.role !== "admin") {
+            throw new ConvexError("Not authorized")
         }
+
+        // Check if employee ID already exists
+        const existingEmployee = await ctx.db
+            .query("users")
+            .filter(q => q.eq(q.field("employeeTypeId"), args.employeeTypeId))
+            .first()
+
+        if (existingEmployee) {
+            throw new ConvexError("Employee ID already exists")
+        }
+
+        // Create the employee with the auto-generated ID
+        const userId = await ctx.db.insert("users", {
+            ...args,
+            role: "employee",
+            isDeclinedByAdmin: false,
+            filledUpByAdmin: true,
+            modifiedBy: adminId,
+            modifiedAt: new Date().toISOString(),
+            isArchived: false,
+        })
+
+        // Create audit log entry
+        await ctx.db.insert("auditLogs", {
+            action: "Created Employee",
+            entityType: "employee",
+            entityId: userId,
+            performedBy: adminId,
+            performedAt: new Date().toISOString(),
+            details: `Created new employee account for ${args.firstName} ${args.lastName} with ID ${args.employeeTypeId}`,
+        })
+
+        return { _id: userId }
     }
 })
 
@@ -472,3 +433,15 @@ export const updateProfileImage = mutation({
         };
     },
 });
+
+export const checkEmployeeIdExists = query({
+    args: { employeeTypeId: v.string() },
+    handler: async (ctx, args) => {
+        const employee = await ctx.db
+            .query("users")
+            .filter(q => q.eq(q.field("employeeTypeId"), args.employeeTypeId))
+            .first()
+
+        return !!employee
+    }
+})
