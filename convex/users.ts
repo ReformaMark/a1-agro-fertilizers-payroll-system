@@ -696,3 +696,100 @@ export const list = query({
     return await ctx.db.query("users").collect();
   },
 });
+
+export const getDashboardStats = query({
+  handler: async (ctx) => {
+    // Get total employees
+    const employees = await ctx.db
+      .query("users")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("role"), "employee"),
+          q.eq(q.field("isArchived"), false)
+        )
+      )
+      .collect();
+
+    // Get employees present today
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const todayMonth = today.getMonth() + 1; // Adding 1 because months are 0-based
+    const todayDay = today.getDate();
+
+    const presentToday = await ctx.db
+      .query("attendance")
+      .filter((q) =>
+        q.eq(
+          q.field("date"),
+          todayStr
+        )
+      )
+      .collect();
+
+    const birthdaysToday = employees
+      .filter(employee => {
+        if (!employee.dateOfBirth) return false;
+        const [, birthMonth, birthDay] = employee.dateOfBirth.split('-').map(Number);
+        return birthMonth === todayMonth && birthDay === todayDay;
+      })
+      .map(emp => ({
+        id: emp._id,
+        name: `${emp.firstName} ${emp.lastName}`,
+        dateOfBirth: emp.dateOfBirth
+      }));
+
+    const upcomingBirthdays = employees
+      .filter(employee => {
+        if (!employee.dateOfBirth) return false;
+
+        const [, birthMonth, birthDay] = employee.dateOfBirth.split('-').map(Number);
+        const thisYearBirthday = new Date(
+          today.getFullYear(),
+          birthMonth - 1,
+          birthDay
+        );
+
+        // If birthday has passed this year, check next year's birthday
+        if (thisYearBirthday < today) {
+          thisYearBirthday.setFullYear(today.getFullYear() + 1);
+        }
+
+        // Calculate days until birthday
+        const diffTime = thisYearBirthday.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // Only include future birthdays within next 30 days
+        return diffDays > 0 && diffDays <= 30;
+      })
+      .map(emp => {
+        const [, birthMonth, birthDay] = emp.dateOfBirth.split('-').map(Number);
+        const thisYearBirthday = new Date(
+          today.getFullYear(),
+          birthMonth - 1,
+          birthDay
+        );
+
+        if (thisYearBirthday < today) {
+          thisYearBirthday.setFullYear(today.getFullYear() + 1);
+        }
+
+        const diffTime = thisYearBirthday.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        return {
+          id: emp._id,
+          name: `${emp.firstName} ${emp.lastName}`,
+          dateOfBirth: emp.dateOfBirth,
+          daysUntil: diffDays
+        };
+      })
+      .sort((a, b) => a.daysUntil - b.daysUntil);
+
+    return {
+      totalEmployees: employees.length,
+      presentToday: presentToday.length,
+      birthdaysToday,
+      upcomingBirthdays,
+    };
+  },
+});
