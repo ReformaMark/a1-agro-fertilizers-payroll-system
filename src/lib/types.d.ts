@@ -76,6 +76,6 @@ export interface ContributionTable {
     imageUrl: string | null
   }
 
-  export interface user extends Doc<"users"> {
+  export interface User extends Doc<"users"> {
     imageUrl: string | null
   }

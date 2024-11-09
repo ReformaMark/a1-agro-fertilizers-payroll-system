@@ -35,6 +35,7 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
     const [selectedRequest, setSelectedRequest] = useState<CashAdvanceRequestWithUser | null>(null)
     const [rejectionReason, setRejectionReason] = useState("")
     const [showRejectionReasonDialog, setShowRejectionReasonDialog] = useState(false)
+    const [showDetailsDialog, setShowDetailsDialog] = useState(false)
     const isAdmin = currentUser?.role === "admin"
 
     const cashAdvanceRequests = useCashAdvanceRequests(
@@ -110,7 +111,7 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
                 const request = row.original
                 const isPending = request.status === "Pending"
                 const isRejected = request.status === "Rejected"
-                const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+
 
                 if (!isAdmin && !isRejected && !isPending) return null
 

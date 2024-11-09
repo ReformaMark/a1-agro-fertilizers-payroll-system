@@ -8,7 +8,6 @@ import {
     BanknoteIcon,
     CalendarDays,
     Clock,
-    Coins,
     Gift,
     Home,
     LogOut,

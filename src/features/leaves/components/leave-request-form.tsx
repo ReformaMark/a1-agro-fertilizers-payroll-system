@@ -334,7 +334,7 @@ export function LeaveRequestForm({ onClose, employeeId }: LeaveRequestFormProps)
                   <p className="text-sm text-muted-foreground mt-1">
                     {isAdmin ? (
                       <>
-                        {selectedEmployee?.firstName ?? "Loading..."}'s Leave Balance:{" "}
+                        {selectedEmployee?.firstName ?? "Loading..."}&apos;s Leave Balance:{" "}
                         <span className="font-medium">
                           {leaveBalance ?? "..."} days
                         </span>

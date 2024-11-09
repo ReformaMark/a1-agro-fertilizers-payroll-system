@@ -115,6 +115,8 @@ export function LoanRequestList({
     const [selectedCompanyLoan, setSelectedCompanyLoan] = useState<CompanyLoanWithUser | null>(null);
     const [showIssueForm, setShowIssueForm] = useState(false)
     const [showCompanyLoanForm, setShowCompanyLoanForm] = useState(false)
+    const [showCompanyDetailsDialog, setShowCompanyDetailsDialog] = useState(false);
+    const [showGovernmentDetailsDialog, setShowGovernmentDetailsDialog] = useState(false);
 
     useEffect(() => {
         if (showForm) {
@@ -187,7 +189,6 @@ export function LoanRequestList({
             const loan = row.original as CompanyLoanWithUser;
             const isPending = loan.status === "Pending";
             const isApproved = loan.status === "Approved";
-            const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
             return (
                 <>
@@ -200,7 +201,7 @@ export function LoanRequestList({
 
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                                onClick={() => setShowDetailsDialog(true)}
+                                onClick={() => setShowCompanyDetailsDialog(true)}
                             >
                                 <FileText className="mr-2 h-4 w-4" />
                                 View Details
@@ -253,7 +254,7 @@ export function LoanRequestList({
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+                    <Dialog open={showCompanyDetailsDialog} onOpenChange={setShowCompanyDetailsDialog}>
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Loan Request Details</DialogTitle>
@@ -309,7 +310,6 @@ export function LoanRequestList({
         cell: ({ row }: { row: any }) => {
             const loan = row.original as GovernmentLoanWithUser;
             const isPending = loan.status === "Pending";
-            const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
             return (
                 <>
@@ -322,7 +322,7 @@ export function LoanRequestList({
 
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                                onClick={() => setShowDetailsDialog(true)}
+                                onClick={() => setShowGovernmentDetailsDialog(true)}
                             >
                                 <FileText className="mr-2 h-4 w-4" />
                                 View Details
@@ -364,7 +364,7 @@ export function LoanRequestList({
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+                    <Dialog open={showGovernmentDetailsDialog} onOpenChange={setShowGovernmentDetailsDialog}>
                         <DialogContent className="sm:max-w-[525px]">
                             <DialogHeader>
                                 <DialogTitle>Loan Details</DialogTitle>
@@ -435,7 +435,7 @@ export function LoanRequestList({
                                 )}
                             </div>
                             <DialogFooter>
-                                <Button variant="secondary" onClick={() => setShowDetailsDialog(false)}>
+                                <Button variant="secondary" onClick={() => setShowGovernmentDetailsDialog(false)}>
                                     Close
                                 </Button>
                             </DialogFooter>
