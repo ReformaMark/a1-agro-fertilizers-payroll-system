@@ -27,6 +27,7 @@ export const get = query({
             declinedAt: user.declinedAt,
             image: user.image,
             imageUrl: user.image ? await ctx.storage.getUrl(user.image) : null,
+            ratePerDay: user.ratePerDay,
             // employeeTypeId: user.employeeTypeId,
         }
     }

@@ -27,11 +27,11 @@ function Payslip({ startDate, endDate }: { startDate: string; endDate: string })
         </CardHeader>
         <CardContent className='grid grid-cols-2'>
             <div className='border-r border-gray-200 '>
-                <p>Basic Salary</p>
-                <p>10000</p>
+                <p>Rate per day:</p>
+                <p>{data.ratePerDay}</p>
             </div>
             <div className='flex flex-col gap-2'>
-                <p>Basic Salary</p>
+                <p>{}</p>
                 <p>10000</p>
             </div>
         </CardContent>

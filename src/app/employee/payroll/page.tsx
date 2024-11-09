@@ -9,7 +9,7 @@ export default function PayrollPage() {
                 <p className="text-muted-foreground">
                     View your payslips and salary information
                 </p>
-            </div>
+            </div> 
             <div className="w-full p-4">    
                 <PayrollList />
             </div>
