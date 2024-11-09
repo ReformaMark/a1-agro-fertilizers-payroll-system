@@ -340,3 +340,44 @@ export const getAttendanceRecords = query({
     return attendanceWithUsers;
   },
 });
+
+
+export const getAttendanceByDateRange = query({
+  args: {
+    startDate: v.string(),
+    endDate: v.string(),
+    userId: v.id("users")
+  },
+  handler: async (ctx, args) => {
+    const attendanceRecords = await ctx.db
+      .query("attendance")
+      .filter((q) => 
+        q.and(
+          q.eq(q.field("userId"), args.userId),
+          q.gte(q.field("date"), args.startDate),
+          q.lte(q.field("date"), args.endDate)
+        )
+      )
+      .collect();
+
+    // Join with user data and calculate status
+    const attendanceWithUsers = await Promise.all(
+      attendanceRecords.map(async (record) => {
+      
+        let hoursWorked = 0;
+        if (record.timeIn && record.timeOut) {
+          const timeOutHour = new Date(record.timeOut).getHours();
+          hoursWorked = timeOutHour > 13 ? timeOutHour - 1 : timeOutHour;
+        }
+
+        return {
+       
+          hoursWorked,
+      
+        };
+      })
+    );
+
+    return attendanceWithUsers;
+  }
+});

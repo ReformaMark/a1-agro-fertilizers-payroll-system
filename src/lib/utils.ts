@@ -160,3 +160,11 @@ export function formatDate(date: Date | string): string {
   return `${year}-${month}-${day}`;
 }
 
+export function formatMoney(amount: number): string {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
