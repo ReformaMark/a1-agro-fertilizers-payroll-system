@@ -220,33 +220,30 @@ export default function FaceDetectionComponent() {
   }
 
   return (
-    <div className="max-h-screen flex flex-col ">
-      <div className='flex justify-center items-center bg-white p-4 rounded-lg gap-x-56 mb-10 px-20'>
-        <h1 className='text-6xl md:text-3xl font-bold text-gray-900'>Attendance Monitoring</h1>
-        <Image src="/logo.svg" alt="Attendance" width={100} height={100} className='size-20' />
+    <div className="max-h-screen flex flex-col">
+      <div className="flex flex-col md:flex-row justify-center items-center bg-white p-4 rounded-lg gap-y-4 md:gap-x-56 mb-10 px-5 md:px-20">
+        <h1 className="text-3xl md:text-6xl font-bold text-gray-900">Attendance Monitoring</h1>
+        <Image src="/logo.svg" alt="Attendance" width={100} height={100} className="w-20 h-20" />
       </div>
-      <div className="flex flex-col items-center justify-center md:grid-cols-12 gap-4 h-full px-5 md:px-10 ">
-        <div className="grid grid-cols-12 col-span-1 md:col-span-3 gap-4 justify-center">
+      <div className="flex flex-col items-center justify-center gap-4 h-full px-5 md:px-10">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 justify-center w-full">
           <div className="col-span-1 md:col-span-3"></div>
-          <div className="col-span-1 md:col-span-6 relative rounded-2xl overflow-hidden bg-[#7ed957] shadow-lg w-full h-96">
+          <div className="col-span-1 md:col-span-6 relative rounded-2xl overflow-hidden bg-[#7ed957] shadow-lg w-full h-64 md:h-96">
             <video 
-              id='video' 
+              id="video" 
               ref={videoRef} 
               autoPlay 
               muted 
-              className='w-[50rem] h-96 object-cover'
+              className="w-full h-full object-cover"
             />
             {isDetecting && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                <h1 className='text-xl md:text-2xl font-bold text-white'>{isDetecting}</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-white">{isDetecting}</h1>
               </div>
             )}
             {openVideo && (
               <button
-                onClick={()=> {
-                  stopVideo()
-                
-                }}
+                onClick={stopVideo}
                 className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -258,56 +255,52 @@ export default function FaceDetectionComponent() {
           <div className="col-span-1 md:col-span-3"></div>
         </div>
    
-        <div className="grid grid-cols-12 col-span-1 md:col-span-3 gap-4 items-center justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center justify-center w-full">
           <button
             disabled={openVideo}
             onClick={() => {
-              setOpenVideo(true)
-              startVideo()
-             
+              setOpenVideo(true);
+              startVideo();
             }}
-            className="col-span-1 md:col-span-3 h-fit  px-4 py-2 md:px-6 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+            className="col-span-1 md:col-span-3 h-fit px-4 py-2 md:px-6 md:py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
           >
             Open Camera
           </button>
-          <div className='col-span-1 md:col-span-6'>
+          <div className="col-span-1 md:col-span-6">
             <TimeDisplay />
           </div>
           <button
-            onClick={() => detectFace()}
+            onClick={detectFace}
             disabled={!openVideo}
-            className="col-span-1 h-fit  md:col-span-3 px-4 py-2 md:px-6 md:py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors text-sm md:text-base"
+            className="col-span-1 h-fit md:col-span-3 px-4 py-2 md:px-6 md:py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors text-sm md:text-base"
           >
             Scan Face
           </button>
         </div>
-       
-       
       </div>
-      <div className="grid grid-cols-1 gap-x-20 md:grid-cols-12 items-center justify-center mt-5">
-        <div className='col-span-1 md:col-span-3'></div>
-        <div className='col-span-1 md:col-span-6 p-5 text-center min-h-20 bg-[#7ed957] rounded-2xl shadow-lg '>
-      {detectedFace && error === null ? (
-        <div className="bg-white rounded-lg p-6 md:p-8 shadow-md">
-           <p className="text-2xl md:text-3xl font-bold text-gray-900">
-           {currentTime && currentTime.getHours() >= 8 && currentTime.getHours() < 13 && (
-             <span className="text-red-500 font-semibold block mb-2">Late</span>
-           )}
-           {currentTime && (currentTime.getHours() >= 1 && currentTime.getHours() <= 13 ? 'Time In' : 'Time Out')} :  {currentTime?.toLocaleTimeString()}    
-          </p>
-          <p className="text-xl md:text-2xl text-gray-700 mt-4">
-            {detectedFace.firstName} {detectedFace.lastName}
-          </p>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-x-5 md:gap-x-20 items-center justify-center mt-5 w-full">
+        <div className="col-span-1 md:col-span-3"></div>
+        <div className="col-span-1 md:col-span-6 p-5 text-center min-h-20 bg-[#7ed957] rounded-2xl shadow-lg">
+          {detectedFace && error === null ? (
+            <div className="bg-white rounded-lg p-6 md:p-8 shadow-md">
+              <p className="text-2xl md:text-3xl font-bold text-gray-900">
+                {currentTime && currentTime.getHours() >= 8 && currentTime.getHours() < 13 && (
+                  <span className="text-red-500 font-semibold block mb-2">Late</span>
+                )}
+                {currentTime && (currentTime.getHours() >= 1 && currentTime.getHours() <= 13 ? 'Time In' : 'Time Out')} : {currentTime?.toLocaleTimeString()}
+              </p>
+              <p className="text-xl md:text-2xl text-gray-700 mt-4">
+                {detectedFace.firstName} {detectedFace.lastName}
+              </p>
+            </div>
+          ) : (
+            <p className="text-2xl md:text-3xl font-bold text-red-500">
+              {error}
+            </p>
+          )}
         </div>
-      ) : (
-        <p className="text-2xl md:text-3xl font-bold text-red-500">
-          {error}
-        </p>
-      )}
+        <div className="col-span-1 md:col-span-3"></div>
       </div>
-      <div className='col-span-1 md:col-span-3'></div>
-      </div>
-
     </div>
   );
 }
