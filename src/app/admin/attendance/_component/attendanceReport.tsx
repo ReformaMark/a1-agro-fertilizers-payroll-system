@@ -5,59 +5,47 @@ import { DataTable } from "@/components/data-table"
 import { useQuery } from "convex/react"
 import { api } from "../../../../../convex/_generated/api"
 import { columns } from "./columns"
-import { weeklyColumns } from "./weeklyColumns"
-import { useState } from "react"
-import { monthlyColumns } from "./monthlyColumns"
 import { AttendanceWithUser } from "@/lib/types"
+import { useMemo, useState } from "react"
+import { getCurrentTimePeriod } from "@/lib/utils"
+import TimePeriod from "@/features/attendance/components/time-period"
 
 export default function AttendanceReport() {
     const attendance = useQuery(api.attendance.list)
-    const [reportType, setReportType] = useState<"daily" | "weekly" | "monthly">("daily")
-    const data = (attendance ?? []) as AttendanceWithUser[]
-    return (
-        <div className="space-y-4">
-            <div className="flex items-center gap-x-4">
-                <select
-                    className="w-[200px] h-8 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
-                    defaultValue="daily"
-                    onChange={(e) => setReportType(e.target.value as "daily" | "weekly" | "monthly")}
-                >
-                    <option value="daily">Daily Report</option>
-                    <option value="weekly">Weekly Report</option>
-                    <option value="monthly">Monthly Report</option>
-                </select>
-            </div>
+   
+    const getCurrentDate = () => {
+        const date = new Date()
+        return date.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        })
+    }  
+    const [selectedDate, setSelectedDate] = useState<string>(getCurrentDate())
 
-            {reportType === "daily" && (
+    // Filter attendance based on selected date range
+    const filteredData = useMemo(() => {
+        if (!attendance) return []
+        
+        const { start, end } = getCurrentTimePeriod(new Date(selectedDate))
+        
+        return attendance.filter((record) => {
+            const recordDate = new Date(record.date)
+            return recordDate >= start && recordDate <= end
+        }) as AttendanceWithUser[]
+    }, [attendance, selectedDate]) 
+
+    return (
+        <div className="space-y-4 bg-white p-5">
+            {TimePeriod(selectedDate, setSelectedDate)}
                 <DataTable
 
                     columns={columns}
-                    data={data}
-                    filter="userId"
-                    filterLabel="Employee Id"
+                    data={filteredData as AttendanceWithUser[]}
+                    filter="date"
+                    filterLabel="by Date"
                 />
-            )}
-
-            {reportType === "weekly" && (
-                <DataTable
-
-                    columns={weeklyColumns}
-                    data={data}
-                    filter="userId"
-                    filterLabel="Employee Id"
-                />
-            )}
-            {reportType === "monthly" && (
-                <DataTable
-
-                    columns={monthlyColumns}
-                    data={data}
-                    filter="userId"
-                    filterLabel="Employee Id"
-                />
-            )}
-
-
+          
         </div>
     )
 }

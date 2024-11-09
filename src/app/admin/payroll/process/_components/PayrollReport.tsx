@@ -1,57 +1,93 @@
-"use client"
+"use client";
 
-import { DataTable } from "@/components/data-table"
-import { api } from "../../../../../../convex/_generated/api"
-import { useQuery } from "convex/react"
-import { Id } from "../../../../../../convex/_generated/dataModel"
-import { columns } from "./columns"
-import { SalaryComponent } from "@/lib/types"
+import { DataTable } from "@/components/data-table";
+import { Button } from "@/components/ui/button";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import { useState } from "react"
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Download } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useQuery } from "convex/react";
+import { downloadCSV } from "@/lib/export-utils";
+import { api } from "../../../../../../convex/_generated/api";
+import TimePeriod from "@/features/attendance/components/time-period";
+import { formatDate, getCurrentTimePeriod } from "@/lib/utils";
+import { columns } from "./columns";
+import { SalaryComponent } from "@/lib/types";
 
 export default function PayrollReport() {
-    const payrollPeriods = useQuery(api.payrollPeriods.list)
-    const [selectedPeriodId, setSelectedPeriodId] = useState<Id<"payrollPeriods"> | null>(() => {
-        // Initialize with the most recent period if available
-        return payrollPeriods?.[0]?._id ?? null;
-    })
-    
-    const salaryComponents = useQuery(
-        api.salaryComponents.listByPayrollPeriod,
-        selectedPeriodId ? { payrollPeriodId: selectedPeriodId } : "skip"
-    )
+    const getCurrentDate = () => {
+        const date = new Date()
+        return date.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        })
+    }  
+    const [selectedDate, setSelectedDate] = useState<string>(getCurrentDate())
 
-    const data = salaryComponents ?? [] as SalaryComponent[]
+    const { start, end } = useMemo(() => {
+        return getCurrentTimePeriod(new Date(selectedDate))
+    }, [selectedDate])
 
+    const salaryComponents = useQuery(api.salaryComponents.listByPayrollPeriod, {
+        startDate: formatDate(start),
+        endDate: formatDate(end)
+    });
+
+    const filteredData = useMemo(() => {
+        if (!salaryComponents) return [];
+        return salaryComponents
+    }, [salaryComponents]);
     return (
-        <div className="space-y-4">
-            <Select onValueChange={(value) => setSelectedPeriodId(value as Id<"payrollPeriods">)}>
-                <SelectTrigger className="w-[280px]">
-                    <SelectValue placeholder="Select a payroll period" />
-                </SelectTrigger>
-                <SelectContent>
-                    {payrollPeriods?.map((period) => (
-                        <SelectItem key={period._id} value={period._id}>
-                            {period.startDate} to {period.endDate}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+        <Card>
+            <CardHeader className="border-b">
+                <div className="flex justify-between space-y-5 items-center">
+                    <div>
+                        <CardTitle>Payroll Sheet</CardTitle>
+                        <CardDescription>
+                            View and manage employee payroll information
+                        </CardDescription>
+                    </div>
 
-         
-              
-            <DataTable 
-            
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            columns={columns as any} 
-            data={data} />
-         
-        </div>
-    )
+                    <div className="flex gap-4 items-center">
+                        <Button
+                            variant="default"
+                            onClick={() => {        
+                                if (!filteredData.length) return;
+                                downloadCSV(
+                                    filteredData,
+                                    `payroll-${formatDate(start)}-${formatDate(end)}`
+                                );
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            <Download className="h-4 w-4 mr-1" />
+                            Export CSV
+                        </Button>
+                    </div>
+                </div>
+                <div>
+                    {TimePeriod(selectedDate, setSelectedDate)}
+                </div>
+            </CardHeader>
+
+            <CardContent className="pt-6">
+                <DataTable
+                    columns={columns} // TODO: Define payroll columns
+                    data={filteredData as SalaryComponent[]}
+                    filter="employee.firstName"
+                    filterLabel="Employee Name"
+                />
+            </CardContent>
+        </Card>
+    );
 }
+
+
+
+

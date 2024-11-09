@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server"
-import { calculateContributions, formatDate } from "@/lib/utils";
+import { calculateContributions, formatDate, timeStringToComponents } from "@/lib/utils";
 
 export const list = query({
   args: {},
@@ -74,7 +74,7 @@ export const listByUserAndDateRange = query({
 
 export const timeIn = mutation({
     args: {
-      timeIn: v.number(),
+      timeIn: v.string(),
       userId: v.id("users"),
       date: v.string(),
       type: v.string(),
@@ -108,7 +108,7 @@ export const timeIn = mutation({
 
 export const timeOut = mutation({
     args: {
-      timeOut: v.number(),
+      timeOut: v.string(),
       userId: v.id("users"),
       date: v.string(),
     },  
@@ -137,12 +137,14 @@ export const timeOut = mutation({
         throw new ConvexError({ message: "Employee rate per day not set" });
       }
 
+      const {hours, minutes} = timeStringToComponents(args.timeOut)
       // Calculate time period (1-15 or 16-end of month)
-      const timeOutDate = new Date(args.timeOut);
+      const timeOutDate = new Date();
       const day = timeOutDate.getDate();
       const month = timeOutDate.getMonth() + 1;
       const year = timeOutDate.getFullYear();
-      
+
+  
       let startDate, endDate;
       if (day <= 15) {
         startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
@@ -165,12 +167,12 @@ export const timeOut = mutation({
           )
         )
         .unique();
-
+      const timeIn = timeStringToComponents(existingRecord.timeIn)
       // Adjust timeIn if before 8am to count from 8am
-      const adjustedTimeInDate = new Date(existingRecord.timeIn);
-      
-      if (adjustedTimeInDate.getHours() < workStartHour) {
-        adjustedTimeInDate.setHours(workStartHour, 0, 0, 0);
+      let adjustedTimeInDate = timeIn.hours;
+
+      if (adjustedTimeInDate < workStartHour) {
+        adjustedTimeInDate = 8;
       }
 
   
@@ -200,36 +202,43 @@ export const timeOut = mutation({
         .unique();
 
       // Calculate late minutes if employee timed in after 8 AM
-      const timeInDate = new Date(adjustedTimeInDate);
       const lateMinutes = Math.max(0, 
-        (timeInDate.getHours() - 8) * 60 + timeInDate.getMinutes()
+        (timeIn.hours - 8) * 60 + timeIn.minutes
       );
       const employeeRatePerDay = isHoliday?.type === "Regular" ? employee.ratePerDay * 2 : isHoliday?.type === "Special" ? employee.ratePerDay * 1.5 : employee.ratePerDay
       // Calculate deduction for being late (rate per minute * late minutes)
       const ratePerMinute = employeeRatePerDay / (8 * 60); // 8 hours work day
+      console.log("ratePerMinute", ratePerMinute)
       const lateDeduction = lateMinutes * ratePerMinute;
+      console.log("lateDeduction", lateDeduction)
 
       // Calculate overtime hours (only count hours after 5 PM)
-      const timeOutHours = timeOutDate.getHours() + (timeOutDate.getMinutes() / 60);
-      const timeInHours = timeInDate.getHours() + (timeInDate.getMinutes() / 60);
-      const totalHours = (timeOutHours <= 1 ? timeOutHours : timeOutHours - 1) - timeInHours;
+      const timeOutHours = hours + (minutes / 60);
+      console.log("timeOutHours", timeOutHours)
+      const timeInHours = adjustedTimeInDate + (minutes / 60);
+   
+      const totalHours = (timeOutHours <= 13 ? timeOutHours : timeOutHours - 1) - timeInHours;
       const overtimeHours = Math.floor(Math.max(0, timeOutHours - 17)); // Only count hours after 5 PM (17:00)
-      const ratePerHour = employeeRatePerDay / 8
-      
 
+ 
+      const ratePerHour = employeeRatePerDay / 8
+     
       const grossPay = (totalHours - overtimeHours) * ratePerHour
+      const overtimeRate = (employeeRatePerDay / 8) * 1.25
       // Calculate overtime pay (1.25x hourly rate)
       const overtimePay = overtimeHours > 0 ? {
         hours: overtimeHours,
-        rate: (employeeRatePerDay / 8) * 1.25, // 25% premium on hourly rate
-        amount: overtimeHours * ((employeeRatePerDay / 8) * 1.25)
+        rate: overtimeRate, // 25% premium on hourly rate
+        amount: overtimeHours * overtimeRate
       } : undefined;
-
+      
+      
       if (existingSalaryComponent) {
        const contributions = calculateContributions(existingSalaryComponent.basicPay)
-       const netpay = existingSalaryComponent.basicPay + (overtimePay?.amount || 0) - contributions.totalDeductions + (existingSalaryComponent.allowances.reduce((acc, curr) => acc + curr.amount, 0) || 0) + (existingSalaryComponent.additionalCompensation.reduce((acc, curr) => acc + curr.amount, 0) || 0) - (existingSalaryComponent.deductions.reduce((acc, curr) => acc + curr.amount, 0) || 0)
+       const netpay = (existingSalaryComponent.basicPay + (overtimePay?.amount || 0)  + (existingSalaryComponent.allowances.reduce((acc, curr) => acc + curr.amount, 0) || 0) + (existingSalaryComponent.additionalCompensation.reduce((acc, curr) => acc + curr.amount, 0) || 0)) - ((existingSalaryComponent.deductions.reduce((acc, curr) => acc + curr.amount, 0) || 0) + contributions.totalDeductions)
         await ctx.db.patch(existingSalaryComponent._id, {
           basicPay: existingSalaryComponent.basicPay + grossPay,
+          hoursWorked: (existingSalaryComponent.hoursWorked || 0) + totalHours,
           deductions: [
             ...existingSalaryComponent.deductions,
             ...(lateDeduction > 0 ? [{
@@ -256,6 +265,7 @@ export const timeOut = mutation({
           userId: args.userId,
           payrollPeriodId: payrollPeriod._id,
           basicPay: grossPay,
+          hoursWorked: totalHours,
           allowances: [],
           deductions: lateDeduction > 0 ? [{
             type: "Late",

@@ -99,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Calculator,
         items: [
           {
-            title: "Process Payroll",
+            title: "Payroll Sheet",
             url: "/admin/payroll/process",
           },
           {
@@ -107,13 +107,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/admin/payroll/salary-components",
           },
           {
-            title: "Government Contributions",
-            url: "/admin/payroll/contributions",
-          },
-          {
             title: "Voucher Types",
             url: "/admin/payroll",
           }
+          // ,
+          // {
+          //   title: "Salary Components",
+          //   url: "/admin/payroll/salary-components",
+          // },
+          // {
+          //   title: "Government Contributions",
+          //   url: "/admin/payroll/contributions",
+          // },
+          // {
+          //   title: "Compensation",
+          //   url: "/admin/payroll",
+          // }
         ],
       },
       {
