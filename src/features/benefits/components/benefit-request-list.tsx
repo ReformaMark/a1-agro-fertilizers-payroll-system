@@ -14,14 +14,14 @@ import { useBenefitRequests, useUpdateVoucherStatus } from "../api/benefits";
 
 import { toast } from "sonner";
 
-import { Plus, MoreHorizontal, Check, X } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import {
     Card,
     CardContent,
+    CardDescription,
     CardHeader,
     CardTitle,
-    CardDescription,
 } from "@/components/ui/card";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,13 +30,6 @@ import { Badge } from "@/components/ui/badge";
 
 import { format } from "date-fns";
 
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -54,367 +47,367 @@ import { Textarea } from "@/components/ui/textarea";
 import { IssueVoucherForm } from "./issue-voucher-form";
 
 interface BenefitRequestWithUser extends Doc<"benefitRequests"> {
-    user: Doc<"users"> | null;
+  user: Doc<"users"> | null;
 }
 
 interface BenefitRequestListProps {
-    filterStatus?: string;
+  filterStatus?: string;
 }
 
 export function BenefitRequestList({ filterStatus }: BenefitRequestListProps) {
-    const { data: currentUser } = useCurrentUser();
+  const { data: currentUser } = useCurrentUser();
 
-    const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
 
-    const [selectedRequest, setSelectedRequest] =
-        useState<BenefitRequestWithUser | null>(null);
+  const [selectedRequest, setSelectedRequest] =
+    useState<BenefitRequestWithUser | null>(null);
 
-    const [rejectionReason, setRejectionReason] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
 
-    const isAdmin = currentUser?.role === "admin";
+  const isAdmin = currentUser?.role === "admin";
 
-    const [showIssueForm, setShowIssueForm] = useState(false);
+  const [showIssueForm, setShowIssueForm] = useState(false);
 
-    const benefitRequests = useBenefitRequests(
-        isAdmin ? undefined : currentUser?._id,
+  const benefitRequests = useBenefitRequests(
+    isAdmin ? undefined : currentUser?._id,
 
-        filterStatus
-    );
+    filterStatus
+  );
 
-    const updateVoucherStatus = useUpdateVoucherStatus();
+  const updateVoucherStatus = useUpdateVoucherStatus();
 
-    const stats = {
-        total: benefitRequests?.length || 0,
+  const stats = {
+    total: benefitRequests?.length || 0,
 
-        pending: benefitRequests?.filter((r) => r.status === "Pending").length || 0,
+    pending: benefitRequests?.filter((r) => r.status === "Pending").length || 0,
 
-        approved:
-            benefitRequests?.filter((r) => r.status === "Approved").length || 0,
+    approved:
+      benefitRequests?.filter((r) => r.status === "Approved").length || 0,
 
-        rejected:
-            benefitRequests?.filter((r) => r.status === "Rejected").length || 0,
-    };
+    rejected:
+      benefitRequests?.filter((r) => r.status === "Rejected").length || 0,
+  };
 
-    async function handleUpdateStatus(
-        requestId: Id<"benefitRequests">,
-        status: string,
-        reason?: string
-    ) {
-        try {
-            await updateVoucherStatus({
-                requestId,
+  async function handleUpdateStatus(
+    requestId: Id<"benefitRequests">,
+    status: string,
+    reason?: string
+  ) {
+    try {
+      await updateVoucherStatus({
+        requestId,
 
-                status,
+        status,
 
-                rejectionReason: reason,
-            });
+        rejectionReason: reason,
+      });
 
-            toast.success(`Voucher ${status.toLowerCase()} successfully`);
+      toast.success(`Voucher ${status.toLowerCase()} successfully`);
 
-            setShowRejectDialog(false);
+      setShowRejectDialog(false);
 
-            setRejectionReason("");
+      setRejectionReason("");
 
-            setSelectedRequest(null);
-        } catch (error) {
-            console.error(error);
+      setSelectedRequest(null);
+    } catch (error) {
+      console.error(error);
 
-            toast.error(`Failed to ${status.toLowerCase()} voucher`);
-        }
+      toast.error(`Failed to ${status.toLowerCase()} voucher`);
     }
+  }
 
-    const columns: ColumnDef<BenefitRequestWithUser>[] = [
-        {
-            accessorKey: "user",
+  const columns: ColumnDef<BenefitRequestWithUser>[] = [
+    {
+      accessorKey: "user",
 
-            header: "Employee",
+      header: "Employee",
 
-            cell: ({ row }) => {
-                const user = row.original.user;
+      cell: ({ row }) => {
+        const user = row.original.user;
 
-                return user ? `${user.firstName} ${user.lastName}` : "N/A";
-            },
-        },
+        return user ? `${user.firstName} ${user.lastName}` : "N/A";
+      },
+    },
 
-        {
-            accessorKey: "type",
+    {
+      accessorKey: "type",
 
-            header: "Voucher Type",
+      header: "Voucher Type",
 
-            cell: ({ row }) => (
-                <Badge variant="outline">{row.getValue("type")}</Badge>
-            ),
-        },
+      cell: ({ row }) => (
+        <Badge variant="outline">{row.getValue("type")}</Badge>
+      ),
+    },
 
-        {
-            accessorKey: "amount",
+    {
+      accessorKey: "amount",
 
-            header: "Amount",
+      header: "Amount",
 
-            cell: ({ row }) => {
-                const amount = row.getValue<number | undefined>("amount");
+      cell: ({ row }) => {
+        const amount = row.getValue<number | undefined>("amount");
 
-                return amount ? `₱${amount.toLocaleString()}` : "N/A";
-            },
-        },
+        return amount ? `₱${amount.toLocaleString()}` : "N/A";
+      },
+    },
 
-        {
-            accessorKey: "status",
+    {
+      accessorKey: "status",
 
-            header: "Status",
+      header: "Status",
 
-            cell: ({ row }) => {
-                const status = row.getValue<string>("status");
+      cell: ({ row }) => {
+        const status = row.getValue<string>("status");
 
-                let variant = "secondary";
+        let variant = "secondary";
 
-                if (status === "Approved") variant = "success";
+        if (status === "Approved") variant = "success";
 
-                if (status === "Rejected") variant = "destructive";
+        if (status === "Rejected") variant = "destructive";
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                return <Badge variant={variant as any}>{status}</Badge>;
-            },
-        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return <Badge variant={variant as any}>{status}</Badge>;
+      },
+    },
 
-        {
-            accessorKey: "createdAt",
+    {
+      accessorKey: "createdAt",
 
-            header: "Issued On",
+      header: "Issued On",
 
-            cell: ({ row }) => format(new Date(row.getValue("createdAt")), "PPP"),
-        },
+      cell: ({ row }) => format(new Date(row.getValue("createdAt")), "PPP"),
+    },
 
-        {
-            id: "actions",
+    // {
+    //     id: "actions",
 
-            cell: ({ row }) => {
-                const request = row.original;
+    //     cell: ({ row }) => {
+    //         const request = row.original;
 
-                const isPending = request.status === "Pending";
+    //         const isPending = request.status === "Pending";
 
-                if (!isAdmin) return null;
+    //         if (!isAdmin) return null;
 
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
+    //         return (
+    //             <DropdownMenu>
+    //                 <DropdownMenuTrigger asChild>
+    //                     <Button variant="ghost" className="h-8 w-8 p-0">
+    //                         <MoreHorizontal className="h-4 w-4" />
+    //                     </Button>
+    //                 </DropdownMenuTrigger>
 
-                        <DropdownMenuContent align="end">
-                            {isPending && (
-                                <>
-                                    <DropdownMenuItem
-                                        onClick={() => handleUpdateStatus(request._id, "Approved")}
-                                        className="text-green-600"
-                                    >
-                                        <Check className="mr-2 h-4 w-4" />
-                                        Approve
-                                    </DropdownMenuItem>
+    //                 <DropdownMenuContent align="end">
+    //                     {isPending && (
+    //                         <>
+    //                             <DropdownMenuItem
+    //                                 onClick={() => handleUpdateStatus(request._id, "Approved")}
+    //                                 className="text-green-600"
+    //                             >
+    //                                 <Check className="mr-2 h-4 w-4" />
+    //                                 Approve
+    //                             </DropdownMenuItem>
 
-                                    <DropdownMenuItem
-                                        onClick={() => {
-                                            setSelectedRequest(request);
+    //                             <DropdownMenuItem
+    //                                 onClick={() => {
+    //                                     setSelectedRequest(request);
 
-                                            setShowRejectDialog(true);
-                                        }}
-                                        className="text-destructive"
-                                    >
-                                        <X className="mr-2 h-4 w-4" />
-                                        Reject
-                                    </DropdownMenuItem>
+    //                                     setShowRejectDialog(true);
+    //                                 }}
+    //                                 className="text-destructive"
+    //                             >
+    //                                 <X className="mr-2 h-4 w-4" />
+    //                                 Reject
+    //                             </DropdownMenuItem>
 
-                                    <DropdownMenuSeparator />
-                                </>
-                            )}
+    //                             <DropdownMenuSeparator />
+    //                         </>
+    //                     )}
 
-                            {request.description && (
-                                <DropdownMenuItem className="flex flex-col items-start">
-                                    <span className="font-medium mb-1">Description:</span>
+    //                     {request.description && (
+    //                         <DropdownMenuItem className="flex flex-col items-start">
+    //                             <span className="font-medium mb-1">Description:</span>
 
-                                    <span className="text-sm text-muted-foreground">
-                                        {request.description}
-                                    </span>
-                                </DropdownMenuItem>
-                            )}
+    //                             <span className="text-sm text-muted-foreground">
+    //                                 {request.description}
+    //                             </span>
+    //                         </DropdownMenuItem>
+    //                     )}
 
-                            {request.rejectionReason && (
-                                <DropdownMenuItem className="flex flex-col items-start">
-                                    <span className="font-medium mb-1">Rejection Reason:</span>
+    //                     {request.rejectionReason && (
+    //                         <DropdownMenuItem className="flex flex-col items-start">
+    //                             <span className="font-medium mb-1">Rejection Reason:</span>
 
-                                    <span className="text-sm text-muted-foreground">
-                                        {request.rejectionReason}
-                                    </span>
-                                </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            },
-        },
-    ];
+    //                             <span className="text-sm text-muted-foreground">
+    //                                 {request.rejectionReason}
+    //                             </span>
+    //                         </DropdownMenuItem>
+    //                     )}
+    //                 </DropdownMenuContent>
+    //             </DropdownMenu>
+    //         );
+    //     },
+    // },
+  ];
 
-    if (!benefitRequests) {
-        return (
-            <div className="space-y-4">
-                <Skeleton className="h-20 w-full" />
-
-                <Skeleton className="h-[400px] w-full" />
-            </div>
-        );
-    }
-
+  if (!benefitRequests) {
     return (
-        <div className="space-y-6">
-            {/* Stats Overview */}
+      <div className="space-y-4">
+        <Skeleton className="h-20 w-full" />
 
-            <div className="grid gap-4 md:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Total Vouchers
-                        </CardTitle>
+        <Skeleton className="h-[400px] w-full" />
+      </div>
+    );
+  }
 
-                        <Badge>{stats.total}</Badge>
-                    </CardHeader>
+  return (
+    <div className="space-y-6">
+      {/* Stats Overview */}
 
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.total}</div>
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Vouchers
+            </CardTitle>
 
-                        <p className="text-xs text-muted-foreground">All vouchers</p>
-                    </CardContent>
-                </Card>
+            <Badge>{stats.total}</Badge>
+          </CardHeader>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending</CardTitle>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
 
-                        <Badge variant="secondary">{stats.pending}</Badge>
-                    </CardHeader>
+            <p className="text-xs text-muted-foreground">All vouchers</p>
+          </CardContent>
+        </Card>
 
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.pending}</div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
 
-                        <p className="text-xs text-muted-foreground">Awaiting approval</p>
-                    </CardContent>
-                </Card>
+            <Badge variant="secondary">{stats.pending}</Badge>
+          </CardHeader>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active</CardTitle>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pending}</div>
 
-                        <Badge variant="default">{stats.approved}</Badge>
-                    </CardHeader>
+            <p className="text-xs text-muted-foreground">Awaiting approval</p>
+          </CardContent>
+        </Card>
 
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.approved}</div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
 
-                        <p className="text-xs text-muted-foreground">Active vouchers</p>
-                    </CardContent>
-                </Card>
+            <Badge variant="default">{stats.approved}</Badge>
+          </CardHeader>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.approved}</div>
 
-                        <Badge variant="destructive">{stats.rejected}</Badge>
-                    </CardHeader>
+            <p className="text-xs text-muted-foreground">Active vouchers</p>
+          </CardContent>
+        </Card>
 
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.rejected}</div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
 
-                        <p className="text-xs text-muted-foreground">Declined vouchers</p>
-                    </CardContent>
-                </Card>
+            <Badge variant="destructive">{stats.rejected}</Badge>
+          </CardHeader>
+
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.rejected}</div>
+
+            <p className="text-xs text-muted-foreground">Declined vouchers</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader className="border-b">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Vouchers</CardTitle>
+
+              <CardDescription>
+                {isAdmin
+                  ? "Manage and issue employee vouchers"
+                  : "View your active vouchers"}
+              </CardDescription>
             </div>
 
-            <Card>
-                <CardHeader className="border-b">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <CardTitle>Vouchers</CardTitle>
-
-                            <CardDescription>
-                                {isAdmin
-                                    ? "Manage and issue employee vouchers"
-                                    : "View your active vouchers"}
-                            </CardDescription>
-                        </div>
-
-                        {isAdmin && (
-                            <Button onClick={() => setShowIssueForm(true)}>
-                                <Plus className="h-4 w-4 mr-1" />
-                                Issue Voucher
-                            </Button>
-                        )}
-                    </div>
-                </CardHeader>
-
-                <CardContent className="pt-6">
-                    <DataTable
-                        columns={columns}
-                        data={benefitRequests}
-                        filter={isAdmin ? "user.firstName" : "type"}
-                        filterLabel={isAdmin ? "Employee Name" : "Voucher Type"}
-                    />
-                </CardContent>
-            </Card>
-
-            {showIssueForm && (
-                <IssueVoucherForm onClose={() => setShowIssueForm(false)} />
+            {isAdmin && (
+              <Button onClick={() => setShowIssueForm(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Issue Voucher
+              </Button>
             )}
+          </div>
+        </CardHeader>
 
-            <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Reject Voucher</DialogTitle>
+        <CardContent className="pt-6">
+          <DataTable
+            columns={columns}
+            data={benefitRequests}
+            filter={isAdmin ? "user.firstName" : "type"}
+            filterLabel={isAdmin ? "Employee Name" : "Voucher Type"}
+          />
+        </CardContent>
+      </Card>
 
-                        <DialogDescription>
-                            Please provide a reason for rejecting this voucher.
-                        </DialogDescription>
-                    </DialogHeader>
+      {showIssueForm && (
+        <IssueVoucherForm onClose={() => setShowIssueForm(false)} />
+      )}
 
-                    <Textarea
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        placeholder="Enter rejection reason"
-                        className="min-h-[100px]"
-                    />
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Voucher</DialogTitle>
 
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setShowRejectDialog(false);
+            <DialogDescription>
+              Please provide a reason for rejecting this voucher.
+            </DialogDescription>
+          </DialogHeader>
 
-                                setRejectionReason("");
+          <Textarea
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            placeholder="Enter rejection reason"
+            className="min-h-[100px]"
+          />
 
-                                setSelectedRequest(null);
-                            }}
-                        >
-                            Cancel
-                        </Button>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRejectDialog(false);
 
-                        <Button
-                            variant="destructive"
-                            onClick={() => {
-                                if (selectedRequest) {
-                                    handleUpdateStatus(
-                                        selectedRequest._id,
-                                        "Rejected",
-                                        rejectionReason
-                                    );
-                                }
-                            }}
-                            disabled={!rejectionReason}
-                        >
-                            Reject Voucher
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
-    );
+                setRejectionReason("");
+
+                setSelectedRequest(null);
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (selectedRequest) {
+                  handleUpdateStatus(
+                    selectedRequest._id,
+                    "Rejected",
+                    rejectionReason
+                  );
+                }
+              }}
+              disabled={!rejectionReason}
+            >
+              Reject Voucher
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }

@@ -181,7 +181,7 @@ export const issue = mutation({
             type: args.type,
             amount: args.amount,
             description: args.description || "",
-            status: "Pending",
+            status: "Approved",
             createdAt: new Date().toISOString(),
             modifiedAt: new Date().toISOString(),
         });

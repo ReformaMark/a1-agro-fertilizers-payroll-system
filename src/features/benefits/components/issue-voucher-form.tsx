@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { useIssueVoucher } from "../api/benefits"
+import { useIssueVoucher, useBenefitRequests } from "../api/benefits"
 import { useCompensationTypes } from "@/features/compensation/api/compensation"
 import { toast } from "sonner"
 import { useEffect } from "react"
 import { useUsers } from "@/features/users/api/users"
+import { Id } from "../../../../convex/_generated/dataModel"
 
 const formSchema = z.object({
     userId: z.string().min(1, "Please select an employee"),
@@ -36,7 +37,13 @@ export function IssueVoucherForm({ onClose }: IssueVoucherFormProps) {
     })
 
     // Watch the selected type to update default amount
+    const selectedUserId = form.watch("userId")
     const selectedType = form.watch("type")
+
+    const userBenefits = useBenefitRequests(
+        selectedUserId ? selectedUserId as Id<"users"> : undefined,
+        "Approved"
+    )
 
     // Update amount when type changes
     useEffect(() => {
@@ -50,6 +57,16 @@ export function IssueVoucherForm({ onClose }: IssueVoucherFormProps) {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
+            // Check if user already has an active voucher of this type
+            const existingVoucher = userBenefits?.find(
+                benefit => benefit.type === values.type && benefit.status === "Approved"
+            )
+
+            if (existingVoucher) {
+                toast.error(`User already has an active ${values.type} voucher`)
+                return
+            }
+
             await issueVoucher(values)
             toast.success("Voucher issued successfully")
             onClose()
@@ -57,6 +74,13 @@ export function IssueVoucherForm({ onClose }: IssueVoucherFormProps) {
             console.error(error)
             toast.error("Failed to issue voucher")
         }
+    }
+
+    // Helper function to check if a voucher type is already active
+    const isVoucherTypeActive = (type: string) => {
+        return userBenefits?.some(
+            benefit => benefit.type === type && benefit.status === "Approved"
+        )
     }
 
     return (
@@ -111,16 +135,30 @@ export function IssueVoucherForm({ onClose }: IssueVoucherFormProps) {
                                         <SelectContent>
                                             {compensationTypes?.filter(type =>
                                                 type.category === "Allowance" || type.category === "Benefit"
-                                            ).map((type) => (
-                                                <SelectItem key={type._id} value={type.name}>
-                                                    {type.name}
-                                                    {type.defaultAmount && (
-                                                        <span className="text-muted-foreground ml-2">
-                                                            (₱{type.defaultAmount.toLocaleString()})
-                                                        </span>
-                                                    )}
-                                                </SelectItem>
-                                            ))}
+                                            ).map((type) => {
+                                                const isActive = isVoucherTypeActive(type.name)
+                                                return (
+                                                    <SelectItem
+                                                        key={type._id}
+                                                        value={type.name}
+                                                        disabled={isActive}
+                                                    >
+                                                        <div className="flex items-center justify-between w-full">
+                                                            <span>{type.name}</span>
+                                                            {isActive && (
+                                                                <span className="text-red-500 text-xs ml-2">
+                                                                    (Active)
+                                                                </span>
+                                                            )}
+                                                            {type.defaultAmount && (
+                                                                <span className="text-muted-foreground ml-2">
+                                                                    (₱{type.defaultAmount.toLocaleString()})
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </SelectItem>
+                                                )
+                                            })}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
