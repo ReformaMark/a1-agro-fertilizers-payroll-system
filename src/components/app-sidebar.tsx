@@ -87,10 +87,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Loans",
             url: "/admin/requests/loans",
           },
-          {
-            title: "VALE",
-            url: "/admin/requests/cash-advance",
-          }
+          // {
+          //   title: "VALE",
+          //   url: "/admin/requests/cash-advance",
+          // }
         ],
       },
       {

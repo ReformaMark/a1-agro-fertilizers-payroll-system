@@ -3,8 +3,8 @@
 import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import { AlertCircle, Check, CreditCardIcon, MoreHorizontal, Wallet, X } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, Check, CreditCardIcon, FileText, MoreHorizontal, Wallet, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Doc, Id } from "../../../../../convex/_generated/dataModel";
 import {
@@ -12,7 +12,6 @@ import {
     useGovernmentLoans,
     useUpdateLoanStatus,
 } from "../api/loans";
-import { LoanRequestForm } from "./loan-request-form";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -46,6 +45,8 @@ import { getConvexErrorMessage } from "@/lib/utils";
 import { useMutation } from "convex/react";
 import { format } from "date-fns";
 import { api } from "../../../../../convex/_generated/api";
+import { IssueGovernmentLoanForm } from "./issue-government-loan-form";
+import { LoanRequestForm } from "./loan-request-form";
 
 interface BaseLoanFields {
     _id: Id<"companyLoans" | "governmentLoans">;
@@ -112,6 +113,15 @@ export function LoanRequestList({
     const [paymentAmount, setPaymentAmount] = useState("");
     const [selectedLoan, setSelectedLoan] = useState<SelectedLoanType>(null);
     const [selectedCompanyLoan, setSelectedCompanyLoan] = useState<CompanyLoanWithUser | null>(null);
+    const [showIssueForm, setShowIssueForm] = useState(false)
+    const [showCompanyLoanForm, setShowCompanyLoanForm] = useState(false)
+
+    useEffect(() => {
+        if (showForm) {
+            setShowCompanyLoanForm(true)
+        }
+    }, [showForm])
+
 
     const addPayment = useMutation(api.loans.addCompanyLoanPayment);
 
@@ -177,62 +187,118 @@ export function LoanRequestList({
             const loan = row.original as CompanyLoanWithUser;
             const isPending = loan.status === "Pending";
             const isApproved = loan.status === "Approved";
+            const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
+                <>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
 
-                    <DropdownMenuContent align="end">
-                        {isAdmin && isPending && (
-                            <>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                onClick={() => setShowDetailsDialog(true)}
+                            >
+                                <FileText className="mr-2 h-4 w-4" />
+                                View Details
+                            </DropdownMenuItem>
+
+                            {isAdmin && isPending && (
+                                <>
+                                    <DropdownMenuItem
+                                        onClick={() => handleUpdateStatus(loan._id, "company", "Approved")}
+                                        className="text-green-600"
+                                    >
+                                        <Check className="mr-2 h-4 w-4" />
+                                        Approve
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => {
+                                            setSelectedLoan({ loan, type: "company" });
+                                            setShowRejectDialog(true);
+                                        }}
+                                        className="text-destructive"
+                                    >
+                                        <X className="mr-2 h-4 w-4" />
+                                        Reject
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                            {isAdmin && isApproved && (
                                 <DropdownMenuItem
-                                    onClick={() => handleUpdateStatus(loan._id, "company", "Approved")}
-                                    className="text-green-600"
+                                    onClick={() => {
+                                        setSelectedCompanyLoan(loan);
+                                        setShowPaymentDialog(true);
+                                    }}
                                 >
-                                    <Check className="mr-2 h-4 w-4" />
-                                    Approve
+                                    <CreditCardIcon className="mr-2 h-4 w-4" />
+                                    Add Payment
                                 </DropdownMenuItem>
+                            )}
+                            {loan.status === "Rejected" && loan.rejectionReason && (
                                 <DropdownMenuItem
                                     onClick={() => {
                                         setSelectedLoan({ loan, type: "company" });
-                                        setShowRejectDialog(true);
+                                        setShowRejectionReasonDialog(true);
                                     }}
                                     className="text-destructive"
                                 >
-                                    <X className="mr-2 h-4 w-4" />
-                                    Reject
+                                    <AlertCircle className="mr-2 h-4 w-4" />
+                                    View Rejection Reason
                                 </DropdownMenuItem>
-                            </>
-                        )}
-                        {isAdmin && isApproved && (
-                            <DropdownMenuItem
-                                onClick={() => {
-                                    setSelectedCompanyLoan(loan);
-                                    setShowPaymentDialog(true);
-                                }}
-                            >
-                                <CreditCardIcon className="mr-2 h-4 w-4" />
-                                Add Payment
-                            </DropdownMenuItem>
-                        )}
-                        {loan.status === "Rejected" && loan.rejectionReason && (
-                            <DropdownMenuItem
-                                onClick={() => {
-                                    setSelectedLoan({ loan, type: "company" });
-                                    setShowRejectionReasonDialog(true);
-                                }}
-                                className="text-destructive"
-                            >
-                                <AlertCircle className="mr-2 h-4 w-4" />
-                                View Rejection Reason
-                            </DropdownMenuItem>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Loan Request Details</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>Type</Label>
+                                        <div className="text-sm">{loan.type}</div>
+                                    </div>
+                                    <div>
+                                        <Label>Status</Label>
+                                        <div className="text-sm">{loan.status}</div>
+                                    </div>
+                                    <div>
+                                        <Label>Amount</Label>
+                                        <div className="text-sm">₱{loan.amount.toLocaleString()}</div>
+                                    </div>
+                                    <div>
+                                        <Label>Total Amount</Label>
+                                        <div className="text-sm">₱{loan.totalAmount.toLocaleString()}</div>
+                                    </div>
+                                    <div>
+                                        <Label>Amortization</Label>
+                                        <div className="text-sm">₱{loan.amortization.toLocaleString()}</div>
+                                    </div>
+                                    {loan.remarks && (
+                                        <div className="col-span-2">
+                                            <Label>Remarks</Label>
+                                            <div className="text-sm">{loan.remarks}</div>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <Label>Date Requested</Label>
+                                        <div className="text-sm">{format(new Date(loan.createdAt), 'PPP')}</div>
+                                    </div>
+                                    <div>
+                                        <Label>Last Modified</Label>
+                                        <div className="text-sm">{format(new Date(loan.modifiedAt), 'PPP')}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </>
             );
         },
     };
@@ -243,51 +309,139 @@ export function LoanRequestList({
         cell: ({ row }: { row: any }) => {
             const loan = row.original as GovernmentLoanWithUser;
             const isPending = loan.status === "Pending";
+            const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
+                <>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
 
-                    <DropdownMenuContent align="end">
-                        {isAdmin && isPending && (
-                            <>
-                                <DropdownMenuItem
-                                    onClick={() => handleUpdateStatus(loan._id, "government", "Approved")}
-                                    className="text-green-600"
-                                >
-                                    <Check className="mr-2 h-4 w-4" />
-                                    Approve
-                                </DropdownMenuItem>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                onClick={() => setShowDetailsDialog(true)}
+                            >
+                                <FileText className="mr-2 h-4 w-4" />
+                                View Details
+                            </DropdownMenuItem>
+
+                            {isAdmin && isPending && (
+                                <>
+                                    <DropdownMenuItem
+                                        onClick={() => handleUpdateStatus(loan._id, "government", "Approved")}
+                                        className="text-green-600"
+                                    >
+                                        <Check className="mr-2 h-4 w-4" />
+                                        Approve
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => {
+                                            setSelectedLoan({ loan, type: "government" });
+                                            setShowRejectDialog(true);
+                                        }}
+                                        className="text-destructive"
+                                    >
+                                        <X className="mr-2 h-4 w-4" />
+                                        Reject
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                            {loan.status === "Rejected" && loan.rejectionReason && (
                                 <DropdownMenuItem
                                     onClick={() => {
                                         setSelectedLoan({ loan, type: "government" });
-                                        setShowRejectDialog(true);
+                                        setShowRejectionReasonDialog(true);
                                     }}
                                     className="text-destructive"
                                 >
-                                    <X className="mr-2 h-4 w-4" />
-                                    Reject
+                                    <AlertCircle className="mr-2 h-4 w-4" />
+                                    View Rejection Reason
                                 </DropdownMenuItem>
-                            </>
-                        )}
-                        {loan.status === "Rejected" && loan.rejectionReason && (
-                            <DropdownMenuItem
-                                onClick={() => {
-                                    setSelectedLoan({ loan, type: "government" });
-                                    setShowRejectionReasonDialog(true);
-                                }}
-                                className="text-destructive"
-                            >
-                                <AlertCircle className="mr-2 h-4 w-4" />
-                                View Rejection Reason
-                            </DropdownMenuItem>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+                        <DialogContent className="sm:max-w-[525px]">
+                            <DialogHeader>
+                                <DialogTitle>Loan Details</DialogTitle>
+                                <DialogDescription>
+                                    Detailed information about the government loan request
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-6 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label className="text-right font-medium">Employee</Label>
+                                    <div className="col-span-3">
+                                        {loan.user ? `${loan.user.firstName} ${loan.user.lastName}` : 'N/A'}
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label className="text-right font-medium">Amount</Label>
+                                    <div className="col-span-3 font-semibold">
+                                        ₱{loan.amount.toLocaleString()}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label className="text-right font-medium">Monthly Amortization</Label>
+                                    <div className="col-span-3">
+                                        ₱{loan.amortization.toLocaleString()}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label className="text-right font-medium">Start Date</Label>
+                                    <div className="col-span-3">
+                                        {format(new Date(loan.startDate), 'MMMM d, yyyy')}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label className="text-right font-medium">Monthly Schedule</Label>
+                                    <div className="col-span-3">
+                                        {loan.monthlySchedule}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label className="text-right font-medium">Status</Label>
+                                    <div className="col-span-3">
+                                        <Badge variant={loan.status === "Approved" ? "default" : 
+                                               loan.status === "Rejected" ? "destructive" : "secondary"}>
+                                            {loan.status}
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label className="text-right font-medium">Request Date</Label>
+                                    <div className="col-span-3">
+                                        {format(new Date(loan.createdAt), 'MMMM d, yyyy')}
+                                    </div>
+                                </div>
+
+                                {loan.additionalInfo && (
+                                    <div className="grid grid-cols-4 items-start gap-4">
+                                        <Label className="text-right font-medium">Additional Info</Label>
+                                        <div className="col-span-3">
+                                            {loan.additionalInfo}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <DialogFooter>
+                                <Button variant="secondary" onClick={() => setShowDetailsDialog(false)}>
+                                    Close
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </>
             );
         },
     };
@@ -412,15 +566,9 @@ export function LoanRequestList({
                 const status = row.getValue<"Pending" | "Approved" | "Rejected">("status");
                 return (
                     <Badge
-                        variant={
-                            status === "Approved"
-                                ? "default"
-                                : status === "Rejected"
-                                    ? "destructive"
-                                    : "secondary"
-                        }
+                        variant={status === "Approved" ? "default" : "secondary"}
                     >
-                        {status}
+                        {status === "Approved" ? "Active" : status}
                     </Badge>
                 );
             },
@@ -444,14 +592,21 @@ export function LoanRequestList({
                     <div>
                         <CardTitle className="flex items-center gap-2">
                             <Wallet className="h-5 w-5" />
-                            Loan Requests
+                            Loan Management
                         </CardTitle>
                         <CardDescription>
                             {isAdmin
-                                ? "Manage employee loan requests"
+                                ? "Manage employee loans and issue government loans"
                                 : "Submit and track your loan requests"}
                         </CardDescription>
                     </div>
+                    {/* Add this button for admins */}
+                    {isAdmin && (
+                        <Button onClick={() => setShowIssueForm(true)}>
+                            <CreditCardIcon className="h-4 w-4 mr-2" />
+                            Issue Government Loan
+                        </Button>
+                    )}
                 </div>
             </CardHeader>
 
@@ -481,7 +636,18 @@ export function LoanRequestList({
                     </TabsContent>
                 </Tabs>
 
-                {showForm && <LoanRequestForm onClose={() => onCloseForm?.()} />}
+                {showCompanyLoanForm && (
+                    <LoanRequestForm
+                        onClose={() => {
+                            setShowCompanyLoanForm(false)
+                            onCloseForm?.()
+                        }}
+                    />
+                )}
+
+                {showIssueForm && (
+                    <IssueGovernmentLoanForm onClose={() => setShowIssueForm(false)} />
+                )}
 
                 <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
                     <DialogContent>

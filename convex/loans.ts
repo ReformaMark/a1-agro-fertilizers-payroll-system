@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { getAuthUserId } from "@convex-dev/auth/server"
+import { Id } from "./_generated/dataModel"
 
 export const getCompanyLoans = query({
     args: {
@@ -143,7 +144,7 @@ export const updateLoanStatus = mutation({
 
         // Determine which table to use based on loan type
         const tableName = args.loanType === "company" ? "companyLoans" : "governmentLoans"
-        
+
         // Get the loan from the correct table
         const loan = await ctx.db.get(args.loanId)
         if (!loan) throw new ConvexError("Loan not found")
@@ -197,3 +198,54 @@ export const addCompanyLoanPayment = mutation({
         });
     },
 });
+
+export const issueGovernmentLoan = mutation({
+    args: {
+        userId: v.id("users"),
+        applicationType: v.union(
+            v.literal("SSS Salary Loan"),
+            v.literal("SSS Calamity Loan"),
+            v.literal("Pagibig Multi-purpose Loan"),
+            v.literal("Pagibig Calamity Loan"),
+            v.literal("GSIS Salary Loan"),
+            v.literal("GSIS Emergency Loan")
+        ),
+        applicationNo: v.string(),
+        amount: v.number(),
+        amortization: v.number(),
+        totalAmount: v.number(),
+        startDate: v.string(),
+        endDate: v.string(),
+        monthlySchedule: v.union(
+            v.literal("1st Half"),
+            v.literal("2nd Half")
+        ),
+        additionalInfo: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) throw new ConvexError("Unauthorized")
+
+        // Verify admin role
+        const admin = await ctx.db.get(adminId)
+        if (!admin || admin.role !== "admin") {
+            throw new ConvexError("Only admins can issue government loans")
+        }
+
+        // Verify target user exists and has completed profile
+        const user = await ctx.db.get(args.userId)
+        if (!user?.filledUpByAdmin) {
+            throw new ConvexError("Employee profile must be completed before issuing loans")
+        }
+
+        return await ctx.db.insert("governmentLoans", {
+            ...args,
+            userId: args.userId,
+            status: "Approved",
+            approvedBy: adminId,
+            approvedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            modifiedAt: new Date().toISOString(),
+        })
+    },
+})

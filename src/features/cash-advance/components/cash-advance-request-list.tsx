@@ -11,13 +11,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { AlertCircle, Check, MoreHorizontal, Plus, X } from "lucide-react"
+import { AlertCircle, Check, FileText, MoreHorizontal, Plus, X } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { Doc, Id } from "../../../../convex/_generated/dataModel"
 import { useCashAdvanceRequests, useUpdateCashAdvanceStatus } from "../api/cash-advance"
 import { CashAdvanceRequestForm } from "./cash-advance-request-form"
 import { ExportCashAdvanceDialog } from "./export-cash-advance-dialog"
+import { Label } from "@/components/ui/label"
 
 interface CashAdvanceRequestWithUser extends Doc<"cashAdvanceRequests"> {
     user: Doc<"users"> | null
@@ -109,52 +110,94 @@ export function CashAdvanceRequestList({ filterStatus }: CashAdvanceRequestListP
                 const request = row.original
                 const isPending = request.status === "Pending"
                 const isRejected = request.status === "Rejected"
+                const [showDetailsDialog, setShowDetailsDialog] = useState(false)
 
                 if (!isAdmin && !isRejected && !isPending) return null
 
                 return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {isAdmin && isPending && (
-                                <>
-                                    <DropdownMenuItem
-                                        onClick={() => handleUpdateStatus(request._id, "Approved")}
-                                        className="text-green-600"
-                                    >
-                                        <Check className="mr-2 h-4 w-4" />
-                                        Approve
-                                    </DropdownMenuItem>
+                    <>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                    onClick={() => setShowDetailsDialog(true)}
+                                >
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    View Details
+                                </DropdownMenuItem>
+
+                                {isAdmin && isPending && (
+                                    <>
+                                        <DropdownMenuItem
+                                            onClick={() => handleUpdateStatus(request._id, "Approved")}
+                                            className="text-green-600"
+                                        >
+                                            <Check className="mr-2 h-4 w-4" />
+                                            Approve
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() => {
+                                                setSelectedRequest(request)
+                                                setShowRejectDialog(true)
+                                            }}
+                                            className="text-destructive"
+                                        >
+                                            <X className="mr-2 h-4 w-4" />
+                                            Reject
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                                {isRejected && (
                                     <DropdownMenuItem
                                         onClick={() => {
-                                            setSelectedRequest(request)
-                                            setShowRejectDialog(true)
+                                            setSelectedRequest(request);
+                                            setShowRejectionReasonDialog(true);
                                         }}
                                         className="text-destructive"
                                     >
-                                        <X className="mr-2 h-4 w-4" />
-                                        Reject
+                                        <AlertCircle className="mr-2 h-4 w-4" />
+                                        View Rejection Reason
                                     </DropdownMenuItem>
-                                </>
-                            )}
-                            {isRejected && (
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        setSelectedRequest(request);
-                                        setShowRejectionReasonDialog(true);
-                                    }}
-                                    className="text-destructive"
-                                >
-                                    <AlertCircle className="mr-2 h-4 w-4" />
-                                    View Rejection Reason
-                                </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>VALE Request Details</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label>Type</Label>
+                                            <div className="text-sm">{request.type}</div>
+                                        </div>
+                                        <div>
+                                            <Label>Status</Label>
+                                            <div className="text-sm">{request.status}</div>
+                                        </div>
+                                        <div>
+                                            <Label>Amount</Label>
+                                            <div className="text-sm">₱{request.amount.toLocaleString()}</div>
+                                        </div>
+                                        <div>
+                                            <Label>Payment Term</Label>
+                                            <div className="text-sm">{request.paymentTerm}</div>
+                                        </div>
+                                        <div>
+                                            <Label>Date Requested</Label>
+                                            <div className="text-sm">{format(new Date(request._creationTime), 'PPP')}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </>
                 )
             },
         },
