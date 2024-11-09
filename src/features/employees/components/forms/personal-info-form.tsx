@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { UseFormReturn } from "react-hook-form"
 import { EmployeeFormValues } from "../../lib/schema"
+import { Button } from "@/components/ui/button"
+import { Eye, EyeOff } from "lucide-react"
+import { useState } from "react"
 
 interface PersonalInfoFormProps {
   form: UseFormReturn<EmployeeFormValues>
@@ -28,7 +31,19 @@ const CONTACT_TYPE_OPTIONS = [
   { value: "landline", label: "Landline" },
 ]
 
+const PHONE_PATTERNS = {
+  mobile: /^\+63[0-9]{10}$/, // +63 followed by 10 digits
+  landline: /^\+63[0-9]{1,2}[0-9]{7,8}$/, // +63 + 1-2 digit area code + 7-8 digits
+}
+
+const PHONE_PLACEHOLDERS = {
+  mobile: "+63 9XX XXX XXXX",
+  landline: "+63 2 XXXX XXXX",
+}
+
 export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
+  const [showPassword, setShowPassword] = useState(false)
+
   return (
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-2 gap-4">
@@ -97,7 +112,25 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    {...field} 
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -200,15 +233,22 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
         <FormField
           control={form.control}
           name="contactNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contact Number</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter contact number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const watchContactType = form.watch("contactType")
+            return (
+              <FormItem>
+                <FormLabel>Contact Number</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder={PHONE_PLACEHOLDERS[watchContactType as keyof typeof PHONE_PLACEHOLDERS] || "Enter contact number"}
+                    pattern={PHONE_PATTERNS[watchContactType as keyof typeof PHONE_PATTERNS]?.source}
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )
+          }}
         />
       </div>
     </div>

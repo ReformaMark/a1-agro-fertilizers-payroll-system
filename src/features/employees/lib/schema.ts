@@ -12,7 +12,18 @@ export const employeeFormSchema = z.object({
     gender: z.enum(["male", "female"]),
     maritalStatus: z.enum(["single", "married", "widowed", "divorced", "separated"]),
     contactType: z.enum(["mobile", "landline"]),
-    contactNumber: z.string(),
+    contactNumber: z.string()
+        .refine((val) => {
+            if (!val) return false
+            const type = employeeFormSchema.shape.contactType
+            // @ts-expect-error - TODO: fix this
+            if (type === "mobile") {
+                return /^\+63[0-9]{10}$/.test(val)
+            }
+            return /^\+63[0-9]{1,2}[0-9]{7,8}$/.test(val)
+        }, {
+            message: "Invalid phone number format. Mobile should be +63 followed by 10 digits. Landline should be +63 followed by area code and 7-8 digits."
+        }),
     department: z.string(),
     position: z.string(),
     hiredDate: z.string(),

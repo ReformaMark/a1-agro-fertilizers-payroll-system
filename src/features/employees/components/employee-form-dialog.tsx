@@ -56,23 +56,15 @@ export function EmployeeFormDialog() {
     })
 
     async function onSubmit(data: EmployeeFormValues) {
-        if (isSubmitting) {
-            console.log("Preventing double submission")
-            return;
-        }
-        
-        console.log("Starting submission process...")
-        
+        if (isSubmitting) return;
+
         try {
             setIsSubmitting(true)
             const { _id, image, ...submitData } = data
-            console.log("Submitting employee data:", submitData)
-            
+
             const result = await createEmployee(submitData)
-            console.log("Create employee result:", result)
 
             if (!result) {
-                console.error("Employee creation failed - no result returned")
                 toast.error("Failed to create employee", {
                     description: "The server did not return a valid response"
                 })
@@ -80,36 +72,29 @@ export function EmployeeFormDialog() {
             }
 
             const newUserId = result._id
-            console.log("New user ID:", newUserId)
-            
+
             if (selectedFile) {
-                console.log("Starting file upload process...")
                 setIsUploading(true)
                 try {
                     const postUrl = await generateUploadUrl()
-                    console.log("Generated upload URL")
-                    
+
                     const uploadResult = await fetch(postUrl, {
                         method: "POST",
                         headers: { "Content-Type": selectedFile.type },
                         body: selectedFile,
                     })
-                    console.log("Upload response:", uploadResult)
-                    
+
                     if (!uploadResult.ok) {
                         throw new Error(`Upload failed with status: ${uploadResult.status}`)
                     }
-                    
-                    const { storageId } = await uploadResult.json()
-                    console.log("Storage ID:", storageId)
 
-                    const profileUpdateResult = await updateProfileImage({
+                    const { storageId } = await uploadResult.json()
+
+                    await updateProfileImage({
                         userId: newUserId,
                         storageId,
                     })
-                    console.log("Profile image update result:", profileUpdateResult)
                 } catch (uploadError) {
-                    console.error("Upload error details:", uploadError)
                     toast.error("Profile image upload failed", {
                         description: getConvexErrorMessage(uploadError as Error)
                     })
@@ -118,19 +103,17 @@ export function EmployeeFormDialog() {
                 }
             }
 
-            console.log("Showing success toast and cleaning up...")
             toast.success("Employee added successfully", {
                 description: "New employee account has been created"
             })
-            
+
             setOpen(false)
             form.reset()
             setStep(1)
             setSelectedFile(null)
             setCreatedUserId(null)
-            
+
         } catch (error) {
-            console.error("Submission error details:", error)
             toast.error("Failed to add employee", {
                 description: getConvexErrorMessage(error as Error)
             })
@@ -191,13 +174,13 @@ export function EmployeeFormDialog() {
     }
 
     return (
-        <Dialog 
-            open={open} 
+        <Dialog
+            open={open}
             onOpenChange={handleOpenChange}
         >
             <DialogTrigger asChild>
-                <Button 
-                    className="gap-2" 
+                <Button
+                    className="gap-2"
                     onClick={() => setOpen(true)}
                     disabled={isSubmitting || isUploading}
                 >
@@ -240,9 +223,9 @@ export function EmployeeFormDialog() {
 
                         <div className="flex justify-end gap-2">
                             {step > 1 && (
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
+                                <Button
+                                    type="button"
+                                    variant="outline"
                                     onClick={previousStep}
                                     disabled={isSubmitting}
                                 >
@@ -250,15 +233,15 @@ export function EmployeeFormDialog() {
                                 </Button>
                             )}
                             {step < 4 ? (
-                                <Button 
-                                    type="button" 
+                                <Button
+                                    type="button"
                                     onClick={nextStep}
                                     disabled={isSubmitting}
                                 >
                                     Next
                                 </Button>
                             ) : (
-                                <Button 
+                                <Button
                                     type="submit"
                                     disabled={isSubmitting || isUploading}
                                 >
