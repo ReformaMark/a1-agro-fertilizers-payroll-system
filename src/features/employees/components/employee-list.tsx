@@ -164,7 +164,7 @@ export function EmployeeList() {
                     key={`edit-dialog-${editingEmployee._id}`}
                     employee={editingEmployee}
                     open={isEditDialogOpen}
-                    onOpenChange={(open) => {
+                    onOpenChange={() => {
                         handleEditDialogClose();
                     }}
                 />
