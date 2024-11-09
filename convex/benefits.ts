@@ -150,4 +150,40 @@ export const getActiveBenefits = query({
             return acc
         }, {} as Record<string, typeof requests>)
     },
-}) 
+})
+
+export const issue = mutation({
+    args: {
+        userId: v.id("users"),
+        type: v.string(),
+        amount: v.optional(v.number()),
+        description: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx)
+        if (!userId) throw new Error("Unauthorized");
+
+        const user = await ctx.db.get(args.userId);
+        if (!user) throw new Error("User not found");
+
+        // Verify that the issuer is an admin
+        const issuer = await ctx.db
+            .query("users")
+            .filter(q => q.eq(q.field("_id"), userId))
+            .first();
+
+        if (!issuer || issuer.role !== "admin") {
+            throw new Error("Only administrators can issue vouchers");
+        }
+
+        return await ctx.db.insert("benefitRequests", {
+            userId: args.userId,
+            type: args.type,
+            amount: args.amount,
+            description: args.description || "",
+            status: "Pending",
+            createdAt: new Date().toISOString(),
+            modifiedAt: new Date().toISOString(),
+        });
+    },
+});

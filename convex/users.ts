@@ -445,135 +445,141 @@ export const declineRegistration = mutation({
 // })
 
 export const createEmployee = mutation({
-    args: {
-        email: v.string(),
-        password: v.string(),
-        firstName: v.string(),
-        middleName: v.optional(v.string()),
-        lastName: v.string(),
-        dateOfBirth: v.string(),
-        gender: v.union(v.literal("male"), v.literal("female")),
-        maritalStatus: v.union(v.literal("single"), v.literal("married"), v.literal("widowed"), v.literal("divorced"), v.literal("separated")),
-        contactType: v.union(v.literal("mobile"), v.literal("landline")),
-        contactNumber: v.string(),
-        department: v.string(),
-        position: v.string(),
-        hiredDate: v.string(),
-        region: v.string(),
-        province: v.string(),
-        city: v.string(),
-        barangay: v.string(),
-        postalCode: v.string(),
-        street: v.string(),
-        houseNumber: v.string(),
-        ratePerDay: v.number(),
-        philHealthNumber: v.string(),
-        pagIbigNumber: v.string(),
-        sssNumber: v.string(),
-        birTin: v.string(),
-        philHealthContribution: v.number(),
-        pagIbigContribution: v.number(),
-        sssContribution: v.number(),
-        incomeTax: v.number(),
-        philHealthSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
-        pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
-        sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
-        incomeTaxSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
-        employeeTypeId: v.string(),
-    },
-    handler: async (ctx, args) => {
-        try {
-            // Authenticate admin
-            const adminId = await getAuthUserId(ctx)
-            if (!adminId) throw new ConvexError("Not authenticated")
+  args: {
+    email: v.string(),
+    password: v.string(),
+    firstName: v.string(),
+    middleName: v.optional(v.string()),
+    lastName: v.string(),
+    dateOfBirth: v.string(),
+    gender: v.union(v.literal("male"), v.literal("female")),
+    maritalStatus: v.union(
+      v.literal("single"),
+      v.literal("married"),
+      v.literal("widowed"),
+      v.literal("divorced"),
+      v.literal("separated")
+    ),
+    contactType: v.union(v.literal("mobile"), v.literal("landline")),
+    contactNumber: v.string(),
+    department: v.string(),
+    position: v.string(),
+    hiredDate: v.string(),
+    region: v.string(),
+    province: v.string(),
+    city: v.string(),
+    barangay: v.string(),
+    postalCode: v.string(),
+    street: v.string(),
+    houseNumber: v.string(),
+    ratePerDay: v.number(),
+    philHealthNumber: v.string(),
+    pagIbigNumber: v.string(),
+    sssNumber: v.string(),
+    birTin: v.string(),
+    philHealthContribution: v.number(),
+    pagIbigContribution: v.number(),
+    sssContribution: v.number(),
+    incomeTax: v.number(),
+    philHealthSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+    pagIbigSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+    sssSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+    incomeTaxSchedule: v.union(v.literal("1st half"), v.literal("2nd half")),
+    employeeTypeId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      // Authenticate admin
+      const adminId = await getAuthUserId(ctx);
+      if (!adminId) throw new ConvexError("Not authenticated");
 
-            const admin = await ctx.db.get(adminId)
-            if (admin?.role !== "admin") {
-                throw new ConvexError("Not authorized")
-            }
+      const admin = await ctx.db.get(adminId);
+      if (admin?.role !== "admin") {
+        throw new ConvexError("Not authorized");
+      }
 
-            // Check if email already exists
-            const existingUser = await ctx.db
-                .query("users")
-                .filter(q => q.eq(q.field("email"), args.email))
-                .first()
+      // Check if email already exists
+      const existingUser = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("email"), args.email))
+        .first();
 
-            if (existingUser) {
-                throw new ConvexError("Email already exists")
-            }
+      if (existingUser) {
+        throw new ConvexError("Email already exists");
+      }
 
-            // Check if employee ID already exists
-            const existingEmployee = await ctx.db
-                .query("users")
-                .filter(q => q.eq(q.field("employeeTypeId"), args.employeeTypeId))
-                .first()
+      // Check if employee ID already exists
+      const existingEmployee = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("employeeTypeId"), args.employeeTypeId))
+        .first();
 
-            if (existingEmployee) {
-                throw new ConvexError("Employee ID already exists")
-            }
+      if (existingEmployee) {
+        throw new ConvexError("Employee ID already exists");
+      }
 
-            const { email, password, ...userData } = args
+      const { email, password, ...userData } = args;
 
-            // Create the account using createAccount
-            // @ts-expect-error convex does not support password provider types yet
-            const accountResponse = await createAccount(ctx, {
-                provider: "password",
-                account: {
-                    id: email,
-                    secret: password,
-                },
-                profile: {
-                    email,
-                    firstName: userData.firstName,
-                    middleName: userData.middleName,
-                    lastName: userData.lastName,
-                    dateOfBirth: userData.dateOfBirth,
-                    gender: userData.gender,
-                    maritalStatus: userData.maritalStatus,
-                    contactType: userData.contactType,
-                    contactNumber: userData.contactNumber,
-                    role: "employee",
-                },
-            });
+      // Create the account using createAccount
+      // @ts-expect-error convex does not support password provider types yet
+      const accountResponse = await createAccount(ctx, {
+        provider: "password",
+        account: {
+          id: email,
+          secret: password,
+        },
+        profile: {
+          email,
+          firstName: userData.firstName,
+          middleName: userData.middleName,
+          lastName: userData.lastName,
+          dateOfBirth: userData.dateOfBirth,
+          gender: userData.gender,
+          maritalStatus: userData.maritalStatus,
+          contactType: userData.contactType,
+          contactNumber: userData.contactNumber,
+          role: "employee",
+        },
+      });
 
-            if (!accountResponse?.user?._id) {
-                throw new ConvexError("Failed to create user account");
-            }
+      if (!accountResponse?.user?._id) {
+        throw new ConvexError("Failed to create user account");
+      }
 
-            // Create the user record with all fields
-            await ctx.db.patch(accountResponse.user._id as Id<"users">, {
-                ...userData,
-                email,
-                role: "employee",
-                isArchived: false,
-                filledUpByAdmin: true,
-                modifiedBy: adminId,
-                modifiedAt: new Date().toISOString(),
-            });
+      // Create the user record with all fields
+      await ctx.db.patch(accountResponse.user._id as Id<"users">, {
+        ...userData,
+        email,
+        role: "employee",
+        isArchived: false,
+        filledUpByAdmin: true,
+        modifiedBy: adminId,
+        modifiedAt: new Date().toISOString(),
+      });
 
-            // Get the updated user data
-            const newUser = await ctx.db.get(accountResponse.user._id as Id<"users">);
-            if (!newUser) {
-                throw new ConvexError("Failed to retrieve created user");
-            }
+      // Get the updated user data
+      const newUser = await ctx.db.get(accountResponse.user._id as Id<"users">);
+      if (!newUser) {
+        throw new ConvexError("Failed to retrieve created user");
+      }
 
-            // Create audit log entry
-            await ctx.db.insert("auditLogs", {
-                action: "Created Employee",
-                entityType: "employee",
-                entityId: accountResponse.user._id as Id<"users">,
-                performedBy: adminId,
-                performedAt: new Date().toISOString(),
-                details: `Created employee account for ${args.firstName} ${args.lastName} with ID ${args.employeeTypeId}`,
-            });
+      // Create audit log entry
+      await ctx.db.insert("auditLogs", {
+        action: "Created Employee",
+        entityType: "employee",
+        entityId: accountResponse.user._id as Id<"users">,
+        performedBy: adminId,
+        performedAt: new Date().toISOString(),
+        details: `Created employee account for ${args.firstName} ${args.lastName} with ID ${args.employeeTypeId}`,
+      });
 
-            return newUser;
-        } catch (error) {
-            console.error("Error in createEmployee:", error);
-            throw error;
-        }
+      return newUser;
+    } catch (error) {
+      console.error("Error in createEmployee:", error);
+      throw error;
     }
-})
+  },
+});
 
 export const generateUploadUrl = mutation({
   args: {},
@@ -716,5 +722,15 @@ export const updatePersonalInfo = mutation({
     });
 
     return true;
+  },
+});
+
+export const list = query({
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("users")
+      .filter((q) => q.neq(q.field("role"), "admin")) // Optionally filter out admins
+      .order("desc")
+      .collect();
   },
 });

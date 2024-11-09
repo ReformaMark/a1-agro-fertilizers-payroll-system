@@ -31,7 +31,7 @@ export default function BenefitsPage() {
         title: type.name,
         description: type.description || `${type.name} for eligible employees`,
         icon: BENEFIT_ICONS[type.name] || Gift,
-        status: activeBenefits?.[type.name]?.length ? "Active" : "Available",
+        status: activeBenefits?.[type.name]?.length ? "Active" : "Not Issued",
         coverage: type.defaultAmount ? `₱${type.defaultAmount.toLocaleString()}/month` : "Variable",
         details: [
             "Standard coverage",
@@ -43,16 +43,16 @@ export default function BenefitsPage() {
     return (
         <div className="container py-6">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold">Vouchers & Allowances</h1>
+                <h1 className="text-3xl font-bold">My Vouchers</h1>
                 <p className="text-muted-foreground">
-                    View and manage your vouchers and submit requests
+                    View your active and available vouchers
                 </p>
             </div>
 
             <Tabs defaultValue="available" className="space-y-6">
                 <TabsList>
                     <TabsTrigger value="available">Available Vouchers</TabsTrigger>
-                    <TabsTrigger value="requests">My Requests</TabsTrigger>
+                    <TabsTrigger value="active">Active Vouchers</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="available" className="space-y-6">
@@ -113,7 +113,7 @@ export default function BenefitsPage() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="requests">
+                <TabsContent value="active">
                     <BenefitRequestList />
                 </TabsContent>
             </Tabs>
