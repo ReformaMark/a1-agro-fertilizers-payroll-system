@@ -91,7 +91,7 @@ export function CompensationTypeForm({ onClose, editingType }: CompensationTypeF
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>
-                        {editingType ? "Edit" : "Add New"} Compensation Type
+                        {editingType ? "Edit" : "Add New"} Voucher Type
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -117,7 +117,7 @@ export function CompensationTypeForm({ onClose, editingType }: CompensationTypeF
                                 <FormItem>
                                     <FormLabel>Category</FormLabel>
                                     <FormControl>
-                                        <Select 
+                                        <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
@@ -145,7 +145,7 @@ export function CompensationTypeForm({ onClose, editingType }: CompensationTypeF
                                 <FormItem>
                                     <FormLabel>Frequency</FormLabel>
                                     <FormControl>
-                                        <Select 
+                                        <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
