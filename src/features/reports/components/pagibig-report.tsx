@@ -40,7 +40,7 @@ export function PagibigReport() {
         const { ee, er } = findEmployerShare(monthlyCompensation);
 
         return {
-            empId: employee._id.slice(-6).toUpperCase(),
+            empId: employee.employeeTypeId as string,
             name: `${employee.lastName}, ${employee.firstName}`,
             pagibigNo: employee.pagIbigNumber || "N/A",
             employeeShare: Number(ee.toFixed(2)),

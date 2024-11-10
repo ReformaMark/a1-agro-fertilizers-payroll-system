@@ -34,31 +34,35 @@ export function PhilhealthReport() {
             return { ee: 0, er: 0 };
         }
 
-        const currentRange = philhealthTable.ranges[0]; // Get the current range
-        const premiumRate = currentRange.premiumRate;
-
         // For salaries 10,000 and below
         if (monthlyBasicSalary <= 10000) {
             return {
-                ee: 250, // Half of minimum premium (500/2)
-                er: 250  // Half of minimum premium (500/2)
+                ee: 200, // Updated to 200 (400/2) based on 2024 rates
+                er: 200  // Updated to 200 (400/2) based on 2024 rates
             };
         }
 
-        // For salaries 100,000 and above
-        if (monthlyBasicSalary >= 100000) {
+        // For salaries 80,000 and above (updated threshold for 2024)
+        if (monthlyBasicSalary >= 80000) {
             return {
-                ee: 2500, // Half of maximum premium (5000/2)
-                er: 2500  // Half of maximum premium (5000/2)
+                ee: 1800, // Updated to 1800 (3600/2) based on 2024 rates
+                er: 1800  // Updated to 1800 (3600/2) based on 2024 rates
             };
         }
 
-        // For salaries between 10,000.01 to 99,999.99
+        // For salaries between 10,000.01 to 79,999.99
+        const currentRange = philhealthTable.ranges.find(range => {
+            const currentYear = new Date().getFullYear();
+            return currentYear >= range.yearStart && currentYear <= range.yearEnd;
+        });
+
+        if (!currentRange) {
+            return { ee: 0, er: 0 };
+        }
+
+        const premiumRate = currentRange.premiumRate;
         const monthlyPremium = monthlyBasicSalary * (premiumRate / 100);
         const share = monthlyPremium / 2; // Split 50-50
-
-
-        console.log("Monthly Premium", monthlyPremium)
 
         return {
             ee: Number(share.toFixed(2)),
@@ -71,7 +75,7 @@ export function PhilhealthReport() {
         const { ee, er } = calculatePhilhealthContribution(monthlyBasicSalary);
 
         return {
-            empId: employee._id.slice(-6).toUpperCase(),
+            empId: employee.employeeTypeId as string,
             name: `${employee.lastName}, ${employee.firstName}`,
             philhealthNo: employee.philHealthNumber || "N/A",
             employeeShare: ee,
@@ -83,8 +87,6 @@ export function PhilhealthReport() {
         ee: acc.ee + row.employeeShare,
         er: acc.er + row.employerShare
     }), { ee: 0, er: 0 });
-
-
 
     return (
         <Card className="p-6">

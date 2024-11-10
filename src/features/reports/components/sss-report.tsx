@@ -38,7 +38,7 @@ export function SSSReport() {
         const { er, ec } = findEmployerShares(employeeShare);
 
         return {
-            empId: employee._id.slice(-6).toUpperCase(),
+            empId: employee.employeeTypeId as string,
             name: `${employee.lastName}, ${employee.firstName}`,
             sssNo: employee.sssNumber || "N/A",
             employeeShare: Number(employeeShare),  // Ensure it's a number

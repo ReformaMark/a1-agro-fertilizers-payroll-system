@@ -12,8 +12,8 @@ import {
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
   Calculator,
-  ClipboardList,
   FileText,
+  HelpCircle,
   LayoutDashboard,
   Settings2,
   Users
@@ -40,76 +40,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       },
       {
-        title: "Reports",
-        url: "/admin/reports",
-        icon: FileText,
-        items: [
-          {
-            title: "Overview",
-            url: "/admin",
-          },
-          {
-            title: "Reports",
-            url: "/admin/reports",
-          }
-        ],
-      },
-      {
         title: "Employee List",
         url: "/admin/employees",
         icon: Users,
       },
       {
-        title: "Attendance",
-        url: "/admin/attendance",
-        icon: ClipboardList,
-        items: [
-          {
-            title: "Daily Records",
-            url: "/admin/attendance",
-          },
-        ],
-      },
-      {
-        title: "Requests",
-        url: "/admin/requests",
-        icon: FileText,
-        items: [
-          {
-            title: "Vouchers",
-            url: "/admin/requests/benefits",
-          },
-          {
-            title: "Leave Requests",
-            url: "/admin/requests/leaves",
-          },
-          {
-            title: "Loans",
-            url: "/admin/requests/loans",
-          },
-          // {
-          //   title: "VALE",
-          //   url: "/admin/requests/cash-advance",
-          // }
-        ],
-      },
-      {
-        title: "Payroll",
-        url: "/admin/payroll",
+        title: "Payroll Sheet",
+        url: "/admin/payroll/process",
         icon: Calculator,
         items: [
           {
             title: "Payroll Sheet",
             url: "/admin/payroll/process",
           },
-          {
-            title: "Salary Components",
-            url: "/admin/payroll/salary-components",
-          },
-          {
-            title: "Voucher Types",
-            url: "/admin/payroll",
-          }
+          // {
+          //   title: "Salary Components",
+          //   url: "/admin/payroll/salary-components",
+          // },
+          // {
+          //   title: "Voucher Types",
+          //   url: "/admin/payroll",
+          // }
           // ,
           // {
           //   title: "Salary Components",
@@ -125,6 +76,66 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           // }
         ],
       },
+      {
+        title: "Vouchers",
+        url: "/admin/requests/benefits",
+        icon: Users,
+        items: [
+          {
+            title: "Manage Vouchers",
+            url: "/admin/requests/benefits",
+          },
+          // {
+          //   title: "Add Voucher Types",
+          //   url: "/admin/payroll",
+          // }
+        ],
+      },
+      {
+        title: "Requests",
+        url: "/admin/requests",
+        icon: FileText,
+        items: [
+          {
+            title: "Leave Requests",
+            url: "/admin/requests/leaves",
+          },
+          {
+            title: "Loans",
+            url: "/admin/requests/loans",
+          },
+          // {
+          //   title: "VALE",
+          //   url: "/admin/requests/cash-advance",
+          // }
+        ],
+      },
+      {
+        title: "Reports",
+        url: "/admin/reports",
+        icon: FileText,
+        items: [
+          {
+            title: "Attendance",
+            url: "/admin/attendance",
+          },
+          {
+            title: "Government Contribution Report",
+            url: "/admin/reports",
+          }
+        ],
+      },
+      // {
+      //   title: "Attendance",
+      //   url: "/admin/attendance",
+      //   icon: ClipboardList,
+      //   items: [
+      //     {
+      //       title: "Daily Records",
+      //       url: "/admin/attendance",
+      //     },
+      //   ],
+      // },
       {
         title: "Settings",
         url: "/admin/settings",
@@ -143,6 +154,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/admin/holidays",
           },
         ],
+      },
+      {
+        title: "Support",
+        url: "/admin/support",
+        icon: HelpCircle,
       },
     ],
   };
