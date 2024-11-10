@@ -32,7 +32,7 @@ export default function AttendanceReport({userId}: {userId: Id<"users">}) {
         if (!attendance) return []
         
         const { start, end } = getCurrentTimePeriod(new Date(selectedDate))
-        
+         
         return attendance.filter((record) => {
             const recordDate = new Date(record.date)
             return recordDate >= start && recordDate <= end

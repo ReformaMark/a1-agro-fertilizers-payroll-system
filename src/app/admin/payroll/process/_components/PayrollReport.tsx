@@ -41,8 +41,14 @@ export default function PayrollReport() {
 
     const filteredData = useMemo(() => {
         if (!salaryComponents) return [];
-        return salaryComponents
-    }, [salaryComponents]);
+        
+        const { start, end } = getCurrentTimePeriod(new Date(selectedDate));
+        
+        return salaryComponents.filter((record) => {
+            const recordDate = new Date(record._creationTime);
+            return recordDate >= start && recordDate <= end;
+        });
+    }, [salaryComponents, selectedDate]);
 
     const dataForExport = filteredData.map((item) => {
         if (!item.employee) return null;
@@ -97,13 +103,14 @@ export default function PayrollReport() {
                         </Button>
                     </div>
                 </div>
-                <div>
-                    {TimePeriod(selectedDate, setSelectedDate)}
-                </div>
+                
             </CardHeader>
 
             <CardContent className="pt-6">
                 <div className="overflow-x-auto">
+                <div>
+                    {TimePeriod(selectedDate, setSelectedDate)}
+                </div>
                     <DataTable
                         columns={columns} // TODO: Define payroll columns
                         data={filteredData as SalaryComponent[]}

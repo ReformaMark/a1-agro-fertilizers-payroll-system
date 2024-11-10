@@ -158,19 +158,20 @@ export const columns: ColumnDef<SalaryComponent>[] = [
         id: "netPay",
         header: () => <span className="text-center">Net Pay</span>,
         cell: ({ row }) => {
-            // Reuse the totalDeductions calculation from above
-            const payrollData = useQuery(api.salaryComponents.getSalaryComponentsByPayrollPeriod, {
-                startDate: row.original.payrollPeriod?.startDate,
-                endDate: row.original.payrollPeriod?.endDate,
+            // Skip the query if payrollPeriod is not available
+            const payrollData = row.original.payrollPeriod ? useQuery(api.salaryComponents.getSalaryComponentsByPayrollPeriod, {
+                startDate: row.original.payrollPeriod.startDate,
+                endDate: row.original.payrollPeriod.endDate,
                 userId: row.original.userId
-            });
+            }) : null;
+
             const loans = useQuery(api.loans.getGovernmentLoans, {
                 userId: row.original.userId,
                 status: 'Approved'
             });
+
             const totalDeductions = calculateTotalDeductions(payrollData as any, loans ?? []);
-            console.log(totalDeductions)
-           
+            
             return <span className="text-xs">{formatMoney(row.original.netPay - totalDeductions)}</span>
         }
     },

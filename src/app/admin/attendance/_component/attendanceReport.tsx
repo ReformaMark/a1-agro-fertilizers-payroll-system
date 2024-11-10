@@ -26,7 +26,7 @@ export default function AttendanceReport() {
     // Filter attendance based on selected date range
     const filteredData = useMemo(() => {
         if (!attendance) return []
-        
+         
         const { start, end } = getCurrentTimePeriod(new Date(selectedDate))
         
         return attendance.filter((record) => {
