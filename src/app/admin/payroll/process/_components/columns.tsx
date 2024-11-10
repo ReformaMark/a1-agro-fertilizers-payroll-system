@@ -43,6 +43,7 @@ export const columns: ColumnDef<SalaryComponent>[] = [
         header: () => <span className="text-center">Hours Worked</span>,
         cell: ({ row }) => <span className="text-xs">{(row.original.hoursWorked ?? 0).toFixed(1)}</span>
     },
+     
     {
         id: "ratePerDay",
         header: () => <span className="text-center">Rate/Day</span>,
