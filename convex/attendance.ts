@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server"
-import { calculateContributions, formatDate, timeStringToComponents } from "@/lib/utils";
+import { formatDate, timeStringToComponents } from "@/lib/utils";
 
 export const list = query({
   args: {},
@@ -234,7 +234,7 @@ export const timeOut = mutation({
       
       
       if (existingSalaryComponent) {
-       const contributions = calculateContributions(existingSalaryComponent.basicPay)
+      
        const netpay = (existingSalaryComponent.basicPay + (overtimePay?.amount || 0)) - ((existingSalaryComponent.deductions.reduce((acc, curr) => acc + curr.amount, 0) || 0))
         await ctx.db.patch(existingSalaryComponent._id, {
           basicPay: existingSalaryComponent.basicPay + grossPay,
@@ -247,10 +247,10 @@ export const timeOut = mutation({
             }] : [])
           ],
           governmentContributions: {
-            sss: contributions.sss.total,
-            philHealth: contributions.philHealth.total,
-            pagIbig: contributions.pagIbig.total,
-            tax: contributions.tax
+            sss: existingSalaryComponent.governmentContributions.sss,
+            philHealth: existingSalaryComponent.governmentContributions.philHealth,
+            pagIbig: existingSalaryComponent.governmentContributions.pagIbig,
+            tax: existingSalaryComponent.governmentContributions.tax
           },
           overtime: overtimePay ? {
             hours: (existingSalaryComponent.overtime?.hours || 0) + overtimePay.hours,

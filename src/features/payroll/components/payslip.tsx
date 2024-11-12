@@ -61,13 +61,7 @@ const sssCalamityLoan = loans?.find((loan: any) => loan.applicationType === 'SSS
   const userPhilHealthContribution = isPhilHealthScheduled ? payrollData?.governmentContributions.philHealth ?? 0 : 0;
 
   const totalDeduction = payrollData?.governmentContributions ? 
-    (userPagibigContribution?? 0) + 
-    (userSSSContribution ?? 0) + 
-    ( userPhilHealthContribution  ?? 0) +
-    (applicablePagibigLoan?.amount ?? 0) +
-    (applicablePagibigCalamityLoan?.amount ?? 0) +
-    (applicableSssSalaryLoan?.amount ?? 0) +
-    (applicableSssCalamityLoan?.amount ?? 0) + deductions: 0;
+    deductions: 0;
 
 
   

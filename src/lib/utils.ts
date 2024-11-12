@@ -246,11 +246,13 @@ interface PayrollData {
   governmentContributions: {
     sss: number;
     philHealth: number;
+    pagIbig: number;
+    tax: number;
   };
   deductions: { amount: number }[];
 }
 
-function isCurrentPeriod(loan: Loan): boolean {
+export function isCurrentPeriod(loan: Loan): boolean {
   const currentDate = new Date();
   const isFirstHalf = currentDate.getDate() <= 15;
   const cutOffSchedule = isFirstHalf ? '1st half' : '2nd half';

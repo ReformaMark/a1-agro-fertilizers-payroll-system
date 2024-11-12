@@ -107,6 +107,7 @@ export const columns: ColumnDef<SalaryComponent>[] = [
             });
             const sssCalamityLoan = loans?.find(loan => loan.applicationType === 'SSS Calamity');
             const applicableLoan = sssCalamityLoan && isCurrentPeriod(sssCalamityLoan) ? sssCalamityLoan : null;
+            
             return <span className="text-xs">{formatMoney(applicableLoan?.amortization || 0)}</span>
         }
     },
@@ -120,6 +121,7 @@ export const columns: ColumnDef<SalaryComponent>[] = [
             });
             const sssSalaryLoan = loans?.find(loan => loan.applicationType === 'SSS Salary');
             const applicableLoan = sssSalaryLoan && isCurrentPeriod(sssSalaryLoan) ? sssSalaryLoan : null;
+            
             return <span className="text-xs">{formatMoney(applicableLoan?.amortization || 0)}</span>
         }
     },
@@ -133,6 +135,7 @@ export const columns: ColumnDef<SalaryComponent>[] = [
             });
             const pagibigLoan = loans?.find(loan => loan.applicationType === 'Pagibig Multi-purpose');
             const applicableLoan = pagibigLoan && isCurrentPeriod(pagibigLoan) ? pagibigLoan : null;
+            
             return <span className="text-xs">{formatMoney(applicableLoan?.amortization || 0)}</span>
         }
     },
@@ -150,9 +153,62 @@ export const columns: ColumnDef<SalaryComponent>[] = [
         }
     },
     {
+        id: "grossIncome",
+        header: () => <span className="text-center">Gross Income</span>,
+        cell: ({ row }) => {
+            const grossIncome = row.original.basicPay
+            return (
+            <span className="text-xs">{formatMoney(grossIncome)}</span> 
+        )
+        }
+    },
+    {
         id: "deductions",
         header: () => <span className="text-center">Deductions</span>,
-        cell: ({ row }) => <span className="text-xs">{formatMoney(row.original.deductions.reduce((total, d) => total + d.amount, 0))}</span>
+        cell: ({ row }) => {
+            return (
+            <span className="text-xs">{formatMoney(row.original.deductions.reduce((total, d) => total + d.amount, 0))}</span> 
+        )
+        }
+    },
+    {
+        id: "governmentContributions",
+        header: () => <span className="text-center">Total Contributions</span>,
+        cell: ({ row }) => {
+            const pagIbig = row.original.governmentContributions.pagIbig
+            const philHealth = row.original.governmentContributions.philHealth
+            const sss = row.original.governmentContributions.sss
+            const tax = row.original.governmentContributions.tax
+
+            const total = pagIbig + philHealth + sss + tax
+            return (
+            <span className="text-xs">{formatMoney(total)}</span> 
+        )
+        }
+    },
+    {
+        id: "loansTotal",
+        header: () => <span className="text-center">Total Loans</span>,
+        cell: ({ row }) => {
+            const loans = useQuery(api.loans.getGovernmentLoans, {
+                userId: row.original.userId,
+                status: 'Approved'
+            });
+
+            const sssCalamityLoan = loans?.find(loan => loan.applicationType === 'SSS Calamity');
+            const applicableSSSCalamityLoan = sssCalamityLoan && isCurrentPeriod(sssCalamityLoan) ? sssCalamityLoan : null;
+            const sssSalaryLoan = loans?.find(loan => loan.applicationType === 'SSS Salary');
+            const applicableSSSSalaryLoan = sssSalaryLoan && isCurrentPeriod(sssSalaryLoan) ? sssSalaryLoan : null;
+            const pagibigLoan = loans?.find(loan => loan.applicationType === 'Pagibig Multi-purpose');
+            const applicablePagibigLoan = pagibigLoan && isCurrentPeriod(pagibigLoan) ? pagibigLoan : null;
+            const pagibigCalamityLoan = loans?.find(loan => loan.applicationType === 'Pagibig Calamity');
+            const applicablePagibigCalamityLoan = pagibigCalamityLoan && isCurrentPeriod(pagibigCalamityLoan) ? pagibigCalamityLoan : null;
+
+            const total = (applicableSSSCalamityLoan?.amortization ?? 0) + (applicableSSSSalaryLoan?.amortization ?? 0) + (applicablePagibigLoan?.amortization ?? 0) + (applicablePagibigCalamityLoan?.amortization ?? 0)
+            return (
+            <span className="text-xs">{formatMoney(total)}</span> 
+        )
+        }
     },
     {
         id: "netPay",

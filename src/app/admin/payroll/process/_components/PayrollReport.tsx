@@ -1,6 +1,5 @@
 "use client";
 
-import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -16,10 +15,12 @@ import { downloadCSV } from "@/lib/export-utils";
 import { api } from "../../../../../../convex/_generated/api";
 import TimePeriod from "@/features/attendance/components/time-period";
 import { formatDate, getCurrentTimePeriod } from "@/lib/utils";
-import { columns } from "./columns";
 import { SalaryComponent } from "@/lib/types";
+import PayrollTable from "./payroll-table";
+import { Input } from "@/components/ui/input";
 
 export default function PayrollReport() {
+    const [search, setSearch] = useState<string>('')
     const getCurrentDate = () => {
         const date = new Date()
         return date.toLocaleDateString('en-US', {
@@ -50,6 +51,15 @@ export default function PayrollReport() {
         });
     }, [salaryComponents, selectedDate]);
 
+    const searchDatas = useMemo(() => {
+        if (search === '') return filteredData;
+
+        return filteredData.filter(data => 
+            data.employee?.lastName?.toLowerCase().includes(search.toLowerCase()) || 
+            data.employee?.firstName?.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [filteredData, search]);
+
     const dataForExport = filteredData.map((item) => {
         if (!item.employee) return null;
         const firstName = item.employee.firstName;
@@ -76,6 +86,7 @@ export default function PayrollReport() {
     }).filter(Boolean);
     
     return (
+    <div className="">
         <Card>
             <CardHeader className="border-b">
                 <div className="flex justify-between space-y-5 items-center">
@@ -107,22 +118,25 @@ export default function PayrollReport() {
             </CardHeader>
 
             <CardContent className="pt-6">
-                <div className="overflow-x-auto">
-                <div>
-                    {TimePeriod(selectedDate, setSelectedDate)}
-                </div>
-                    <DataTable
-                        columns={columns} // TODO: Define payroll columns
-                        data={filteredData as SalaryComponent[]}
-                        filter="name"
-                        filterLabel="Employee Name"
-                    />
+                <div className="">
+                    <div>
+                        {TimePeriod(selectedDate, setSelectedDate)}
+                    </div>
+                    <div className="max-w-screen-lg overflow-x-auto">
+                        <div className="flex items-center gap-4 my-4">
+                            <Input 
+                                type="text" 
+                                value={search}
+                                onChange={(v)=> setSearch(v.target.value)} 
+                                className="w-1/4"
+                                placeholder="Search by name"
+                            />
+                        </div>
+                        <PayrollTable datas={searchDatas as SalaryComponent[]} />
+                    </div>
                 </div>
             </CardContent>
         </Card>
+    </div>
     );
 }
-
-
-
-
