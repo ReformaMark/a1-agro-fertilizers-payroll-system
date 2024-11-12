@@ -54,7 +54,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           name="firstName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>First Name</FormLabel>
+              <FormLabel>First Name <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input placeholder="John" {...field} />
               </FormControl>
@@ -68,7 +68,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           name="lastName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Last Name</FormLabel>
+              <FormLabel>Last Name <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input placeholder="Doe" {...field} />
               </FormControl>
@@ -83,7 +83,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
         name="middleName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Middle Name</FormLabel>
+            <FormLabel>Middle Name <span className="">(Optional)</span></FormLabel>
             <FormControl>
               <Input placeholder="(Optional)" {...field} />
             </FormControl>
@@ -98,7 +98,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Email <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input type="email" placeholder="john.doe@example.com" {...field} />
               </FormControl>
@@ -112,7 +112,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Password <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
@@ -146,7 +146,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           name="dateOfBirth"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Date of Birth</FormLabel>
+              <FormLabel>Date of Birth <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input
                   type="date"
@@ -170,7 +170,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           name="gender"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Gender</FormLabel>
+              <FormLabel>Gender <span className="">*</span></FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -196,7 +196,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
         name="maritalStatus"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Marital Status</FormLabel>
+            <FormLabel>Marital Status <span className="text-red-500">*</span></FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -222,7 +222,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           name="contactType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact Type</FormLabel>
+              <FormLabel>Contact Type <span className="text-red-500">*</span></FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -249,7 +249,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
             const watchContactType = form.watch("contactType")
             return (
               <FormItem>
-                <FormLabel>Contact Number</FormLabel>
+                <FormLabel>Contact Number <span className="text-red-500">*</span></FormLabel>
                 <FormControl>
                   <Input
                     placeholder={PHONE_PLACEHOLDERS[watchContactType as keyof typeof PHONE_PLACEHOLDERS] || "Enter contact number"}

@@ -68,7 +68,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
         name="ratePerDay"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Rate Per Day</FormLabel>
+            <FormLabel>Rate Per Day <span className="text-red-500">*</span></FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -88,7 +88,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="philHealthNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>PhilHealth Number</FormLabel>
+              <FormLabel>PhilHealth Number <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input
                   placeholder="XX-XXXXXXXXX-X"
@@ -111,7 +111,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="philHealthSchedule"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>PhilHealth Schedule</FormLabel>
+              <FormLabel>PhilHealth Schedule <span className="text-red-500">*</span></FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -138,7 +138,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="pagIbigNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Pag-IBIG Number</FormLabel>
+              <FormLabel>Pag-IBIG Number <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input 
                   placeholder="XXXX-XXXX-XXXX"
@@ -161,7 +161,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="pagIbigSchedule"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Pag-IBIG Schedule</FormLabel>
+              <FormLabel>Pag-IBIG Schedule <span className="text-red-500">*</span></FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -188,7 +188,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="sssNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>SSS Number</FormLabel>
+              <FormLabel>SSS Number <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input 
                   placeholder="XX-XXXXXXX-X"
@@ -211,7 +211,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="sssSchedule"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>SSS Schedule</FormLabel>
+              <FormLabel>SSS Schedule <span className="text-red-500">*</span></FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -238,7 +238,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="birTin"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>BIR TIN</FormLabel>
+              <FormLabel>BIR TIN <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input placeholder="BIR TIN" {...field} />
               </FormControl>
@@ -252,7 +252,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="incomeTaxSchedule"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Income Tax Schedule</FormLabel>
+              <FormLabel>Income Tax Schedule <span className="text-red-500">*</span></FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -279,7 +279,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="philHealthContribution"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>PhilHealth Contribution</FormLabel>
+              <FormLabel>PhilHealth Contribution <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -298,7 +298,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="pagIbigContribution"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Pag-IBIG Contribution</FormLabel>
+              <FormLabel>Pag-IBIG Contribution <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -319,7 +319,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="sssContribution"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>SSS Contribution</FormLabel>
+              <FormLabel>SSS Contribution <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -338,7 +338,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
           name="incomeTax"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Income Tax</FormLabel>
+              <FormLabel>Income Tax <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input
                   type="number"

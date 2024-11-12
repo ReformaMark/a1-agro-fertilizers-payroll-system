@@ -18,7 +18,7 @@ export function EmploymentInfoForm({ form }: EmploymentInfoFormProps) {
           name="department"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Department</FormLabel>
+              <FormLabel>Department <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input placeholder="Human Resources" {...field} />
               </FormControl>
@@ -32,7 +32,7 @@ export function EmploymentInfoForm({ form }: EmploymentInfoFormProps) {
           name="position"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Position</FormLabel>
+              <FormLabel>Position <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input placeholder="HR Manager" {...field} />
               </FormControl>
@@ -47,7 +47,7 @@ export function EmploymentInfoForm({ form }: EmploymentInfoFormProps) {
         name="hiredDate"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Date Hired</FormLabel>
+            <FormLabel>Date Hired <span className="text-red-500">*</span></FormLabel>
             <FormControl>
               <Input
                 type="date"
