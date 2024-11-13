@@ -46,7 +46,7 @@ function Summary({data}:{data:SalaryComponent[]}) {
         <td className="px-6 py-3 text-left text-nowrap text-xs font-extrabold uppercase tracking-wider">{formatMoney(totalNetPay)}</td>
         <td className="px-6 py-3 text-left text-nowrap text-xs font-extrabold uppercase tracking-wider"></td>
     </tr>
-    </tfoot>
+    </tfoot> 
   )
 }
 
