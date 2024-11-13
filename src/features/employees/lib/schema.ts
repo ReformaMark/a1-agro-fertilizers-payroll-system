@@ -52,15 +52,13 @@ const nameRegex = /^[A-Za-z\s'-]+$/;
 export const employeeFormSchema: z.ZodObject<any> = z.object({
     _id: z.string().optional(),
     image: z.string().optional(),
-    email: z.string().email(),
-    password: z.string().min(8),
+    email: z.string().email().max(50, "Email must not exceed 50 characters"),
+    password: z.string().min(8).max(25, "Password must not exceed 25 characters"),
     firstName: z.string()
         .min(2, "First name must be at least 2 characters")
         .max(50, "First name must not exceed 50 characters")
         .regex(nameRegex, "First name must contain only letters, spaces, hyphens and apostrophes"),
-    middleName: z.string()
-        .regex(nameRegex, "Middle name must contain only letters, spaces, hyphens and apostrophes")
-        .optional(),
+    middleName: z.string().max(50, "Middle name must not exceed 50 characters").optional(),
     lastName: z.string()
         .min(2, "Last name must be at least 2 characters")
         .max(50, "Last name must not exceed 50 characters")
@@ -78,6 +76,7 @@ export const employeeFormSchema: z.ZodObject<any> = z.object({
     maritalStatus: z.enum(["single", "married", "widowed", "divorced", "separated"]),
     contactType: z.enum(["mobile", "landline"]),
     contactNumber: z.string()
+        .max(50, "Contact number must not exceed 50 characters")
         .refine((val: string): boolean => {
             if (!val) return false;
             const type = employeeFormSchema.shape.contactType._def.values[0] as "mobile" | "landline";
@@ -85,33 +84,36 @@ export const employeeFormSchema: z.ZodObject<any> = z.object({
         }, {
             message: "Invalid phone number format. Mobile should start with +639 followed by 9 unique digits. Landline should be +63 followed by area code and 7-8 digits."
         }),
-    department: z.string().min(2, "Department must be at least 2 characters").max(100, "Department must not exceed 100 characters"),
-    position: z.string().min(2, "Position must be at least 2 characters").max(100, "Position must not exceed 100 characters"),
-    hiredDate: z.string(),
-    region: z.string(),
-    province: z.string(),
-    city: z.string(),
-    barangay: z.string(),
-    postalCode: z.string(),
-    street: z.string(),
-    houseNumber: z.string(),
+    department: z.string().min(2, "Department must be at least 2 characters").max(50, "Department must not exceed 50 characters"),
+    position: z.string().min(2, "Position must be at least 2 characters").max(50, "Position must not exceed 50 characters"),
+    hiredDate: z.string().max(50, "Hired date must not exceed 50 characters"),
+    region: z.string().max(50, "Region must not exceed 50 characters"),
+    province: z.string().max(50, "Province must not exceed 50 characters"),
+    city: z.string().max(50, "City must not exceed 50 characters"),
+    barangay: z.string().max(50, "Barangay must not exceed 50 characters"),
+    postalCode: z.string().max(50, "Postal code must not exceed 50 characters"),
+    street: z.string().max(50, "Street must not exceed 50 characters"),
+    houseNumber: z.string().max(50, "House number must not exceed 50 characters"),
     ratePerDay: z.number()
         .min(300, "Rate per day must be at least ₱300")
         .max(5000, "Rate per day cannot exceed ₱5,000")
         .positive("Rate per day must be greater than 0"),
     philHealthNumber: z.string()
+        .max(50, "PhilHealth number must not exceed 50 characters")
         .regex(/^\d{2}-\d{9}-\d{1}$/, {
             message: "Invalid PhilHealth number format. Should be XX-XXXXXXXXX-X"
         }),
     pagIbigNumber: z.string()
+        .max(50, "Pag-IBIG number must not exceed 50 characters")
         .regex(/^\d{4}-\d{4}-\d{4}$/, {
             message: "Invalid Pag-IBIG number format. Should be XXXX-XXXX-XXXX"
         }),
     sssNumber: z.string()
+        .max(50, "SSS number must not exceed 50 characters")
         .regex(/^\d{2}-\d{7}-\d{1}$/, {
             message: "Invalid SSS number format. Should be XX-XXXXXXX-X"
         }),
-    birTin: z.string(),
+    birTin: z.string().max(50, "BIR TIN must not exceed 50 characters"),
     philHealthContribution: z.number().nonnegative("PhilHealth contribution cannot be negative"),
     pagIbigContribution: z.number().nonnegative("Pag-IBIG contribution cannot be negative"),
     sssContribution: z.number().nonnegative("SSS contribution cannot be negative"),
@@ -121,6 +123,7 @@ export const employeeFormSchema: z.ZodObject<any> = z.object({
     sssSchedule: z.enum(["1st half", "2nd half"]),
     incomeTaxSchedule: z.enum(["1st half", "2nd half"]),
     employeeTypeId: z.string()
+        .max(50, "Employee ID must not exceed 50 characters")
         .regex(/^\d{4}\d{3}\d{4}$/, {
             message: "Invalid employee ID format. Should be YYYY-MMM-SSMS format"
         }),
@@ -133,27 +136,25 @@ export const editEmployeeSchema = z.object({
         .min(2, "First name must be at least 2 characters *")
         .max(50, "First name must not exceed 50 characters *")
         .regex(nameRegex, "First name must contain only letters, spaces, hyphens and apostrophes *"),
-    middleName: z.string()
-        .regex(nameRegex, "Middle name must contain only letters, spaces, hyphens and apostrophes *")
-        .optional(),
+    middleName: z.optional(z.string().max(50, "Middle name must not exceed 50 characters *")),
     lastName: z.string()
         .min(2, "Last name must be at least 2 characters *")
         .max(50, "Last name must not exceed 50 characters *")
         .regex(nameRegex, "Last name must contain only letters, spaces, hyphens and apostrophes *"),
-    image: z.string().optional(),
+    image: z.string().max(50, "Image URL must not exceed 50 characters *").optional(),
     maritalStatus: z.enum(["single", "married", "widowed", "divorced", "separated"], {
         required_error: "Marital status is required *"
     }),
-    department: z.string().min(2, "Department must be at least 2 characters *").max(100, "Department must not exceed 100 characters *"),
-    position: z.string().min(2, "Position must be at least 2 characters *").max(100, "Position must not exceed 100 characters *"),
-    hiredDate: z.string().min(1, "Hired date is required *"),
-    region: z.string().min(1, "Region is required *"),
-    province: z.string().min(1, "Province is required *"),
-    city: z.string().min(1, "City is required *"),
-    barangay: z.string().min(1, "Barangay is required *"),
-    postalCode: z.string().min(1, "Postal code is required *"),
-    street: z.string().min(1, "Street is required *"),
-    houseNumber: z.string().min(1, "House number is required *"),
+    department: z.string().min(2, "Department must be at least 2 characters *").max(50, "Department must not exceed 50 characters *"),
+    position: z.string().min(2, "Position must be at least 2 characters *").max(50, "Position must not exceed 50 characters *"),
+    hiredDate: z.string().min(1, "Hired date is required *").max(50, "Hired date must not exceed 50 characters *"),
+    region: z.string().min(1, "Region is required *").max(50, "Region must not exceed 50 characters *"),
+    province: z.string().min(1, "Province is required *").max(50, "Province must not exceed 50 characters *"),
+    city: z.string().min(1, "City is required *").max(50, "City must not exceed 50 characters *"),
+    barangay: z.string().min(1, "Barangay is required *").max(50, "Barangay must not exceed 50 characters *"),
+    postalCode: z.string().min(1, "Postal code is required *").max(50, "Postal code must not exceed 50 characters *"),
+    street: z.string().min(1, "Street is required *").max(50, "Street must not exceed 50 characters *"),
+    houseNumber: z.string().min(1, "House number is required *").max(50, "House number must not exceed 50 characters *"),
     ratePerDay: z.number({
         required_error: "Rate per day is required *",
         invalid_type_error: "Rate per day must be a number *"
@@ -163,20 +164,23 @@ export const editEmployeeSchema = z.object({
         .positive("Rate per day must be greater than 0 *"),
     philHealthNumber: z.string()
         .min(1, "PhilHealth number is required *")
+        .max(50, "PhilHealth number must not exceed 50 characters *")
         .regex(/^\d{2}-\d{9}-\d{1}$/, {
             message: "Invalid PhilHealth number format. Should be XX-XXXXXXXXX-X *"
         }),
     pagIbigNumber: z.string()
         .min(1, "Pag-IBIG number is required *")
+        .max(50, "Pag-IBIG number must not exceed 50 characters *")
         .regex(/^\d{4}-\d{4}-\d{4}$/, {
             message: "Invalid Pag-IBIG number format. Should be XXXX-XXXX-XXXX *"
         }),
     sssNumber: z.string()
         .min(1, "SSS number is required *")
+        .max(50, "SSS number must not exceed 50 characters *")
         .regex(/^\d{2}-\d{7}-\d{1}$/, {
             message: "Invalid SSS number format. Should be XX-XXXXXXX-X *"
         }),
-    birTin: z.string().min(1, "BIR TIN is required *"),
+    birTin: z.string().min(1, "BIR TIN is required *").max(50, "BIR TIN must not exceed 50 characters *"),
     philHealthContribution: z.number({
         required_error: "PhilHealth contribution is required *",
         invalid_type_error: "PhilHealth contribution must be a number *"

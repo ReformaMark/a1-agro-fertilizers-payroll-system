@@ -119,6 +119,7 @@ export function PayrollStep({ form }: FormStepProps) {
                 type="number"
                 {...field}
                 onChange={(e) => field.onChange(Number(e.target.value))}
+                maxLength={50}
               />
             </FormControl>
 
@@ -180,6 +181,7 @@ export function PayrollStep({ form }: FormStepProps) {
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     placeholder="Enter amount"
+                    maxLength={50}
                   />
                 </FormControl>
 
@@ -274,6 +276,7 @@ export function PayrollStep({ form }: FormStepProps) {
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     placeholder="Enter amount"
+                    maxLength={50}
                   />
                 </FormControl>
 
@@ -362,6 +365,7 @@ export function PayrollStep({ form }: FormStepProps) {
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     placeholder="Enter amount"
+                    maxLength={50}
                   />
                 </FormControl>
 
@@ -419,7 +423,7 @@ export function PayrollStep({ form }: FormStepProps) {
                 </FormLabel>
 
                 <FormControl>
-                  <Input {...field} placeholder="Enter BIR TIN" />
+                  <Input {...field} placeholder="Enter BIR TIN" maxLength={50} />
                 </FormControl>
 
                 <FormMessage />
@@ -442,6 +446,7 @@ export function PayrollStep({ form }: FormStepProps) {
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     placeholder="Enter amount"
+                    maxLength={50}
                   />
                 </FormControl>
 

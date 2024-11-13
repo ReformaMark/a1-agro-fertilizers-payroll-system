@@ -73,6 +73,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
               <Input
                 type="number"
                 placeholder="0.00"
+                maxLength={50}
                 {...field}
                 onChange={e => field.onChange(e.target.valueAsNumber)}
               />
@@ -98,7 +99,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
                     const formatted = formatPhilHealthNumber(e.target.value);
                     field.onChange(formatted);
                   }}
-                  maxLength={14} // 12 digits + 2 hyphens
+                  maxLength={50}
                 />
               </FormControl>
               <FormMessage />
@@ -148,7 +149,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
                     const formatted = formatPagIbigNumber(e.target.value);
                     field.onChange(formatted);
                   }}
-                  maxLength={14} // 12 digits + 2 hyphens
+                  maxLength={50}
                 />
               </FormControl>
               <FormMessage />
@@ -198,7 +199,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
                     const formatted = formatSSSNumber(e.target.value);
                     field.onChange(formatted);
                   }}
-                  maxLength={12} // 10 digits + 2 hyphens
+                  maxLength={50}
                 />
               </FormControl>
               <FormMessage />
@@ -240,7 +241,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>BIR TIN <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="BIR TIN" {...field} />
+                <Input placeholder="BIR TIN" maxLength={50} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -284,6 +285,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
                 <Input
                   type="number"
                   placeholder="0.00"
+                  maxLength={50}
                   {...field}
                   onChange={e => field.onChange(e.target.valueAsNumber)}
                 />
@@ -303,6 +305,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
                 <Input
                   type="number"
                   placeholder="0.00"
+                  maxLength={50}
                   {...field}
                   onChange={e => field.onChange(e.target.valueAsNumber)}
                 />
@@ -324,6 +327,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
                 <Input
                   type="number"
                   placeholder="0.00"
+                  maxLength={50}
                   {...field}
                   onChange={e => field.onChange(e.target.valueAsNumber)}
                 />
@@ -343,6 +347,7 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
                 <Input
                   type="number"
                   placeholder="0.00"
+                  maxLength={50}
                   {...field}
                   onChange={e => field.onChange(e.target.valueAsNumber)}
                 />

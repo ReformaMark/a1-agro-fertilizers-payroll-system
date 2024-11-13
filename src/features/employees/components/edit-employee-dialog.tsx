@@ -65,10 +65,6 @@ export function EditEmployeeDialog({
         userId: employee._id,
     }) || { data: null };
 
-    // const [imageStorageId, setImageStorageId] = useState<Id<"_storage"> | undefined>(
-    //     employee.image as Id<"_storage"> | undefined
-    // );
-
     const currentEmployee = employeeData || employee;
 
     const form = useForm<EditEmployeeValues>({
@@ -334,7 +330,7 @@ export function EditEmployeeDialog({
                                                     <FormItem>
                                                         <FormLabel>First Name</FormLabel>
                                                         <FormControl>
-                                                            <Input {...field} />
+                                                            <Input maxLength={50} {...field} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -347,7 +343,7 @@ export function EditEmployeeDialog({
                                                     <FormItem>
                                                         <FormLabel>Middle Name</FormLabel>
                                                         <FormControl>
-                                                            <Input {...field} />
+                                                            <Input maxLength={50} {...field} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -360,7 +356,7 @@ export function EditEmployeeDialog({
                                                     <FormItem>
                                                         <FormLabel>Last Name</FormLabel>
                                                         <FormControl>
-                                                            <Input {...field} />
+                                                            <Input maxLength={50} {...field} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>

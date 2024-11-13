@@ -64,6 +64,7 @@ export function AddressStep({ form }: FormStepProps) {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleProvinceChange = async (provinceCode: string) => {
     form.setValue('city', '')
     form.setValue('barangay', '')
@@ -71,7 +72,7 @@ export function AddressStep({ form }: FormStepProps) {
     setBarangays([])
     
     try {
-      const cityData = await fetchCities(provinceCode)
+      const cityData = await fetchCities(form.getValues('region'),)
       setCities(cityData)
     } catch (error) {
       console.error('Error fetching cities:', error)
@@ -166,6 +167,7 @@ export function AddressStep({ form }: FormStepProps) {
                     value="Metro Manila" 
                     disabled 
                     className="bg-muted"
+                    maxLength={50}
                   />
                 </FormControl>
               ) : (
@@ -271,7 +273,7 @@ export function AddressStep({ form }: FormStepProps) {
             <FormItem>
               <FormLabel>Street <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="Street" {...field} />
+                <Input placeholder="Street" maxLength={50} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -285,7 +287,7 @@ export function AddressStep({ form }: FormStepProps) {
             <FormItem>
               <FormLabel>House Number <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="House No." {...field} />
+                <Input placeholder="House No." maxLength={50} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -305,6 +307,7 @@ export function AddressStep({ form }: FormStepProps) {
                 {...field} 
                 disabled 
                 className="bg-muted"
+                maxLength={50}
               />
             </FormControl>
             <FormMessage />

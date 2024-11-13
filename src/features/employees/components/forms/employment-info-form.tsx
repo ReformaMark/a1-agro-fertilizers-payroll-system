@@ -20,7 +20,7 @@ export function EmploymentInfoForm({ form }: EmploymentInfoFormProps) {
             <FormItem>
               <FormLabel>Department <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="Human Resources" {...field} />
+                <Input placeholder="Human Resources" {...field} maxLength={50} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -34,7 +34,7 @@ export function EmploymentInfoForm({ form }: EmploymentInfoFormProps) {
             <FormItem>
               <FormLabel>Position <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="HR Manager" {...field} />
+                <Input placeholder="HR Manager" {...field} maxLength={50} />
               </FormControl>
               <FormMessage />
             </FormItem>

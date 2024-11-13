@@ -56,7 +56,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
             <FormItem>
               <FormLabel>First Name <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="John" {...field} />
+                <Input placeholder="John" {...field} maxLength={50}/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -70,7 +70,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
             <FormItem>
               <FormLabel>Last Name <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="Doe" {...field} />
+                <Input placeholder="Doe" {...field} maxLength={50} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -85,7 +85,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           <FormItem>
             <FormLabel>Middle Name <span className="">(Optional)</span></FormLabel>
             <FormControl>
-              <Input placeholder="(Optional)" {...field} />
+              <Input placeholder="(Optional)" {...field} maxLength={50} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -100,7 +100,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
             <FormItem>
               <FormLabel>Email <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input type="email" placeholder="john.doe@example.com" {...field} />
+                <Input type="email" placeholder="john.doe@example.com" {...field} maxLength={50} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -118,6 +118,7 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
                   <Input
                     type={showPassword ? "text" : "password"}
                     {...field}
+                    maxLength={25}
                   />
                   <Button
                     type="button"
@@ -247,14 +248,17 @@ export function PersonalInfoForm({ form }: PersonalInfoFormProps) {
           name="contactNumber"
           render={({ field }) => {
             const watchContactType = form.watch("contactType")
+            const placeholder = PHONE_PLACEHOLDERS[watchContactType as keyof typeof PHONE_PLACEHOLDERS] || "Enter contact number"
+            const maxLength = placeholder.replace(/\s/g, '').length
             return (
               <FormItem>
                 <FormLabel>Contact Number <span className="text-red-500">*</span></FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={PHONE_PLACEHOLDERS[watchContactType as keyof typeof PHONE_PLACEHOLDERS] || "Enter contact number"}
+                    placeholder={placeholder}
                     pattern={PHONE_PATTERNS[watchContactType as keyof typeof PHONE_PATTERNS]?.source}
                     {...field}
+                    maxLength={maxLength}
                   />
                 </FormControl>
                 <FormMessage />

@@ -68,7 +68,7 @@ export function AddressInfoForm({ form }: AddressInfoFormProps) {
     form.setValue('barangay', '')
     form.setValue('postalCode', '')
     
-    const cityData = await fetchCities(provinceCode)
+    const cityData = await fetchCities(form.getValues('region'),)
     setCities(cityData)
   }
 
@@ -169,6 +169,7 @@ export function AddressInfoForm({ form }: AddressInfoFormProps) {
                     value="Metro Manila" 
                     disabled 
                     className="bg-muted"
+                    maxLength={50}
                   />
                 </FormControl>
               ) : (
@@ -274,7 +275,7 @@ export function AddressInfoForm({ form }: AddressInfoFormProps) {
             <FormItem>
               <FormLabel>Street <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="Street" {...field} />
+                <Input placeholder="Street" {...field} maxLength={50} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -288,7 +289,7 @@ export function AddressInfoForm({ form }: AddressInfoFormProps) {
             <FormItem>
               <FormLabel>House Number <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="House No." {...field} />
+                <Input placeholder="House No." {...field} maxLength={50} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -306,6 +307,7 @@ export function AddressInfoForm({ form }: AddressInfoFormProps) {
                   placeholder="Postal Code" 
                   {...field} 
                   disabled 
+                  maxLength={50}
                 />
               </FormControl>
               <FormMessage />

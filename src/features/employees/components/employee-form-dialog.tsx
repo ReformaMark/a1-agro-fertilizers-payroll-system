@@ -46,6 +46,7 @@ export function EmployeeFormDialog() {
             _id: undefined,
             image: undefined,
             employeeTypeId: generateEmployeeId(),
+            middleName: "",
             philHealthSchedule: "1st half",
             pagIbigSchedule: "1st half",
             sssSchedule: "1st half",
