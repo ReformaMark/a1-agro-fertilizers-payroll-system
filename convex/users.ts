@@ -323,6 +323,8 @@ export const updateEmployee = mutation({
 
   handler: async (ctx, args) => {
     const adminId = await getAuthUserId(ctx);
+    const userSalaryComponents = await ctx.db.query("salaryComponents").filter((q) => q.eq(q.field("userId"), args.userId)).collect()
+
 
     if (!adminId) throw new ConvexError("Not authenticated");
 
@@ -351,6 +353,7 @@ export const updateEmployee = mutation({
 
       modifiedAt: new Date().toISOString(),
     });
+
 
     // Create audit log entry
 

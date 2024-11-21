@@ -31,10 +31,11 @@ export default function PayrollReport() {
     }  
     const [selectedDate, setSelectedDate] = useState<string>(getCurrentDate())
 
+   
     const { start, end } = useMemo(() => {
         return getCurrentTimePeriod(new Date(selectedDate))
     }, [selectedDate])
-
+    console.log(start, end)
     const salaryComponents = useQuery(api.salaryComponents.listByPayrollPeriod, {
         startDate: formatDate(start),
         endDate: formatDate(end)
