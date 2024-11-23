@@ -19,6 +19,7 @@ function Summary({data}:{data:SalaryComponent[]}) {
     const sssContribution = data.reduce((acc, curr) => acc + (curr.governmentContributions.sss ?? 0), 0)
     const philHealthContribution = data.reduce((acc, curr) => acc + (curr.governmentContributions.philHealth ?? 0), 0)
     const pagibigContribution = data.reduce((acc, curr) => acc + (curr.governmentContributions.pagIbig ?? 0), 0)
+    const totalGovernmentContributions = sssContribution + philHealthContribution + pagibigContribution
    
     const sssCalamityLoan = loans?.find(loan => loan.applicationType === 'SSS Calamity' && isCurrentPeriod(loan))?.amortization ?? 0
     const sssSalaryLoan = loans?.find(loan => loan.applicationType === 'SSS Salary' && isCurrentPeriod(loan))?.amortization ?? 0
@@ -26,7 +27,7 @@ function Summary({data}:{data:SalaryComponent[]}) {
     const pagibigCalamityLoan = loans?.find(loan => loan.applicationType === 'Pagibig Calamity' && isCurrentPeriod(loan))?.amortization ?? 0
 
     const totalDeductions = data.reduce((acc, curr) => acc + (curr.deductions?.reduce((acc, curr) => acc + curr.amount, 0) ?? 0), 0)
-    const totalNetPay = totalGrossIncome - totalDeductions - (sssCalamityLoan + sssSalaryLoan + pagibigLoan + pagibigCalamityLoan)
+    const totalNetPay = totalGrossIncome - totalDeductions - (sssCalamityLoan + sssSalaryLoan + pagibigLoan + pagibigCalamityLoan) - totalGovernmentContributions
     if(!data) return null
   return (
     <tfoot>

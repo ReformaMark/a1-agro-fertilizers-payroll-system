@@ -18,12 +18,13 @@ function PayrollTable({
     const [open, setOpen] = useState<boolean>(false)
     const loans = useQuery(api.loans.getGovernmentLoans,{})
 
-    function isCurrentPeriod(loan: any) {
-        const currentDate = new Date();
-        const isFirstHalf = currentDate.getDate() <= 15;
+    function isCurrentPeriod(loan: any, date: Date) {
+        const isFirstHalf = date.getDate() <= 15;
         const cutOffSchedule = isFirstHalf ? '1st half' : '2nd half';
         return loan.monthlySchedule === cutOffSchedule;
     }
+
+
   return (
     <table className=''>
          <thead className="bg-gray-50">
@@ -47,10 +48,13 @@ function PayrollTable({
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
                 {!datas ? <tr><td colSpan={13} className="px-6 py-4 whitespace-nowrap text-xs text-center">No data found</td></tr> : datas?.map((data)=>{
-                    const sssCalamityLoan = loans?.find(loan => loan.userId === data.userId && loan.applicationType === 'SSS Calamity' && isCurrentPeriod(loan))?.amortization ?? 0
-                    const sssSalaryLoan = loans?.find(loan => loan.userId === data.userId && loan.applicationType === 'SSS Salary' && isCurrentPeriod(loan))?.amortization ?? 0
-                    const pagibigLoan = loans?.find(loan => loan.userId === data.userId &&  loan.applicationType === 'Pagibig Multi-purpose' && isCurrentPeriod(loan))?.amortization ?? 0
-                    const pagibigCalamityLoan = loans?.find(loan => loan.userId === data.userId && loan.applicationType === 'Pagibig Calamity' && isCurrentPeriod(loan))?.amortization ?? 0
+                     const convexDate = new Date(data._creationTime)
+                     console.log(convexDate)
+                    const sssCalamityLoan = loans?.find(loan => loan.userId === data.userId && loan.applicationType === 'SSS Calamity' && isCurrentPeriod(loan, convexDate))?.amortization ?? 0
+                    const sssSalaryLoan = loans?.find(loan => loan.userId === data.userId && loan.applicationType === 'SSS Salary' && isCurrentPeriod(loan, convexDate))?.amortization ?? 0
+                    const pagibigLoan = loans?.find(loan => loan.userId === data.userId &&  loan.applicationType === 'Pagibig Multi-purpose' && isCurrentPeriod(loan, convexDate))?.amortization ?? 0
+                    const pagibigCalamityLoan = loans?.find(loan => loan.userId === data.userId && loan.applicationType === 'Pagibig Calamity' && isCurrentPeriod(loan, convexDate))?.amortization ?? 0
+
                     return (
                         <tr key={data.employee.employeeTypeId}>
                             <td className="px-6 py-4 whitespace-nowrap text-xs">{data.employee.employeeTypeId}</td>
@@ -66,7 +70,7 @@ function PayrollTable({
                             <td className="px-6 py-4 whitespace-nowrap text-xs">{formatMoney(pagibigLoan)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-xs">{formatMoney(pagibigCalamityLoan)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-xs">{formatMoney(data.deductions.reduce((total, d) => total + d.amount, 0))}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-xs">{formatMoney(data.netPay - calculateTotalDeductions(data as any, loans ?? []))}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-xs">{formatMoney((data.netPay - calculateTotalDeductions(data as any, loans ?? [])) - (data.governmentContributions.sss + data.governmentContributions.philHealth + data.governmentContributions.pagIbig))}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-xs">
                                 <Dialog open={open} onOpenChange={setOpen}>
                                     <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>Payslip</Button>

@@ -220,7 +220,6 @@ export const timeOut = mutation({
       const totalHours = (timeOutHours <= 13 ? timeOutHours : timeOutHours - 1) - timeInHours;
       const overtimeHours = Math.floor(Math.max(0, timeOutHours - 17)); // Only count hours after 5 PM (17:00)
 
- 
       const ratePerHour = employeeRatePerDay / 8
      
       const grossPay = (totalHours - overtimeHours) * ratePerHour
@@ -260,6 +259,45 @@ export const timeOut = mutation({
           netPay: netpay
         });
       } else {
+        const isFirstHalf = (date: Date) => date.getDate() <= 15;
+
+        const currentUser = await ctx.db.get(args.userId);
+        if (!currentUser) {
+          throw new Error("User not found");
+        }
+
+        const convexDate = new Date();
+        const isSalaryFirstHalf = isFirstHalf(convexDate);
+
+        const contributionSchedules = {
+          pagIbig: currentUser?.pagIbigSchedule,
+          tax: currentUser?.incomeTaxSchedule,
+          sss: currentUser?.sssSchedule,
+          philHealth: currentUser?.philHealthSchedule,
+        };
+
+        const contributions = {
+          pagIbig: currentUser?.pagIbigContribution || 0,
+          tax:currentUser?.incomeTax || 0,
+          sss: currentUser?.sssContribution || 0,
+          philHealth: currentUser?.philHealthContribution || 0,
+        };
+
+        const governmentContributions = Object.fromEntries(
+          Object.entries(contributionSchedules).map(([key, schedule]) => {
+            const isFirstHalfSchedule = schedule === '1st half';
+            const isSecondHalfSchedule = schedule === '2nd half';
+            const contribution = contributions[key as keyof typeof contributions];
+            return [
+              key,
+              (isSalaryFirstHalf && isFirstHalfSchedule) || (!isSalaryFirstHalf && isSecondHalfSchedule)
+                ? contribution
+                : 0,
+            ];
+          })
+        );
+
+        const { pagIbig, tax, sss, philHealth } = governmentContributions;
 
         await ctx.db.insert("salaryComponents", {
           userId: args.userId,
@@ -267,19 +305,16 @@ export const timeOut = mutation({
           basicPay: grossPay,
           hoursWorked: totalHours,
           allowances: [],
-          deductions: lateDeduction > 0 ? [{
-            type: "Late",
-            amount: lateDeduction
-          }] : [],
+          deductions: lateDeduction > 0 ? [{ type: "Late", amount: lateDeduction }] : [],
           governmentContributions: {
-            sss:0,
-            philHealth: 0,
-            pagIbig: 0,
-            tax: 0
+            sss: sss,
+            philHealth: philHealth,
+            pagIbig: pagIbig,
+            tax: tax,
           },
           overtime: overtimePay,
-          netPay: grossPay + (overtimePay?.amount || 0) , 
-          additionalCompensation: []
+          netPay: grossPay + (overtimePay?.amount || 0),
+          additionalCompensation: [],
         });
       }
 
