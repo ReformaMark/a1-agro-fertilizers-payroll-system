@@ -61,6 +61,23 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
     }
   };
 
+  // Function to format BIR TIN as user types
+  const formatBirTin = (value: string = "") => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Format as XXX-XXX-XXX-XXX
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length <= 6) {
+      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    } else if (digits.length <= 9) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    } else {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 9)}-${digits.slice(9, 12)}`;
+    }
+  };
+
   return (
     <div className="grid gap-4 py-4">
       <FormField
@@ -241,7 +258,16 @@ export function PayrollInfoForm({ form }: PayrollInfoFormProps) {
             <FormItem>
               <FormLabel>BIR TIN <span className="text-red-500">*</span></FormLabel>
               <FormControl>
-                <Input placeholder="BIR TIN" maxLength={50} {...field} />
+                <Input 
+                  placeholder="XXX-XXX-XXX-XXX"
+                  {...field}
+                  value={formatBirTin(field.value || "")}
+                  onChange={(e) => {
+                    const formatted = formatBirTin(e.target.value);
+                    field.onChange(formatted);
+                  }}
+                  maxLength={50}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

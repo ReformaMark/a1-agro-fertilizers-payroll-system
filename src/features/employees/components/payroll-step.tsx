@@ -77,6 +77,23 @@ export function PayrollStep({ form }: FormStepProps) {
     }
   };
 
+  // Function to format BIR TIN as user types
+  const formatBirTin = (value: string = "") => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, "");
+    
+    // Format as XXX-XXX-XXX-XXX
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length <= 6) {
+      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    } else if (digits.length <= 9) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    } else {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 9)}-${digits.slice(9, 12)}`;
+    }
+  };
+
   // Add validation feedback
 
   const formErrors = form.formState.errors;
@@ -423,7 +440,15 @@ export function PayrollStep({ form }: FormStepProps) {
                 </FormLabel>
 
                 <FormControl>
-                  <Input {...field} placeholder="Enter BIR TIN" maxLength={50} />
+                  <Input 
+                    placeholder="XXX-XXX-XXX-XXX"
+                    {...field}
+                    value={formatBirTin(field.value || "")}
+                    onChange={(e) => {
+                      handleFieldChange(field, e.target.value, formatBirTin);
+                    }}
+                    maxLength={15} // 12 digits + 3 hyphens
+                  />
                 </FormControl>
 
                 <FormMessage />
